@@ -359,6 +359,8 @@ const WHITE_DAYS_LOADING_WEEK_SUMMARY: WhiteDaysFastWeekSummary = {
   monthlyStreak: 0,
   motivationalQuoteKey: "upcoming",
   motivationalQuote: "---",
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 const MISSED_RAMADAN_LOADING_WEEK_SUMMARY: MissedRamadanFastWeekSummary = {
@@ -372,6 +374,8 @@ const MISSED_RAMADAN_LOADING_WEEK_SUMMARY: MissedRamadanFastWeekSummary = {
   upcomingPlannedThisWeek: 0,
   motivationalQuote: "---",
   showPreviousWeekStat: false,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 const PROPHET_DAWOOD_LOADING_WEEK_SUMMARY: ProphetDawoodFastWeekSummary = {
@@ -383,6 +387,8 @@ const PROPHET_DAWOOD_LOADING_WEEK_SUMMARY: ProphetDawoodFastWeekSummary = {
   streakDays: 0,
   hasMissedDawoodFast: false,
   motivationalQuoteKey: "inProgress",
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 const MONDAY_THURSDAY_LOADING_WEEK_SUMMARY: MondayThursdayFastWeekSummary = {
@@ -400,6 +406,8 @@ const MONDAY_THURSDAY_LOADING_WEEK_SUMMARY: MondayThursdayFastWeekSummary = {
   motivationalQuoteKey: "planNext",
   motivationalQuote: "---",
   showPreviousWeekStat: false,
+  vsLastWeek: null,
+  vsLastWeekDisplay: null,
 };
 
 function getFastingFrameActiveWeek(

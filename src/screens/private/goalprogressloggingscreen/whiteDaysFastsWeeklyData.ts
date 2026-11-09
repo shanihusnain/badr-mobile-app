@@ -63,6 +63,10 @@ export type WhiteDaysFastWeekSummary = {
   motivationalQuoteParams?: { day?: number; count?: number };
   /** Optional API message; UI prefers local 3-line copy when key is set. */
   motivationalQuote?: string;
+  /** Frame `comparison` signed delta; `null` = week 1 / no comparison. */
+  vsLastWeek: number | null;
+  /** Frame `comparison.label` for the footer badge. */
+  vsLastWeekDisplay: string | null;
 };
 
 export type WhiteDaysFastCycleSummary = {
@@ -354,6 +358,8 @@ function buildWeekSummary(
     completedFastsThisWeek: countCompletedWhiteDaysInWeek(weekStart, weekEnd),
     monthlyStreak: computeMonthlyStreak(today),
     ...buildWhiteDaysMotivationalQuoteMeta(today),
+    vsLastWeek: null,
+    vsLastWeekDisplay: null,
   };
 }
 

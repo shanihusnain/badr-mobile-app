@@ -77,9 +77,12 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
       0,
     );
 
-  const vsLastWeek = weekSummary.showPreviousWeekStat
-    ? weekSummary.weekOverWeekDelta
-    : null;
+  const vsLastWeek =
+    weekSummary.vsLastWeek !== undefined
+      ? weekSummary.vsLastWeek
+      : weekSummary.showPreviousWeekStat
+        ? weekSummary.weekOverWeekDelta
+        : null;
 
   const motivationalQuote = useMemo(() => {
     if (loading) return "---";
@@ -168,6 +171,7 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
       streakDays={weekSummary.streakWeeks}
       streakLabelText={streakLabelText}
       vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={weekSummary.vsLastWeekDisplay}
       motivationalQuote={motivationalQuote}
       selectedDayIndex={defaultSelectedIndex}
       onDayPress={onDayPress}

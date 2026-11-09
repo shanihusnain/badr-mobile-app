@@ -29,6 +29,116 @@ function normalizeDate(date: string | null | undefined): string {
   return String(date ?? "").slice(0, 10);
 }
 
+type FastingFrameComparison = {
+  current?: number | null;
+  previous?: number | null;
+  delta?: number | null;
+  direction?: string | null;
+  label?: string | null;
+  [key: string]: unknown;
+};
+
+function getFastingFrameComparison(
+  frame: FastingGoalFrameData,
+): FastingFrameComparison | null {
+  const comparison = frame.week?.comparison;
+  if (comparison == null || typeof comparison !== "object") return null;
+  return comparison as FastingFrameComparison;
+}
+
+/** Full-sentence API labels — footer must not append "vs. last week". */
+export function isFastingStandaloneComparisonLabel(
+  label: string | null | undefined,
+): boolean {
+  const trimmed = label?.trim() ?? "";
+  if (!trimmed) return false;
+  return (
+    /^same\b/i.test(trimmed) ||
+    /\bmatch(?:es)?\s+last\s+week\b/i.test(trimmed) ||
+    /\blast\s+week\b/i.test(trimmed)
+  );
+}
+
+/**
+ * Signed week-over-week delta for the weekly footer caret.
+ * `null` = week 1 / no comparison. DOWN → negative, UP → positive.
+ * NEUTRAL / zero delta → `0` (weeks 2–4 layout, no caret).
+ */
+export function getFastingFrameVsLastWeekDelta(
+  frame: FastingGoalFrameData,
+): number | null {
+  const comparison = getFastingFrameComparison(frame);
+  if (!comparison) return null;
+
+  const direction = String(comparison.direction ?? "")
+    .trim()
+    .toUpperCase();
+  const deltaRaw =
+    typeof comparison.delta === "number" && Number.isFinite(comparison.delta)
+      ? comparison.delta
+      : null;
+
+  if (deltaRaw != null) {
+    const magnitude = Math.abs(deltaRaw);
+    if (
+      magnitude === 0 ||
+      direction === "FLAT" ||
+      direction === "NEUTRAL" ||
+      direction === "SAME" ||
+      direction === "UNCHANGED" ||
+      direction === "EQUAL"
+    ) {
+      return 0;
+    }
+    if (direction === "DOWN") return -magnitude;
+    if (direction === "UP") return magnitude;
+    return deltaRaw;
+  }
+
+  const current =
+    typeof comparison.current === "number" && Number.isFinite(comparison.current)
+      ? comparison.current
+      : null;
+  const previous =
+    typeof comparison.previous === "number" &&
+    Number.isFinite(comparison.previous)
+      ? comparison.previous
+      : null;
+  if (current != null && previous != null) {
+    return current - previous;
+  }
+
+  // Comparison object present (e.g. "Fasts match last week") → later-week layout.
+  return 0;
+}
+
+/**
+ * Prefer API `label` for the comparison badge.
+ * Standalone labels ("Fasts match last week", "Same …") returned as-is.
+ * Other labels strip a trailing "vs. last week" so the footer appends it once.
+ */
+export function getFastingFrameVsLastWeekDisplay(
+  frame: FastingGoalFrameData,
+): string | null {
+  const comparison = getFastingFrameComparison(frame);
+  if (!comparison) return null;
+
+  const label = comparison.label?.trim();
+  if (label) {
+    if (isFastingStandaloneComparisonLabel(label)) return label;
+    const stripped = label
+      .replace(/\s+vs\.?\s+last\s+week\s*$/i, "")
+      .trim();
+    if (stripped) return stripped;
+  }
+
+  if (typeof comparison.delta === "number" && Number.isFinite(comparison.delta)) {
+    return String(Math.abs(comparison.delta));
+  }
+
+  return null;
+}
+
 /** Other-goal booking fields for weekly day rings. */
 function getBookedOtherGoalFields(day: FastingGoalFrameDay): {
   bookedFor: string | null;
@@ -532,16 +642,19 @@ export function mapMissedRamadanFrameWeekSummary(
   const motivationalQuote = getFastingFrameMotivationalQuote(frame);
 
   const weekIndex = Math.max(0, (frame.week.weekNumber ?? 1) - 1);
-  const comparison = frame.week.comparison as
-    | { delta?: number; previousWeekCompleted?: number }
-    | null
-    | undefined;
+  const vsLastWeek = getFastingFrameVsLastWeekDelta(frame);
+  const vsLastWeekDisplay = getFastingFrameVsLastWeekDisplay(frame);
+  const comparison = getFastingFrameComparison(frame);
   const previousWeekCompletedCount =
-    typeof comparison?.previousWeekCompleted === "number"
-      ? Math.max(0, comparison.previousWeekCompleted)
-      : typeof comparison?.delta === "number"
-        ? Math.max(0, completedFastsThisWeek - comparison.delta)
-        : 0;
+    typeof comparison?.previous === "number" &&
+    Number.isFinite(comparison.previous)
+      ? Math.max(0, Math.round(comparison.previous))
+      : typeof comparison?.previousWeekCompleted === "number" &&
+          Number.isFinite(comparison.previousWeekCompleted)
+        ? Math.max(0, Math.round(comparison.previousWeekCompleted as number))
+        : vsLastWeek != null
+          ? Math.max(0, completedFastsThisWeek - vsLastWeek)
+          : 0;
 
   return {
     weekDays,
@@ -555,7 +668,9 @@ export function mapMissedRamadanFrameWeekSummary(
     motivationalQuote:
       motivationalQuote ||
       "Make up what you owe with sincerity — every fast counts.",
-    showPreviousWeekStat: weekIndex > 0,
+    showPreviousWeekStat: vsLastWeek != null,
+    vsLastWeek,
+    vsLastWeekDisplay,
   };
 }
 
@@ -653,38 +768,6 @@ export function mapMondayThursdayFrameDay(
   };
 }
 
-function getFastingFrameWeekOverWeekDelta(
-  frame: FastingGoalFrameData,
-): { delta: number; previousWeekCompletedCount: number } {
-  const comparison = frame.week?.comparison;
-  if (comparison == null || typeof comparison !== "object") {
-    return { delta: 0, previousWeekCompletedCount: 0 };
-  }
-
-  const record = comparison as Record<string, unknown>;
-  const deltaRaw =
-    record.delta ??
-    record.weekOverWeekDelta ??
-    record.vsLastWeek ??
-    record.change;
-  const previousRaw =
-    record.previousWeekCompletedCount ??
-    record.previousCompleted ??
-    record.previousWeekTotal ??
-    record.lastWeekCompleted;
-
-  const delta =
-    typeof deltaRaw === "number" && Number.isFinite(deltaRaw)
-      ? Math.round(deltaRaw)
-      : 0;
-  const previousWeekCompletedCount =
-    typeof previousRaw === "number" && Number.isFinite(previousRaw)
-      ? Math.max(0, Math.round(previousRaw))
-      : 0;
-
-  return { delta, previousWeekCompletedCount };
-}
-
 export function mapMondayThursdayFrameWeekSummary(
   frame: FastingGoalFrameData,
 ): MondayThursdayFastWeekSummary {
@@ -707,8 +790,15 @@ export function mapMondayThursdayFrameWeekSummary(
   const plannedFastsThisWeek = weekDays.filter((day) => day.isSelected).length;
   const motivationalQuote = getFastingFrameMotivationalQuote(frame);
   const achievementPct = getFastingFrameAchievementPct(frame);
-  const { delta: weekOverWeekDelta, previousWeekCompletedCount } =
-    getFastingFrameWeekOverWeekDelta(frame);
+  const vsLastWeek = getFastingFrameVsLastWeekDelta(frame);
+  const vsLastWeekDisplay = getFastingFrameVsLastWeekDisplay(frame);
+  const comparison = getFastingFrameComparison(frame);
+  const previousWeekCompletedCount =
+    typeof comparison?.previous === "number" &&
+    Number.isFinite(comparison.previous)
+      ? Math.max(0, Math.round(comparison.previous))
+      : 0;
+  const weekOverWeekDelta = vsLastWeek ?? 0;
 
   let motivationalQuoteKey: MondayThursdayFastWeekSummary["motivationalQuoteKey"] =
     "planNext";
@@ -738,7 +828,9 @@ export function mapMondayThursdayFrameWeekSummary(
       percent: achievementPct,
       week: frame.week.weekNumber ?? 1,
     },
-    showPreviousWeekStat: weekOverWeekDelta !== 0,
+    showPreviousWeekStat: vsLastWeek != null,
+    vsLastWeek,
+    vsLastWeekDisplay,
     motivationalQuote: motivationalQuote || undefined,
   };
 }
@@ -762,6 +854,8 @@ export function mapWhiteDaysFrameWeekSummary(
     monthlyStreak: getFastingFrameWeekStreakDays(frame),
     ...quoteMeta,
     motivationalQuote: motivationalQuote || undefined,
+    vsLastWeek: getFastingFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getFastingFrameVsLastWeekDisplay(frame),
   };
 }
 
@@ -908,5 +1002,8 @@ export function mapProphetDawoodFrameWeekSummary(
     streakDays,
     hasMissedDawoodFast,
     motivationalQuoteKey,
+    motivationalQuote: getFastingFrameMotivationalQuote(frame) || undefined,
+    vsLastWeek: getFastingFrameVsLastWeekDelta(frame),
+    vsLastWeekDisplay: getFastingFrameVsLastWeekDisplay(frame),
   };
 }

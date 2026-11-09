@@ -11,6 +11,7 @@ type JournalSectionProps = {
   questions: JournalFillingQuestion[];
   answers: Record<string, JournalAnswerValue>;
   onAnswerChange: (questionId: string, answer: JournalAnswerValue) => void;
+  disabled?: boolean;
 };
 
 function JournalSectionComponent({
@@ -18,6 +19,7 @@ function JournalSectionComponent({
   questions,
   answers,
   onAnswerChange,
+  disabled = false,
 }: JournalSectionProps) {
   return (
     <View style={styles.container}>
@@ -38,6 +40,7 @@ function JournalSectionComponent({
             answer={answers[question.id] ?? null}
             onAnswerChange={onAnswerChange}
             showBottomBorder={showBottomBorder}
+            disabled={disabled}
           />
         );
       })}

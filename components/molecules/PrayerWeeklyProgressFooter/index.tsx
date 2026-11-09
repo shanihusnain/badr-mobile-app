@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AimIcon, LighteningIcon } from "@/assets/icons";
+import { width } from "@/src/screens/private/more/style";
 
 export type PrayerWeeklyProgressFooterComparisonVariant =
   | "onTime"
@@ -164,6 +165,7 @@ export function PrayerWeeklyProgressFooter({
         <View
           style={[
             styles.footerRowWeekOne,
+            !compactWeekOneQuote && styles.footerRowWeekOneFullWidth,
             compactWeekOneQuote && styles.footerRowWeekOneCompact,
           ]}
         >
@@ -215,7 +217,9 @@ export function PrayerWeeklyProgressFooter({
               comparisonCountLabel
             ) : (
               <>
-                <Text style={styles.comparisonCount}>{comparisonCountLabel}</Text>
+                <Text style={styles.comparisonCount}>
+                  {comparisonCountLabel}
+                </Text>
                 {` ${t(comparisonSuffixKey)}`}
               </>
             )}
@@ -257,8 +261,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
     gap: 20,
-    width: "100%",
     minWidth: 0,
+  },
+  /** Full-width week-one row for prayers / non–White Days fasting goals. */
+  footerRowWeekOneFullWidth: {
+    width: "100%",
+    // flex: 1,
   },
   footerRowWeekOneCompact: {
     gap: 28,

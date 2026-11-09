@@ -6,15 +6,16 @@ import {
   getJournalDay,
   journalDayQueryKey,
   type JournalDayData,
+  type JournalDayDayItem,
 } from "@/src/api/queries/useGetJournalDay";
+import {
+  getJournalCalendar,
+  JOURNAL_CALENDAR_QUERY_KEY,
+  journalCalendarQueryKey,
+} from "@/src/api/queries/useGetJournalCalendar";
 import { useUpdateJournalDay } from "@/src/api/mutations/useUpdateJournalDay";
-import { useGetMe } from "@/src/api/queries/useGetMe";
-import { useGetGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
 import {
   addDays,
-  buildDateKeysBetween,
-  clampDateKeyToRange,
-  getMonthStartDateKey,
   getMonthName,
   getWeekdayShort,
   isYesterday,
@@ -67,6 +68,22 @@ function emptyDraft(): JournalDraftState {
   return { answers: {}, notes: "" };
 }
 
+function normalizeDayItems(
+  days: JournalDayDayItem[] | null | undefined,
+): JournalDayDayItem[] {
+  if (!Array.isArray(days)) return [];
+  return days
+    .filter((day) => typeof day?.date === "string" && day.date.trim())
+    .map((day) => ({
+      date: day.date.trim().slice(0, 10),
+      isYesterday: Boolean(day.isYesterday),
+      answeredCount:
+        typeof day.answeredCount === "number" ? day.answeredCount : 0,
+      isComplete: Boolean(day.isComplete),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export function useJournalFillingProps({
   initialDateKey,
   userName = "Mariam",
@@ -76,20 +93,23 @@ export function useJournalFillingProps({
   const { mutateAsync: updateJournalDay } = useUpdateJournalDay();
   const today = useMemo(() => startOfDay(new Date()), []);
   const todayKey = toDateKey(today);
-
-  const { data: meUser } = useGetMe();
-  const goalCycleId = meUser?.goalCycleId ?? null;
-  const { data: goalCycle } = useGetGoalCycleById(goalCycleId);
-  const cycleStartDateKey = goalCycle?.startDate ?? null;
-  const cycleEndDateKey = goalCycle?.endDate ?? null;
+  const yesterdayKey = toDateKey(addDays(today, -1));
 
   const [sections, setSections] = useState<JournalFillingSection[]>([]);
-  const [selectedDateKey, setSelectedDateKey] = useState(
-    initialDateKey ?? todayKey,
+  // Opening "today" from home still logs yesterday — API remaps today → yesterday.
+  const [selectedDateKey, setSelectedDateKey] = useState(() => {
+    const key = initialDateKey?.trim().slice(0, 10);
+    if (!key || key === todayKey) return yesterdayKey;
+    return key;
+  });
+  const [availableDays, setAvailableDays] = useState<JournalDayDayItem[]>([]);
+  const [journalStartDateKey, setJournalStartDateKey] = useState<string | null>(
+    null,
   );
+  const [canLog, setCanLog] = useState(true);
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [calendarMonthDateKey, setCalendarMonthDateKey] = useState(() =>
-    getMonthStartDateKey(initialDateKey ?? toDateKey(today)),
+  const [calendarWindowStartKey, setCalendarWindowStartKey] = useState(
+    () => initialDateKey?.trim().slice(0, 10) || yesterdayKey,
   );
   const [calendarCompletionMap, setCalendarCompletionMap] = useState<
     Record<string, boolean>
@@ -113,52 +133,134 @@ export function useJournalFillingProps({
     useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
+  const availableDateKeys = useMemo(
+    () => availableDays.map((day) => day.date),
+    [availableDays],
+  );
+
+  const availableDateKeySet = useMemo(
+    () => new Set(availableDateKeys),
+    [availableDateKeys],
+  );
+
+  const resolveCycleStartKey = useCallback(
+    (data?: JournalDayData | null, dayItems?: JournalDayDayItem[]) => {
+      const fromApi = data?.startDate?.trim().slice(0, 10);
+      if (fromApi) return fromApi;
+      if (dayItems && dayItems.length > 0) return dayItems[0].date;
+      if (availableDays.length > 0) return availableDays[0].date;
+      if (journalStartDateKey) return journalStartDateKey;
+      return selectedDateKey;
+    },
+    [availableDays, journalStartDateKey, selectedDateKey],
+  );
+
+  const calendarWindowEndKey = useMemo(
+    () => toDateKey(addDays(parseDateKey(calendarWindowStartKey), 27)),
+    [calendarWindowStartKey],
+  );
+
   const applyDayData = useCallback((dateKey: string, data: JournalDayData) => {
+    const apiDate = data.date?.trim().slice(0, 10) || dateKey;
     const nextDraft = mapJournalDayToDraft(data);
+    const dayItems = normalizeDayItems(data.days);
     setSections(mapJournalDayToSections(data));
     setDraft(nextDraft);
     setSavedDraft(nextDraft);
     setHasSavedEntry(Boolean(data.lastSavedAt) || data.answeredCount > 0);
-    setCompletionMap((previous) => ({
-      ...previous,
-      [dateKey]: data.isComplete,
-    }));
-    setCalendarCompletionMap((previous) => ({
-      ...previous,
-      [dateKey]: data.isComplete,
-    }));
+    setCanLog(data.canLog !== false);
+
+    const cycleStart =
+      data.startDate?.trim().slice(0, 10) ||
+      (dayItems.length > 0 ? dayItems[0].date : null);
+    if (cycleStart) {
+      setJournalStartDateKey(cycleStart);
+    }
+
+    const isDayFilled = (day: JournalDayDayItem) =>
+      day.isComplete || day.answeredCount > 0;
+    const currentDayFilled =
+      data.isComplete || data.answeredCount > 0;
+
+    if (dayItems.length > 0) {
+      setAvailableDays(dayItems);
+      setCompletionMap((previous) => {
+        const next = { ...previous };
+        for (const day of dayItems) {
+          next[day.date] = day.isComplete;
+        }
+        next[apiDate] = data.isComplete;
+        return next;
+      });
+      // Calendar green dots: any journal day that has been filled from API days[].
+      setCalendarCompletionMap((previous) => {
+        const next = { ...previous };
+        for (const day of dayItems) {
+          next[day.date] = isDayFilled(day);
+        }
+        next[apiDate] = currentDayFilled;
+        return next;
+      });
+    } else {
+      setCompletionMap((previous) => ({
+        ...previous,
+        [apiDate]: data.isComplete,
+      }));
+      setCalendarCompletionMap((previous) => ({
+        ...previous,
+        [apiDate]: currentDayFilled,
+      }));
+    }
+
+    // API may remap today → yesterday (data.date). Keep title/selection in sync with payload.
+    if (apiDate !== dateKey) {
+      setSelectedDateKey(apiDate);
+    }
   }, []);
 
-  useEffect(() => {
-    if (!cycleStartDateKey || !cycleEndDateKey) return;
-    setSelectedDateKey((current) =>
-      clampDateKeyToRange(current, cycleStartDateKey, cycleEndDateKey),
-    );
-  }, [cycleStartDateKey, cycleEndDateKey]);
-
   const dateCapsules = useMemo<JournalDateCapsule[]>(() => {
-    const dateKeys =
-      cycleStartDateKey && cycleEndDateKey
-        ? buildDateKeysBetween(cycleStartDateKey, cycleEndDateKey)
-        : [selectedDateKey];
+    const sourceDays: JournalDayDayItem[] =
+      availableDays.length > 0
+        ? [...availableDays]
+        : [
+            {
+              date: selectedDateKey,
+              isYesterday: selectedDateKey === yesterdayKey,
+              answeredCount: 0,
+              isComplete: Boolean(completionMap[selectedDateKey]),
+            },
+          ];
 
-    return dateKeys.map((dateKey) => {
-      const date = parseDateKey(dateKey);
+    // Keep today's dashed border visible even when API days[] omits today.
+    if (!sourceDays.some((day) => day.date === todayKey)) {
+      sourceDays.push({
+        date: todayKey,
+        isYesterday: false,
+        answeredCount: 0,
+        isComplete: Boolean(completionMap[todayKey]),
+      });
+    }
+
+    return sourceDays.map((day) => {
+      const date = parseDateKey(day.date);
       return {
-        date: dateKey,
+        date: day.date,
         weekdayLabel: getWeekdayShort(date),
         dayOfMonth: date.getDate(),
-        isSelected: dateKey === selectedDateKey,
-        isToday: dateKey === todayKey,
-        isCompleted: Boolean(completionMap[dateKey]),
+        isSelected: day.date === selectedDateKey,
+        isToday: day.date === todayKey,
+        isCompleted:
+          completionMap[day.date] !== undefined
+            ? Boolean(completionMap[day.date])
+            : day.isComplete,
       };
     });
   }, [
+    availableDays,
     completionMap,
-    cycleEndDateKey,
-    cycleStartDateKey,
     selectedDateKey,
     todayKey,
+    yesterdayKey,
   ]);
 
   const screenTitle = useMemo(() => {
@@ -180,10 +282,34 @@ export function useJournalFillingProps({
     [draft, savedDraft],
   );
 
-  const loadCalendarCompletion = useCallback((_monthAnyDateKey: string) => {
-    // No range completion API yet — dots come from days already loaded/saved.
-    setIsLoadingCalendar(false);
-  }, []);
+  const loadCalendarCompletion = useCallback(
+    async (fromKey: string, toKey: string) => {
+      setIsLoadingCalendar(true);
+      try {
+        const data = await queryClient.fetchQuery({
+          queryKey: journalCalendarQueryKey(fromKey, toKey),
+          queryFn: () => getJournalCalendar(fromKey, toKey),
+        });
+
+        setCalendarCompletionMap((previous) => {
+          const next = { ...previous };
+          for (const day of data?.days ?? []) {
+            const date = day.date?.trim().slice(0, 10);
+            if (!date) continue;
+            next[date] =
+              Boolean(day.isComplete) ||
+              (typeof day.answeredCount === "number" && day.answeredCount > 0);
+          }
+          return next;
+        });
+      } catch (error) {
+        console.error("Error loading journal calendar:", error);
+      } finally {
+        setIsLoadingCalendar(false);
+      }
+    },
+    [queryClient],
+  );
 
   const loadEntryForDate = useCallback(
     async (dateKey: string) => {
@@ -200,6 +326,7 @@ export function useJournalFillingProps({
         setDraft(emptyDraft());
         setSavedDraft(emptyDraft());
         setHasSavedEntry(false);
+        setCanLog(false);
       } finally {
         setIsLoadingEntry(false);
       }
@@ -232,35 +359,52 @@ export function useJournalFillingProps({
   }, []);
 
   const openCalendar = useCallback(() => {
-    const monthStartKey = getMonthStartDateKey(selectedDateKey);
-    setCalendarMonthDateKey(monthStartKey);
+    const cycleStart = resolveCycleStartKey();
+    // Snap the 28-day window so the selected date (or cycle start) is visible.
+    const selected = parseDateKey(selectedDateKey);
+    const base = parseDateKey(cycleStart);
+    const diffDays = Math.floor(
+      (selected.getTime() - base.getTime()) / (24 * 60 * 60 * 1000),
+    );
+    const cycleIndex = diffDays >= 0 ? Math.floor(diffDays / 28) : 0;
+    const windowStart = toDateKey(addDays(base, cycleIndex * 28));
+    const windowEnd = toDateKey(addDays(parseDateKey(windowStart), 27));
+    setCalendarWindowStartKey(windowStart);
     setCalendarVisible(true);
-    loadCalendarCompletion(monthStartKey);
-  }, [loadCalendarCompletion, selectedDateKey]);
+    void loadCalendarCompletion(windowStart, windowEnd);
+  }, [loadCalendarCompletion, resolveCycleStartKey, selectedDateKey]);
 
   const closeCalendar = useCallback(() => {
     setCalendarVisible(false);
   }, []);
 
-  const shiftCalendarMonth = useCallback(
-    (deltaMonths: number) => {
-      const d = parseDateKey(calendarMonthDateKey);
-      const next = new Date(d.getFullYear(), d.getMonth() + deltaMonths, 1);
-      const nextMonthKey = toDateKey(next);
-      setCalendarMonthDateKey(nextMonthKey);
-      loadCalendarCompletion(nextMonthKey);
+  const shiftCalendarWindow = useCallback(
+    (deltaCycles: number) => {
+      const nextStart = toDateKey(
+        addDays(parseDateKey(calendarWindowStartKey), deltaCycles * 28),
+      );
+      const nextEnd = toDateKey(addDays(parseDateKey(nextStart), 27));
+      setCalendarWindowStartKey(nextStart);
+      void loadCalendarCompletion(nextStart, nextEnd);
     },
-    [calendarMonthDateKey, loadCalendarCompletion],
+    [calendarWindowStartKey, loadCalendarCompletion],
+  );
+
+  const resolveSelectableDateKey = useCallback(
+    (dateKey: string): string | null => {
+      const normalized = dateKey.trim().slice(0, 10);
+      if (!normalized) return null;
+      if (availableDateKeySet.size === 0) return normalized;
+      if (!availableDateKeySet.has(normalized)) return null;
+      return normalized;
+    },
+    [availableDateKeySet],
   );
 
   const handleSelectDate = useCallback(
     (dateKey: string) => {
-      const nextDateKey =
-        cycleStartDateKey && cycleEndDateKey
-          ? clampDateKeyToRange(dateKey, cycleStartDateKey, cycleEndDateKey)
-          : dateKey;
-
-      if (nextDateKey === selectedDateKey) return;
+      const nextDateKey = resolveSelectableDateKey(dateKey);
+      if (!nextDateKey || nextDateKey === selectedDateKey) return;
 
       if (hasChanges && !hideDiscardDialogPreference) {
         setPendingDateKey(nextDateKey);
@@ -273,32 +417,45 @@ export function useJournalFillingProps({
     },
     [
       applyDateChange,
-      cycleEndDateKey,
-      cycleStartDateKey,
       hasChanges,
       hideDiscardDialogPreference,
+      resolveSelectableDateKey,
       selectedDateKey,
     ],
   );
 
   const handlePreviousDay = useCallback(() => {
-    handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), -1)));
-  }, [handleSelectDate, selectedDateKey]);
+    if (availableDateKeys.length === 0) {
+      handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), -1)));
+      return;
+    }
+    const index = availableDateKeys.indexOf(selectedDateKey);
+    if (index <= 0) return;
+    handleSelectDate(availableDateKeys[index - 1]);
+  }, [availableDateKeys, handleSelectDate, selectedDateKey]);
 
   const handleNextDay = useCallback(() => {
-    handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), 1)));
-  }, [handleSelectDate, selectedDateKey]);
+    if (availableDateKeys.length === 0) {
+      handleSelectDate(toDateKey(addDays(parseDateKey(selectedDateKey), 1)));
+      return;
+    }
+    const index = availableDateKeys.indexOf(selectedDateKey);
+    if (index < 0 || index >= availableDateKeys.length - 1) return;
+    handleSelectDate(availableDateKeys[index + 1]);
+  }, [availableDateKeys, handleSelectDate, selectedDateKey]);
 
   const handleCalendarDayPress = useCallback(
     (dateKey: string) => {
+      if (!resolveSelectableDateKey(dateKey)) return;
       closeCalendar();
       handleSelectDate(dateKey);
     },
-    [closeCalendar, handleSelectDate],
+    [closeCalendar, handleSelectDate, resolveSelectableDateKey],
   );
 
   const handleAnswerChange = useCallback(
     (questionId: string, answer: JournalAnswerValue) => {
+      if (!canLog) return;
       setDraft((current) => ({
         ...current,
         answers: {
@@ -307,12 +464,16 @@ export function useJournalFillingProps({
         },
       }));
     },
-    [],
+    [canLog],
   );
 
-  const handleNotesChange = useCallback((notes: string) => {
-    setDraft((current) => ({ ...current, notes }));
-  }, []);
+  const handleNotesChange = useCallback(
+    (notes: string) => {
+      if (!canLog) return;
+      setDraft((current) => ({ ...current, notes }));
+    },
+    [canLog],
+  );
 
   const handleToggleDontShowAgain = useCallback(() => {
     setDontShowDiscardAgain((current) => !current);
@@ -354,7 +515,7 @@ export function useJournalFillingProps({
   ]);
 
   const handleSave = useCallback(async () => {
-    if (!hasChanges || isSaving) return;
+    if (!canLog || !hasChanges || isSaving) return;
 
     setIsSaving(true);
 
@@ -377,6 +538,10 @@ export function useJournalFillingProps({
         setHasSavedEntry(true);
       }
 
+      await queryClient.invalidateQueries({
+        queryKey: [JOURNAL_CALENDAR_QUERY_KEY],
+      });
+
       setShowSuccessToast(true);
 
       setTimeout(() => {
@@ -389,9 +554,11 @@ export function useJournalFillingProps({
     }
   }, [
     applyDayData,
+    canLog,
     draft,
     hasChanges,
     isSaving,
+    queryClient,
     selectedDateKey,
     updateJournalDay,
   ]);
@@ -418,15 +585,18 @@ export function useJournalFillingProps({
     screenTitle,
     draft,
     hasChanges,
+    canLog,
     isLoadingEntry,
     isSaving,
     calendarVisible,
-    calendarMonthDateKey,
+    calendarWindowStartKey,
+    calendarWindowEndKey,
     calendarCompletionMap,
+    availableDateKeys,
     isLoadingCalendar,
     openCalendar,
     closeCalendar,
-    shiftCalendarMonth,
+    shiftCalendarWindow,
     handleCalendarDayPress,
     showEdit: true,
     showDiscardDialog,

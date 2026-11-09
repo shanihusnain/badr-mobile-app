@@ -75,10 +75,13 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
       0,
     );
 
-  const vsLastWeek = weekSummary.showPreviousWeekStat
-    ? weekSummary.completedFastsThisWeek -
-      weekSummary.previousWeekCompletedCount
-    : null;
+  const vsLastWeek =
+    weekSummary.vsLastWeek !== undefined
+      ? weekSummary.vsLastWeek
+      : weekSummary.showPreviousWeekStat
+        ? weekSummary.completedFastsThisWeek -
+          weekSummary.previousWeekCompletedCount
+        : null;
 
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
@@ -120,6 +123,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
       weekFraction={weekSummary.weekFraction}
       streakDays={weekSummary.streakDays}
       vsLastWeek={vsLastWeek}
+      vsLastWeekDisplay={weekSummary.vsLastWeekDisplay}
       motivationalQuote={
         loading ? "---" : weekSummary.motivationalQuote
       }

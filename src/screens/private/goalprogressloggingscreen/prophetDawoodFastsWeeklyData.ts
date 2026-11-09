@@ -64,6 +64,12 @@ export type ProphetDawoodFastWeekSummary = {
     | "completedToday"
     | "missed"
     | "streakGrowing";
+  /** When set (frame API), overrides key-based copy. */
+  motivationalQuote?: string;
+  /** Frame `comparison` signed delta; `null` = week 1 / no comparison. */
+  vsLastWeek: number | null;
+  /** Frame `comparison.label` for the footer badge. */
+  vsLastWeekDisplay: string | null;
 };
 
 export type ProphetDawoodFastCycleSummary = {
@@ -498,6 +504,8 @@ function buildWeekSummary(
     streakDays,
     hasMissedDawoodFast: history.hasMissedDawoodFast,
     ...buildMotivationalQuoteMeta(today, history, streakDays),
+    vsLastWeek: null,
+    vsLastWeekDisplay: null,
   };
 }
 

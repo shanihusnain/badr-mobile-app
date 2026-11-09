@@ -17,6 +17,7 @@ type JournalQuestionRowProps = {
   answer: JournalAnswerValue;
   onAnswerChange: (questionId: string, answer: JournalAnswerValue) => void;
   showBottomBorder?: boolean;
+  disabled?: boolean;
 };
 
 function JournalQuestionRowComponent({
@@ -25,16 +26,19 @@ function JournalQuestionRowComponent({
   answer,
   onAnswerChange,
   showBottomBorder = true,
+  disabled = false,
 }: JournalQuestionRowProps) {
   const handleNoPress = useCallback(() => {
+    if (disabled) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onAnswerChange(questionId, answer === false ? null : false);
-  }, [answer, onAnswerChange, questionId]);
+  }, [answer, disabled, onAnswerChange, questionId]);
 
   const handleYesPress = useCallback(() => {
+    if (disabled) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onAnswerChange(questionId, answer === true ? null : true);
-  }, [answer, onAnswerChange, questionId]);
+  }, [answer, disabled, onAnswerChange, questionId]);
 
   return (
     <View style={[styles.row, !showBottomBorder && styles.rowNoBorder]}>
@@ -44,11 +48,13 @@ function JournalQuestionRowComponent({
           variant="no"
           selected={answer === false}
           onPress={handleNoPress}
+          disabled={disabled}
         />
         <AnswerButton
           variant="yes"
           selected={answer === true}
           onPress={handleYesPress}
+          disabled={disabled}
         />
       </View>
     </View>
@@ -59,21 +65,29 @@ type AnswerButtonProps = {
   variant: "yes" | "no";
   selected: boolean;
   onPress: () => void;
+  disabled?: boolean;
 };
 
-function AnswerButton({ variant, selected, onPress }: AnswerButtonProps) {
+function AnswerButton({
+  variant,
+  selected,
+  onPress,
+  disabled = false,
+}: AnswerButtonProps) {
   const isYes = variant === "yes";
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={[
         styles.button,
         selected &&
           (isYes ? styles.buttonYesSelected : styles.buttonNoSelected),
+        disabled && styles.buttonDisabled,
       ]}
       accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
       accessibilityLabel={isYes ? "Yes" : "No"}
       hitSlop={4}
     >
@@ -132,6 +146,9 @@ const styles = StyleSheet.create({
   },
   buttonNoSelected: {
     backgroundColor: Colors.light.green,
+  },
+  buttonDisabled: {
+    opacity: 0.45,
   },
 });
 

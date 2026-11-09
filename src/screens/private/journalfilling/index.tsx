@@ -33,6 +33,7 @@ export function JournalFillingScreen() {
     screenTitle,
     draft,
     hasChanges,
+    canLog,
     isLoadingEntry,
     isSaving,
     showEdit,
@@ -59,12 +60,14 @@ export function JournalFillingScreen() {
     discardDialogDismiss,
     successMessage,
     calendarVisible,
-    calendarMonthDateKey,
+    calendarWindowStartKey,
+    calendarWindowEndKey,
     calendarCompletionMap,
+    availableDateKeys,
     isLoadingCalendar,
     openCalendar,
     closeCalendar,
-    shiftCalendarMonth,
+    shiftCalendarWindow,
     handleCalendarDayPress,
   } = useJournalFillingProps({ initialDateKey });
 
@@ -84,9 +87,10 @@ export function JournalFillingScreen() {
         questions={section.questions}
         answers={draft.answers}
         onAnswerChange={handleAnswerChange}
+        disabled={!canLog}
       />
     ),
-    [draft.answers, handleAnswerChange],
+    [canLog, draft.answers, handleAnswerChange],
   );
 
   return (
@@ -115,12 +119,14 @@ export function JournalFillingScreen() {
       <JournalCalendarModal
         visible={calendarVisible}
         selectedDateKey={selectedDateKey}
-        calendarMonthDateKey={calendarMonthDateKey}
+        windowStartDateKey={calendarWindowStartKey}
+        windowEndDateKey={calendarWindowEndKey}
         completionMap={calendarCompletionMap}
+        availableDateKeys={availableDateKeys}
         isLoading={isLoadingCalendar}
         onClose={closeCalendar}
-        onPrevMonth={() => shiftCalendarMonth(-1)}
-        onNextMonth={() => shiftCalendarMonth(1)}
+        onPrevWindow={() => shiftCalendarWindow(-1)}
+        onNextWindow={() => shiftCalendarWindow(1)}
         onSelectDate={handleCalendarDayPress}
       />
 
@@ -144,12 +150,13 @@ export function JournalFillingScreen() {
               value={draft.notes}
               onChangeText={handleNotesChange}
               placeholder={notesPlaceholder}
+              editable={canLog}
             />
           </KeyboardAwareScrollView>
 
           <JournalSaveButton
             label={saveLabel}
-            disabled={!hasChanges}
+            disabled={!canLog || !hasChanges}
             loading={isSaving}
             bottomInset={insets.bottom}
             onPress={handleSave}

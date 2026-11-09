@@ -8,53 +8,66 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Calendar, type DateData } from "react-native-calendars";
 import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { getMonthName, parseDateKey } from "../journalFillingDateUtils";
-import { FastingLegendItem } from "@/src/screens/private/home/components/FastingLegendItem";
-import type { FastingLegendEntry } from "@/src/screens/private/home/fastingLegend";
-import { TopSpace } from "@/components/atoms/TopSpace";
+import {
+  buildCycleWeeks,
+  getJournalDateRangeLabel,
+  parseDateKey,
+} from "../journalFillingDateUtils";
+
+/** Match fasting CalendarGrid day footprint. */
+const DAY_CELL_WIDTH = 36;
+const DAY_CELL_HEIGHT = 48;
+const DAY_MARKER_HEIGHT = 24;
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 type JournalCalendarModalProps = {
   visible: boolean;
   selectedDateKey: string;
-  calendarMonthDateKey: string;
+  windowStartDateKey: string;
+  windowEndDateKey: string;
   completionMap: Record<string, boolean>;
+  /** Dates from API `days[]` that can be selected. Empty = allow all (fallback). */
+  availableDateKeys?: string[];
   isLoading?: boolean;
   onClose: () => void;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
+  onPrevWindow: () => void;
+  onNextWindow: () => void;
   onSelectDate: (dateKey: string) => void;
 };
 
 function JournalCalendarModalComponent({
   visible,
   selectedDateKey,
-  calendarMonthDateKey,
+  windowStartDateKey,
+  windowEndDateKey,
   completionMap,
+  availableDateKeys,
   isLoading,
   onClose,
-  onPrevMonth,
-  onNextMonth,
+  onPrevWindow,
+  onNextWindow,
   onSelectDate,
 }: JournalCalendarModalProps) {
-  const monthLabel = useMemo(() => {
-    const d = parseDateKey(calendarMonthDateKey);
-    const month = getMonthName(d).toUpperCase();
-    const year = d.getFullYear();
-    return `${month} ${year}`;
-  }, [calendarMonthDateKey]);
+  const insets = useSafeAreaInsets();
+  const availableSet = useMemo(
+    () => new Set(availableDateKeys ?? []),
+    [availableDateKeys],
+  );
+  const restrictToAvailable = availableSet.size > 0;
 
-  const journalLegendEntry: FastingLegendEntry = useMemo(
-    () => ({
-      id: "journal-filled",
-      plannedLabel: "JOURNAL FILLED",
-      completedLabel: "JOURNAL FILLED",
-      color: Colors.light.green,
-    }),
-    [],
+  const rangeLabel = useMemo(
+    () => getJournalDateRangeLabel(windowStartDateKey, windowEndDateKey),
+    [windowEndDateKey, windowStartDateKey],
+  );
+
+  const weeks = useMemo(
+    () => buildCycleWeeks(windowStartDateKey, windowEndDateKey),
+    [windowEndDateKey, windowStartDateKey],
   );
 
   return (
@@ -63,15 +76,23 @@ function JournalCalendarModalComponent({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <View style={styles.modalCard}>
-          {/* Header */}
+      <Pressable
+        style={styles.overlay}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss calendar"
+      >
+        <Pressable
+          style={[styles.modalCard, { paddingTop: Math.max(insets.top, 12) }]}
+          onPress={(event) => event.stopPropagation()}
+        >
           <View style={styles.headerRow}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Previous month"
-              onPress={onPrevMonth}
+              accessibilityLabel="Previous period"
+              onPress={onPrevWindow}
               hitSlop={8}
               style={styles.arrowBtn}
             >
@@ -83,13 +104,13 @@ function JournalCalendarModalComponent({
             </Pressable>
 
             <View style={styles.monthLabelContainer}>
-              <Text style={styles.monthLabel}>{monthLabel}</Text>
+              <Text style={styles.rangeLabel}>{rangeLabel}</Text>
             </View>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Next month"
-              onPress={onNextMonth}
+              accessibilityLabel="Next period"
+              onPress={onNextWindow}
               hitSlop={8}
               style={styles.arrowBtn}
             >
@@ -101,103 +122,100 @@ function JournalCalendarModalComponent({
             </Pressable>
           </View>
 
-          {/* Legend (reuse existing calendar legend item) */}
-
-          {/* Calendar */}
           {isLoading ? (
             <View style={styles.loading}>
               <ActivityIndicator color={Colors.light.green} />
             </View>
           ) : (
-            <Calendar
-              key={`${calendarMonthDateKey}-${selectedDateKey}`}
-              current={calendarMonthDateKey}
-              hideArrows
-              renderHeader={() => null}
-              markingType="custom"
-              markedDates={{}}
-              theme={{
-                calendarBackground: "transparent",
-                dayTextColor: Colors.light.white,
-                textDisabledColor: Colors.light.white,
-                monthTextColor: Colors.light.white,
-                textSectionTitleColor: Colors.light.subtext,
-                todayTextColor: Colors.light.white,
-              }}
-              dayComponent={({ date }: { date?: DateData }) => {
-                if (!date) return <View />;
-                const ds = date.dateString;
-                const isSelected = ds === selectedDateKey;
-                const isFilled = Boolean(completionMap[ds]);
+            <View style={styles.grid}>
+              <View style={styles.weekdayHeader}>
+                {WEEKDAY_LABELS.map((label) => (
+                  <Text key={label} style={styles.weekdayLabel}>
+                    {label}
+                  </Text>
+                ))}
+              </View>
 
-                return (
-                  <>
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Journal date ${ds}`}
-                      onPress={() => onSelectDate(ds)}
-                      disabled={false}
-                    >
-                      <View
-                        style={[
-                          styles.dayCell,
-                          isSelected && styles.dayCellSelected,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.dayNumber,
-                            isSelected && styles.dayNumberSelected,
-                            {
-                              color: isFilled
-                                ? Colors.light.green
-                                : Colors.light.white,
-                            },
-                          ]}
+              {weeks.map((week, weekIndex) => (
+                <View key={`week-${weekIndex}`} style={styles.weekRow}>
+                  {week.map((dateKey, dayIndex) => {
+                    if (!dateKey) {
+                      return (
+                        <View
+                          key={`pad-${weekIndex}-${dayIndex}`}
+                          style={styles.daySlot}
                         >
-                          {date.day}
-                        </Text>
+                          <View style={styles.paddingDayCell} />
+                        </View>
+                      );
+                    }
+
+                    const isAvailable =
+                      !restrictToAvailable || availableSet.has(dateKey);
+                    const isSelected = dateKey === selectedDateKey;
+                    const isFilled = Boolean(completionMap[dateKey]);
+                    const dayNumber = parseDateKey(dateKey).getDate();
+
+                    return (
+                      <View key={dateKey} style={styles.daySlot}>
+                        <TouchableOpacity
+                          activeOpacity={isAvailable ? 0.7 : 1}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Journal date ${dateKey}`}
+                          accessibilityState={{ disabled: !isAvailable }}
+                          onPress={() => {
+                            if (!isAvailable) return;
+                            onSelectDate(dateKey);
+                          }}
+                          disabled={!isAvailable}
+                          style={styles.dayPressable}
+                        >
+                          <View
+                            style={[
+                              styles.dayCell,
+                              isSelected &&
+                                isAvailable &&
+                                styles.dayCellSelected,
+                              !isAvailable && styles.dayCellDisabled,
+                            ]}
+                          >
+                            <View style={styles.dayMarkerWrap}>
+                              <Text
+                                style={[
+                                  styles.dayNumber,
+                                  {
+                                    color: !isAvailable
+                                      ? Colors.light.grey
+                                      : isFilled
+                                        ? Colors.light.green
+                                        : Colors.light.white,
+                                  },
+                                ]}
+                              >
+                                {dayNumber}
+                              </Text>
+                            </View>
+                            <View style={styles.dotSlot}>
+                              {isFilled ? (
+                                <View style={styles.greenDot} />
+                              ) : null}
+                            </View>
+                          </View>
+                        </TouchableOpacity>
                       </View>
-                    </TouchableOpacity>
-                    <TopSpace top={10} />
-                    {isFilled ? <View style={styles.greenDot} /> : null}
-                  </>
-                );
-              }}
-              style={styles.calendar}
-            />
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
           )}
 
-          {/* Close */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            <View
-              style={{
-                height: 3,
-                width: 3,
-                borderRadius: 3,
-                backgroundColor: Colors.light.green,
-              }}
-            />
-            <Text
-              style={{
-                fontFamily: fonts.primary.semiBold,
-                fontSize: 12,
-                color: Colors.light.green,
-              }}
-            >
-              Journal Filled Out
-            </Text>
+          <View style={styles.legendRow}>
+            <View style={styles.legendDot} />
+            <Text style={styles.legendText}>Journal filled out</Text>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -206,19 +224,12 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: Colors.light.overlayMask,
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 40,
+    justifyContent: "flex-start",
   },
   modalCard: {
     backgroundColor: Colors.light.calendarBg,
     overflow: "hidden",
-    paddingTop: 12,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: 12,
+    paddingBottom: 16,
   },
   headerRow: {
     flexDirection: "row",
@@ -226,6 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 6,
+    paddingBottom: 8,
   },
   arrowBtn: {
     width: 40,
@@ -237,61 +249,112 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  monthLabel: {
+  rangeLabel: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
-    letterSpacing: 0.4,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 14,
+    textAlign: "center",
   },
-  legendContainer: {
+  grid: {
     paddingHorizontal: 16,
+    paddingTop: 4,
   },
-  calendar: {
-    paddingHorizontal: 6,
+  weekdayHeader: {
+    flexDirection: "row",
+    marginBottom: 0,
+  },
+  weekdayLabel: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 12,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    marginBottom: 8,
+  },
+  weekRow: {
+    flexDirection: "row",
   },
   loading: {
     height: 300,
     alignItems: "center",
     justifyContent: "center",
   },
-  dayCell: {
-    width: 34,
-    height: 30,
-    borderRadius: 8,
+  legendRow: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
-    backgroundColor: "transparent",
+    gap: 6,
+    paddingTop: 8,
+    paddingHorizontal: 16,
   },
-  dayCellSelected: {
-    backgroundColor: Colors.light.calendarBg,
-  },
-  dayNumber: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    color: Colors.light.white,
-  },
-  dayNumberSelected: {
-    color: Colors.light.white,
-  },
-  greenDot: {
-    position: "absolute",
-    bottom: 8,
+  legendDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: Colors.light.green,
+    flexShrink: 0,
   },
-  closeBtn: {
-    paddingVertical: 14,
+  legendText: {
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 10,
+    lineHeight: 14,
+    color: Colors.light.green,
+  },
+  daySlot: {
+    flex: 1,
     alignItems: "center",
-    backgroundColor: Colors.light.greybuttonBackground,
-    marginTop: 8,
+    justifyContent: "center",
   },
-  closeBtnText: {
-    color: Colors.light.white,
-    fontFamily: fonts.primary.semiBold,
+  dayPressable: {
+    alignSelf: "center",
+    width: DAY_CELL_WIDTH,
+  },
+  paddingDayCell: {
+    width: DAY_CELL_WIDTH,
+    height: DAY_CELL_HEIGHT,
+  },
+  dayCell: {
+    width: DAY_CELL_WIDTH,
+    height: DAY_CELL_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 0,
+    borderRadius: 5,
+    marginBottom: 7,
+  },
+  dayCellSelected: {
+    backgroundColor: Colors.light.calendarTodayBg,
+  },
+  dayCellDisabled: {
+    opacity: 0.35,
+  },
+  dayMarkerWrap: {
+    width: DAY_CELL_WIDTH,
+    height: DAY_MARKER_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dayNumber: {
     fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 14,
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.white,
+    textAlign: "center",
+  },
+  dotSlot: {
+    height: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  greenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.green,
   },
 });
 

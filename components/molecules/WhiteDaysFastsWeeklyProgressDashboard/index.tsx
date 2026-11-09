@@ -194,8 +194,10 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       weekRangeLabel={weekSummary.weekRangeLabel}
       weekFraction={weekSummary.weekFraction}
       streakDays={weekSummary.monthlyStreak}
-      vsLastWeek={null}
+      vsLastWeek={weekSummary.vsLastWeek}
+      vsLastWeekDisplay={weekSummary.vsLastWeekDisplay}
       motivationalQuote={motivationalQuote}
+      comparisonVariant="fasts"
       selectedDayIndex={defaultSelectedIndex}
       onDayPress={onDayPress}
       onPrevWeek={onPrevWeek}
