@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -12,12 +12,14 @@ import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
 import {
   StartTimeStep,
   DurationStep,
-  getCurrentStartTimeParts,
   isDurationEntered,
+  parseFlexibleTimeToStartTimeParts,
+  type StartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useGetDashboardDataForDate } from "@/src/api/queries/useGetDashboardDataForDate";
 import { getQiyamInitial } from "@/src/utils/prayerGoalMap";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
@@ -297,15 +299,37 @@ function mapQiyamSessionType(loggedTime: QiyamLoggedTime): QiyamSessionType {
 }
 
 /**
- * Before Fajr (Tahajjud) → AM only; After Isha → PM only.
- * When Tahajjud is not tracked, session is always After Isha → PM only.
+ * Tahajjud → AM only.
+ * After Isha → AM|PM (user may edit into AM; default still shows Isha/PM).
+ * When Tahajjud is not tracked, session is always After Isha → AM|PM.
  */
 function getQiyamAllowedPeriods(
   loggedTime: QiyamLoggedTime,
   trackTahajjud: boolean,
 ): ReadonlyArray<"am" | "pm"> {
-  if (!trackTahajjud) return ["pm"];
-  return loggedTime === "before-fajr" ? ["am"] : ["pm"];
+  if (!trackTahajjud) return ["am", "pm"];
+  return loggedTime === "before-fajr" ? ["am"] : ["am", "pm"];
+}
+
+const QIYAM_TAHAJJUD_DEFAULT: StartTimeParts = {
+  hour: "12",
+  minute: "00",
+  period: "am",
+};
+
+const QIYAM_AFTER_ISHA_FALLBACK: StartTimeParts = {
+  hour: "08",
+  minute: "00",
+  period: "pm",
+};
+
+/** Default start time by session — avoids seeding device "now" outside the night window. */
+function getQiyamDefaultStartTimeParts(
+  loggedTime: QiyamLoggedTime,
+  ishaParts: StartTimeParts | null,
+): StartTimeParts {
+  if (loggedTime === "before-fajr") return QIYAM_TAHAJJUD_DEFAULT;
+  return ishaParts ?? QIYAM_AFTER_ISHA_FALLBACK;
 }
 
 /** API 400 when startTime / night window is invalid for Qiyam logging. */
@@ -364,18 +388,14 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(getDefaultQiyamLogDate);
   const [prayersCount, setPrayersCount] = useState("0");
-  const [loggedTime, setLoggedTime] = useState<"after-isha" | "before-fajr">(
+  const [loggedTime, setLoggedTimeState] = useState<"after-isha" | "before-fajr">(
     "before-fajr",
   );
   const [isTimingDropdownOpen, setIsTimingDropdownOpen] = useState(false);
-  const [startHour, setStartHour] = useState(
-    () => getCurrentStartTimeParts().hour,
-  );
-  const [startMinute, setStartMinute] = useState(
-    () => getCurrentStartTimeParts().minute,
-  );
+  const [startHour, setStartHour] = useState(QIYAM_TAHAJJUD_DEFAULT.hour);
+  const [startMinute, setStartMinute] = useState(QIYAM_TAHAJJUD_DEFAULT.minute);
   const [startPeriod, setStartPeriod] = useState<"am" | "pm">(
-    () => getCurrentStartTimeParts().period,
+    QIYAM_TAHAJJUD_DEFAULT.period,
   );
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
   const [durationHours, setDurationHours] = useState("0");
@@ -385,13 +405,22 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     "Yes",
   );
   const [startTimeInvalid, setStartTimeInvalid] = useState(false);
+  /** When true, session defaults must not overwrite Witr-edit / manual prefill. */
+  const startTimeLockedRef = useRef(false);
 
   const clearStartTimeInvalid = useCallback(() => {
     setStartTimeInvalid(false);
   }, []);
 
+  const applyStartTimeParts = useCallback((parts: StartTimeParts) => {
+    setStartHour(parts.hour);
+    setStartMinute(parts.minute);
+    setStartPeriod(parts.period);
+  }, []);
+
   const handleSetStartHour = useCallback(
     (h: string) => {
+      startTimeLockedRef.current = true;
       clearStartTimeInvalid();
       setStartHour(h);
     },
@@ -399,6 +428,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   );
   const handleSetStartMinute = useCallback(
     (m: string) => {
+      startTimeLockedRef.current = true;
       clearStartTimeInvalid();
       setStartMinute(m);
     },
@@ -406,6 +436,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   );
   const handleSetStartPeriod = useCallback(
     (p: "am" | "pm") => {
+      startTimeLockedRef.current = true;
       clearStartTimeInvalid();
       setStartPeriod(p);
     },
@@ -420,6 +451,43 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   } = useGetPrayerGoalDayDetail("QIYAM_AL_LAYL", selectedDate, {
     enabled: flowMode === "active" && !!selectedDate,
   });
+
+  const { data: dashboardForDate } = useGetDashboardDataForDate(
+    flowMode === "active" ? selectedDate : "",
+  );
+
+  const ishaStartTimeParts = useMemo(() => {
+    const timeline = dashboardForDate?.prayerTimesCard?.timeline;
+    if (!Array.isArray(timeline)) return null;
+    const ishaItem = timeline.find(
+      (item) => String(item?.key ?? "").toLowerCase() === "isha",
+    );
+    return parseFlexibleTimeToStartTimeParts(ishaItem?.time ?? null);
+  }, [dashboardForDate?.prayerTimesCard?.timeline]);
+
+  const applySessionStartTimeDefault = useCallback(
+    (session: QiyamLoggedTime) => {
+      if (startTimeLockedRef.current) return;
+      applyStartTimeParts(
+        getQiyamDefaultStartTimeParts(session, ishaStartTimeParts),
+      );
+      clearStartTimeInvalid();
+    },
+    [applyStartTimeParts, clearStartTimeInvalid, ishaStartTimeParts],
+  );
+
+  const setLoggedTime = useCallback(
+    (next: QiyamLoggedTime) => {
+      setLoggedTimeState(next);
+      // Switching After Isha ↔ Tahajjud always reseeds the picker for that session.
+      startTimeLockedRef.current = false;
+      applyStartTimeParts(
+        getQiyamDefaultStartTimeParts(next, ishaStartTimeParts),
+      );
+      clearStartTimeInvalid();
+    },
+    [applyStartTimeParts, clearStartTimeInvalid, ishaStartTimeParts],
+  );
 
   const dayDetail = useMemo(() => {
     if (!isPrayerGoalDayDetailForDate(dayDetailRaw, selectedDate)) return null;
@@ -438,9 +506,14 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     trackTahajjud ??
     true;
 
+  /** When Tahajjud isn't tracked, night is always After Isha for defaults + API. */
+  const effectiveLoggedTime: QiyamLoggedTime = trackTahajjudForFlow
+    ? loggedTime
+    : "after-isha";
+
   const allowedStartPeriods = useMemo(
-    () => getQiyamAllowedPeriods(loggedTime, trackTahajjudForFlow),
-    [loggedTime, trackTahajjudForFlow],
+    () => getQiyamAllowedPeriods(effectiveLoggedTime, trackTahajjudForFlow),
+    [effectiveLoggedTime, trackTahajjudForFlow],
   );
 
   useEffect(() => {
@@ -560,9 +633,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           ? "AFTER_ISHA"
           : null);
     if (sessionType === "TAHAJJUD" || sessionType === "BEFORE_FAJR") {
-      setLoggedTime("before-fajr");
+      setLoggedTimeState("before-fajr");
     } else if (sessionType === "AFTER_ISHA") {
-      setLoggedTime("after-isha");
+      setLoggedTimeState("after-isha");
     }
 
     const duration =
@@ -580,36 +653,25 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
     const startRaw =
       dayDetail.witr?.startTime ?? dayDetail.night?.startTime ?? null;
-    if (startRaw) {
-      const match = String(startRaw)
-        .trim()
-        .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-      if (match) {
-        let hourNum = Number.parseInt(match[1], 10);
-        const minuteNum = Number.parseInt(match[2], 10);
-        let period: "am" | "pm" =
-          match[3]?.toLowerCase() === "pm"
-            ? "pm"
-            : match[3]?.toLowerCase() === "am"
-              ? "am"
-              : "am";
-        if (!match[3] && hourNum >= 0 && hourNum <= 23) {
-          period = hourNum >= 12 ? "pm" : "am";
-          hourNum = hourNum % 12 || 12;
-        }
-        if (
-          hourNum >= 1 &&
-          hourNum <= 12 &&
-          minuteNum >= 0 &&
-          minuteNum <= 59
-        ) {
-          setStartHour(String(hourNum).padStart(2, "0"));
-          setStartMinute(String(minuteNum).padStart(2, "0"));
-          setStartPeriod(period);
-        }
-      }
+    const parsed = parseFlexibleTimeToStartTimeParts(startRaw);
+    if (parsed) {
+      startTimeLockedRef.current = true;
+      applyStartTimeParts(parsed);
     }
-  }, [isZeroPrayersWitrEdit, dayDetail]);
+  }, [applyStartTimeParts, isZeroPrayersWitrEdit, dayDetail]);
+
+  // Once Isha loads for After Isha, upgrade from the 8:00 PM fallback (unless locked).
+  useEffect(() => {
+    if (flowMode !== "active") return;
+    if (effectiveLoggedTime !== "after-isha") return;
+    if (!ishaStartTimeParts) return;
+    applySessionStartTimeDefault("after-isha");
+  }, [
+    applySessionStartTimeDefault,
+    effectiveLoggedTime,
+    flowMode,
+    ishaStartTimeParts,
+  ]);
 
   useEffect(() => {
     if (stepIndex >= flowSteps.length) {
@@ -618,6 +680,26 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   }, [flowSteps.length, stepIndex]);
   const currentStep = flowSteps[stepIndex] ?? flowSteps[0];
   const isLastStep = stepIndex === flowSteps.length - 1;
+
+  // Re-apply session default the first time user lands on start-time for this session/date.
+  const lastStartTimeStepSessionRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (flowMode !== "active") {
+      lastStartTimeStepSessionRef.current = null;
+      return;
+    }
+    if (currentStep !== "start-time") return;
+    const key = `${selectedDate}:${effectiveLoggedTime}`;
+    if (lastStartTimeStepSessionRef.current === key) return;
+    lastStartTimeStepSessionRef.current = key;
+    applySessionStartTimeDefault(effectiveLoggedTime);
+  }, [
+    applySessionStartTimeDefault,
+    currentStep,
+    effectiveLoggedTime,
+    flowMode,
+    selectedDate,
+  ]);
   const canGoForward = !dayDetailLoadingState && !isLastStep;
   const dateLabel = useMemo(
     () =>
@@ -662,18 +744,18 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
     setStepIndex(0);
     setSelectedDate(getDefaultQiyamLogDate());
     setPrayersCount("0");
-    setLoggedTime("before-fajr");
+    setLoggedTimeState("before-fajr");
     setIsTimingDropdownOpen(false);
-    setStartHour("02");
-    setStartMinute("00");
-    setStartPeriod("am");
+    startTimeLockedRef.current = false;
+    lastStartTimeStepSessionRef.current = null;
+    applyStartTimeParts(QIYAM_TAHAJJUD_DEFAULT);
     setDurationHours("0");
     setDurationMinutes("0");
     setPrayedWitr("No");
     setConcludedWithWitr("Yes");
     setIsPeriodDropdownOpen(false);
     setStartTimeInvalid(false);
-  }, []);
+  }, [applyStartTimeParts]);
 
   const goToStartTimeStepWithError = useCallback(() => {
     const startTimeIndex = flowSteps.indexOf("start-time");
@@ -761,12 +843,21 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   };
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
-    const now = getCurrentStartTimeParts();
-    setStartHour(now.hour);
-    setStartMinute(now.minute);
-    setStartPeriod(now.period);
+    startTimeLockedRef.current = false;
+    lastStartTimeStepSessionRef.current = null;
+    const session: QiyamLoggedTime = trackTahajjud ? loggedTime : "after-isha";
+    applyStartTimeParts(
+      getQiyamDefaultStartTimeParts(session, ishaStartTimeParts),
+    );
     setFlowMode("active");
-  }, [frameLoading, isFullyAchieved]);
+  }, [
+    applyStartTimeParts,
+    frameLoading,
+    isFullyAchieved,
+    ishaStartTimeParts,
+    loggedTime,
+    trackTahajjud,
+  ]);
 
   const isDropdownOpen =
     flowMode === "active" &&

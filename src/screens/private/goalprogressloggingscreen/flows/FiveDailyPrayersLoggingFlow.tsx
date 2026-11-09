@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -22,6 +22,11 @@ import {
   DurationStep,
   getCurrentStartTimeParts,
   isDurationEntered,
+  parseFlexibleTimeToStartTimeParts,
+  getPrayerWindowFromTimeline,
+  isStartTimeWithinPrayerWindow,
+  clampStartTimeToPrayerWindow,
+  type StartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
@@ -32,6 +37,7 @@ import { fonts } from "@/assets/fonts";
 import type { ProgressLogEntry } from "../types";
 import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
+import { useGetDashboardDataForDate } from "@/src/api/queries/useGetDashboardDataForDate";
 import {
   isFiveDailyDayDetail,
   isFiveDailySlotSelectable,
@@ -129,32 +135,11 @@ function isFiveDailyStartTimeOutsideWindowError(error: unknown): boolean {
   );
 }
 
-/** Parse day-detail `prayerStartTime` like "5:47 PM" into picker parts. */
+/** Parse day-detail / dashboard start times (`5:47 PM` or `17:47`). */
 function parsePrayerStartTimeParts(
   value: string | null | undefined,
-): { hour: string; minute: string; period: "am" | "pm" } | null {
-  if (!value) return null;
-  const match = String(value)
-    .trim()
-    .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return null;
-  const hourNum = Number.parseInt(match[1], 10);
-  const minuteNum = Number.parseInt(match[2], 10);
-  if (
-    !Number.isFinite(hourNum) ||
-    !Number.isFinite(minuteNum) ||
-    hourNum < 1 ||
-    hourNum > 12 ||
-    minuteNum < 0 ||
-    minuteNum > 59
-  ) {
-    return null;
-  }
-  return {
-    hour: String(hourNum).padStart(2, "0"),
-    minute: String(minuteNum).padStart(2, "0"),
-    period: match[3].toLowerCase() === "pm" ? "pm" : "am",
-  };
+): StartTimeParts | null {
+  return parseFlexibleTimeToStartTimeParts(value);
 }
 
 function durationPartsFromMinutes(totalMinutes: number | null | undefined): {
@@ -203,26 +188,147 @@ export default function FiveDailyPrayersLoggingFlow({
     setStartTimeInvalid(false);
   }, []);
 
+  const applyStartTimeParts = useCallback((parts: StartTimeParts) => {
+    setStartHour(parts.hour);
+    setStartMinute(parts.minute);
+    setStartPeriod(parts.period);
+  }, []);
+
+  /** Prevents Adhan re-seed from overwriting user edits for the same date/prayer. */
+  const lastOnTimeAdhanSeedKeyRef = useRef<string | null>(null);
+
+  const { data: dashboardForDate } = useGetDashboardDataForDate(
+    flowMode === "active" ? selectedDate : "",
+  );
+
+  const onTimePrayerWindow = useMemo(() => {
+    if (!selectedPrayer) return null;
+    return getPrayerWindowFromTimeline(
+      dashboardForDate?.prayerTimesCard?.timeline,
+      selectedPrayer,
+    );
+  }, [dashboardForDate?.prayerTimesCard?.timeline, selectedPrayer]);
+
+  const applyOnTimeWindowStart = useCallback(
+    (prayer: PrayerName) => {
+      const window = getPrayerWindowFromTimeline(
+        dashboardForDate?.prayerTimesCard?.timeline,
+        prayer,
+      );
+      if (window) {
+        applyStartTimeParts(window.startParts);
+        setStartTimeInvalid(false);
+        return;
+      }
+      const now = getCurrentStartTimeParts();
+      applyStartTimeParts(now);
+    },
+    [applyStartTimeParts, dashboardForDate?.prayerTimesCard?.timeline],
+  );
+
+  const clampOnTimeStartTime = useCallback(
+    (parts: StartTimeParts, opts?: { force?: boolean }): StartTimeParts => {
+      if (timing !== "onTime" || !onTimePrayerWindow) return parts;
+      const hourNum = Number.parseInt(parts.hour, 10);
+      const minuteNum = Number.parseInt(parts.minute, 10);
+      const complete =
+        parts.hour.trim().length > 0 &&
+        parts.minute.trim().length > 0 &&
+        Number.isFinite(hourNum) &&
+        Number.isFinite(minuteNum) &&
+        hourNum >= 1 &&
+        hourNum <= 12 &&
+        minuteNum >= 0 &&
+        minuteNum <= 59;
+      if (!complete && !opts?.force) {
+        return parts;
+      }
+      if (!isStartTimeWithinPrayerWindow(parts, onTimePrayerWindow)) {
+        const clamped = clampStartTimeToPrayerWindow(parts, onTimePrayerWindow);
+        setStartTimeInvalid(true);
+        return clamped;
+      }
+      setStartTimeInvalid(false);
+      return {
+        hour: parts.hour.padStart(2, "0"),
+        minute: parts.minute.padStart(2, "0"),
+        period: parts.period,
+      };
+    },
+    [onTimePrayerWindow, timing],
+  );
+
   const handleSetStartHour = useCallback(
     (h: string) => {
-      clearStartTimeInvalid();
-      setStartHour(h);
+      const next = clampOnTimeStartTime({
+        hour: h,
+        minute: startMinute,
+        period: startPeriod,
+      });
+      applyStartTimeParts(next);
+      if (timing !== "onTime") clearStartTimeInvalid();
     },
-    [clearStartTimeInvalid],
+    [
+      applyStartTimeParts,
+      clampOnTimeStartTime,
+      clearStartTimeInvalid,
+      startMinute,
+      startPeriod,
+      timing,
+    ],
   );
   const handleSetStartMinute = useCallback(
     (m: string) => {
-      clearStartTimeInvalid();
-      setStartMinute(m);
+      const next = clampOnTimeStartTime({
+        hour: startHour,
+        minute: m,
+        period: startPeriod,
+      });
+      applyStartTimeParts(next);
+      if (timing !== "onTime") clearStartTimeInvalid();
     },
-    [clearStartTimeInvalid],
+    [
+      applyStartTimeParts,
+      clampOnTimeStartTime,
+      clearStartTimeInvalid,
+      startHour,
+      startPeriod,
+      timing,
+    ],
   );
   const handleSetStartPeriod = useCallback(
     (p: "am" | "pm") => {
-      clearStartTimeInvalid();
-      setStartPeriod(p);
+      const next = clampOnTimeStartTime({
+        hour: startHour,
+        minute: startMinute,
+        period: p,
+      });
+      applyStartTimeParts(next);
+      if (timing !== "onTime") clearStartTimeInvalid();
     },
-    [clearStartTimeInvalid],
+    [
+      applyStartTimeParts,
+      clampOnTimeStartTime,
+      clearStartTimeInvalid,
+      startHour,
+      startMinute,
+      timing,
+    ],
+  );
+
+  const handleSelectTiming = useCallback(
+    (nextTiming: TimingOption) => {
+      setTiming(nextTiming);
+      setStartTimeInvalid(false);
+      if (nextTiming === "onTime" && selectedPrayer) {
+        lastOnTimeAdhanSeedKeyRef.current = null;
+        applyOnTimeWindowStart(selectedPrayer);
+      } else if (nextTiming === "qadha") {
+        const now = getCurrentStartTimeParts();
+        applyStartTimeParts(now);
+      }
+    },
+    [applyOnTimeWindowStart, applyStartTimeParts, selectedPrayer],
   );
 
   const allowedStartPeriods = useMemo(
@@ -443,47 +549,75 @@ export default function FiveDailyPrayersLoggingFlow({
     (prayer: PrayerName) => {
       const slot = dayDetail?.slots?.[PRAYER_TO_SLOT[prayer]];
       const now = getCurrentStartTimeParts();
+      const window = getPrayerWindowFromTimeline(
+        dashboardForDate?.prayerTimesCard?.timeline,
+        prayer,
+      );
+      lastOnTimeAdhanSeedKeyRef.current = null;
       setStartTimeInvalid(false);
 
       if (!slot) {
         setTiming("onTime");
         setCongregation("yes");
-        setStartHour(now.hour);
-        setStartMinute(now.minute);
-        setStartPeriod(now.period);
+        applyStartTimeParts(window?.startParts ?? now);
         setDurationHours("0");
         setDurationMinutes("0");
         return;
       }
 
       const forceQadha = slot.isQadhaOnly === true || slot.isAutoQadha === true;
+      let nextTiming: TimingOption = "onTime";
       if (forceQadha || slot.wasQadha === true || slot.prayedOnTime === false) {
-        setTiming("qadha");
+        nextTiming = "qadha";
       } else if (slot.prayedOnTime === true) {
-        setTiming("onTime");
-      } else {
-        setTiming("onTime");
+        nextTiming = "onTime";
       }
+      setTiming(nextTiming);
 
       setCongregation(slot.wasCongregational === true ? "yes" : "no");
 
-      const startParts = parsePrayerStartTimeParts(slot.prayerStartTime);
-      if (startParts) {
-        setStartHour(startParts.hour);
-        setStartMinute(startParts.minute);
-        setStartPeriod(startParts.period);
+      const loggedStart = parsePrayerStartTimeParts(slot.prayerStartTime);
+      if (loggedStart) {
+        applyStartTimeParts(loggedStart);
+      } else if (nextTiming === "onTime") {
+        applyStartTimeParts(window?.startParts ?? now);
       } else {
-        setStartHour(now.hour);
-        setStartMinute(now.minute);
-        setStartPeriod(now.period);
+        applyStartTimeParts(now);
       }
 
       const durationParts = durationPartsFromMinutes(slot.durationMinutes);
       setDurationHours(durationParts.hours);
       setDurationMinutes(durationParts.minutes);
     },
-    [dayDetail],
+    [applyStartTimeParts, dashboardForDate?.prayerTimesCard?.timeline, dayDetail],
   );
+
+  // Timeline may load after prayer select — seed Adhan once per date/prayer/on-time.
+  useEffect(() => {
+    if (flowMode !== "active") {
+      lastOnTimeAdhanSeedKeyRef.current = null;
+      return;
+    }
+    if (timing !== "onTime" || !selectedPrayer) return;
+    if (!onTimePrayerWindow) return;
+    const loggedStart = parsePrayerStartTimeParts(
+      dayDetail?.slots?.[PRAYER_TO_SLOT[selectedPrayer]]?.prayerStartTime,
+    );
+    if (loggedStart) return;
+    const key = `${selectedDate}:${selectedPrayer}:onTime`;
+    if (lastOnTimeAdhanSeedKeyRef.current === key) return;
+    lastOnTimeAdhanSeedKeyRef.current = key;
+    applyStartTimeParts(onTimePrayerWindow.startParts);
+    setStartTimeInvalid(false);
+  }, [
+    applyStartTimeParts,
+    dayDetail,
+    flowMode,
+    onTimePrayerWindow,
+    selectedDate,
+    selectedPrayer,
+    timing,
+  ]);
 
   const handleSelectPrayer = useCallback(
     (prayer: PrayerName | null) => {
@@ -524,6 +658,7 @@ export default function FiveDailyPrayersLoggingFlow({
     setSelectedPrayer(null);
     setTiming("onTime");
     setCongregation("yes");
+    lastOnTimeAdhanSeedKeyRef.current = null;
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
@@ -542,17 +677,24 @@ export default function FiveDailyPrayersLoggingFlow({
     setIsPeriodDropdownOpen(false);
   }, [steps]);
 
-  const formatStartTimeForApi = () => {
-    const hourNum = parseInt(startHour || "0", 10) || 0;
-    const minuteNum = parseInt(startMinute || "0", 10) || 0;
+  const formatStartTimePartsForApi = (parts: StartTimeParts) => {
+    const hourNum = parseInt(parts.hour || "0", 10) || 0;
+    const minuteNum = parseInt(parts.minute || "0", 10) || 0;
 
     let hour24 = hourNum % 12;
-    if (startPeriod === "pm") hour24 += 12;
+    if (parts.period === "pm") hour24 += 12;
 
     const hh = String(Math.max(0, hour24)).padStart(2, "0");
     const mm = String(Math.max(0, minuteNum)).padStart(2, "0");
     return `${hh}:${mm}`;
   };
+
+  const formatStartTimeForApi = () =>
+    formatStartTimePartsForApi({
+      hour: startHour,
+      minute: startMinute,
+      period: startPeriod,
+    });
 
   const buildDurationMinutesForApi = () => {
     const h = parseInt(durationHours || "0", 10) || 0;
@@ -564,6 +706,25 @@ export default function FiveDailyPrayersLoggingFlow({
     if (isLogging) return;
     if (!selectedPrayer) return;
 
+    let confirmStartParts: StartTimeParts = {
+      hour: startHour,
+      minute: startMinute,
+      period: startPeriod,
+    };
+    if (timing === "onTime") {
+      confirmStartParts = clampOnTimeStartTime(confirmStartParts, {
+        force: true,
+      });
+      applyStartTimeParts(confirmStartParts);
+      if (
+        onTimePrayerWindow &&
+        !isStartTimeWithinPrayerWindow(confirmStartParts, onTimePrayerWindow)
+      ) {
+        setStartTimeInvalid(true);
+        return;
+      }
+    }
+
     const run = async () => {
       const prayedOnTime = timing === "onTime";
       const includeCongregation = isCongregationalTracked && prayedOnTime;
@@ -573,7 +734,7 @@ export default function FiveDailyPrayersLoggingFlow({
         prayedOnTime,
         wasQadha: !prayedOnTime,
         wasCongregational: includeCongregation ? congregation === "yes" : false,
-        startTime: formatStartTimeForApi(),
+        startTime: formatStartTimePartsForApi(confirmStartParts),
         durationMinutes: buildDurationMinutesForApi(),
       };
 
@@ -624,6 +785,21 @@ export default function FiveDailyPrayersLoggingFlow({
       if (!hasSelectablePrayer) return;
       if (!selectedPrayer) return;
       if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
+    }
+    if (currentStep === "startTime" && timing === "onTime") {
+      const clamped = clampOnTimeStartTime(
+        { hour: startHour, minute: startMinute, period: startPeriod },
+        { force: true },
+      );
+      applyStartTimeParts(clamped);
+      if (
+        onTimePrayerWindow &&
+        !isStartTimeWithinPrayerWindow(clamped, onTimePrayerWindow)
+      ) {
+        setStartTimeInvalid(true);
+        return;
+      }
+      setStartTimeInvalid(false);
     }
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
@@ -724,7 +900,7 @@ export default function FiveDailyPrayersLoggingFlow({
           <OptionSelectStep<TimingOption>
             options={["onTime", "qadha"]}
             selectedValue={timing}
-            onSelectValue={setTiming}
+            onSelectValue={handleSelectTiming}
             getLabel={getTimingLabel}
             radioInnerColor={Colors.light.white}
             styles={commonStyles}

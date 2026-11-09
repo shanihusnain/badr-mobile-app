@@ -39,9 +39,142 @@ export function parseHhMmToStartTimeParts(
   let hour12 = hour24 % 12;
   if (hour12 === 0) hour12 = 12;
   return {
-    hour: String(hour12),
+    hour: String(hour12).padStart(2, "0"),
     minute: String(minute).padStart(2, "0"),
     period,
+  };
+}
+
+/**
+ * Parse dashboard / API times that may be 24h (`19:45`) or 12h (`7:45 PM`).
+ */
+export function parseFlexibleTimeToStartTimeParts(
+  raw: string | null | undefined,
+): StartTimeParts | null {
+  if (!raw) return null;
+  const trimmed = String(raw).trim();
+  const withPeriod = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (withPeriod) {
+    let hour12 = Number.parseInt(withPeriod[1], 10);
+    const minute = Number.parseInt(withPeriod[2], 10);
+    const period = withPeriod[3].toLowerCase() === "pm" ? "pm" : "am";
+    if (hour12 < 1 || hour12 > 12 || minute < 0 || minute > 59) return null;
+    return {
+      hour: String(hour12).padStart(2, "0"),
+      minute: String(minute).padStart(2, "0"),
+      period,
+    };
+  }
+  return parseHhMmToStartTimeParts(trimmed);
+}
+
+/** Minutes from midnight for 12h picker parts. */
+export function startTimePartsToMinutes(parts: StartTimeParts): number {
+  let hour = Number.parseInt(parts.hour, 10) || 0;
+  const minute = Math.min(59, Math.max(0, Number.parseInt(parts.minute, 10) || 0));
+  hour = hour % 12;
+  if (parts.period === "pm") hour += 12;
+  return hour * 60 + minute;
+}
+
+export function minutesToStartTimeParts(totalMinutes: number): StartTimeParts {
+  const clamped = Math.max(0, Math.min(23 * 60 + 59, Math.floor(totalMinutes)));
+  const hour24 = Math.floor(clamped / 60);
+  const minute = clamped % 60;
+  const period: "am" | "pm" = hour24 >= 12 ? "pm" : "am";
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return {
+    hour: String(hour12).padStart(2, "0"),
+    minute: String(minute).padStart(2, "0"),
+    period,
+  };
+}
+
+const FIVE_DAILY_TIMELINE_ORDER = [
+  "fajr",
+  "dhuhr",
+  "asr",
+  "maghrib",
+  "isha",
+] as const;
+
+export type PrayerWindowBounds = {
+  /** Inclusive window start (Adhan), minutes from midnight. */
+  startMinutes: number;
+  /** Exclusive window end (next Adhan, or 23:59+1 for Isha). */
+  endMinutesExclusive: number;
+  startParts: StartTimeParts;
+};
+
+/**
+ * Prayer window from dashboard timeline: [Adhan, next Adhan).
+ * Isha ends at end-of-day (exclusive 24:00 → clamp to 23:59).
+ */
+export function getPrayerWindowFromTimeline(
+  timeline: ReadonlyArray<{ key?: string; time?: string }> | null | undefined,
+  prayer: string,
+): PrayerWindowBounds | null {
+  if (!Array.isArray(timeline) || timeline.length === 0) return null;
+
+  const byKey = new Map<string, StartTimeParts>();
+  for (const item of timeline) {
+    const key = String(item?.key ?? "")
+      .trim()
+      .toLowerCase();
+    const parts = parseFlexibleTimeToStartTimeParts(item?.time);
+    if (!key || !parts) continue;
+    byKey.set(key, parts);
+  }
+
+  const prayerKey = prayer.trim().toLowerCase();
+  const startParts = byKey.get(prayerKey);
+  if (!startParts) return null;
+
+  const orderIndex = FIVE_DAILY_TIMELINE_ORDER.indexOf(
+    prayerKey as (typeof FIVE_DAILY_TIMELINE_ORDER)[number],
+  );
+  let endMinutesExclusive = 24 * 60; // end of day
+  if (orderIndex >= 0 && orderIndex < FIVE_DAILY_TIMELINE_ORDER.length - 1) {
+    const nextKey = FIVE_DAILY_TIMELINE_ORDER[orderIndex + 1];
+    const nextParts = byKey.get(nextKey);
+    if (nextParts) {
+      endMinutesExclusive = startTimePartsToMinutes(nextParts);
+    }
+  }
+
+  const startMinutes = startTimePartsToMinutes(startParts);
+  if (endMinutesExclusive <= startMinutes) {
+    endMinutesExclusive = Math.min(24 * 60, startMinutes + 1);
+  }
+
+  return { startMinutes, endMinutesExclusive, startParts };
+}
+
+export function isStartTimeWithinPrayerWindow(
+  parts: StartTimeParts,
+  window: PrayerWindowBounds,
+): boolean {
+  const minutes = startTimePartsToMinutes(parts);
+  return minutes >= window.startMinutes && minutes < window.endMinutesExclusive;
+}
+
+/** Clamp into [start, endExclusive - 1]. */
+export function clampStartTimeToPrayerWindow(
+  parts: StartTimeParts,
+  window: PrayerWindowBounds,
+): StartTimeParts {
+  const minutes = startTimePartsToMinutes(parts);
+  if (minutes < window.startMinutes) {
+    return window.startParts;
+  }
+  if (minutes >= window.endMinutesExclusive) {
+    return minutesToStartTimeParts(window.endMinutesExclusive - 1);
+  }
+  return {
+    hour: parts.hour.padStart(2, "0"),
+    minute: parts.minute.padStart(2, "0"),
+    period: parts.period,
   };
 }
 
