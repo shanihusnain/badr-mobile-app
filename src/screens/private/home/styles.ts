@@ -479,25 +479,29 @@ export const styles = StyleSheet.create({
   inspirationCard: {
     width: CARD_WIDTH,
     height: 130,
-    backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 16,
     padding: 16,
     justifyContent: "flex-start",
+    overflow: "hidden",
+  },
+  inspirationCardImage: {
+    borderRadius: 16,
   },
 
-  // Card Title — SF Pro Medium 18px, small-caps effect via letterSpacing + textTransform
+  // Card Title — SF Pro Text Semibold 14px
   inspirationTitle: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    fontSize: 16,
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 14,
     lineHeight: 20,
-    letterSpacing: 0,
+    letterSpacing: -0.1,
     textTransform: "uppercase",
+    textAlignVertical: "center",
     marginBottom: 6,
   },
 
-  // Quote text — SF Pro Semibold 14px
+  // Quote text — SF Pro Text Semibold 14px
   inspirationQuote: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
@@ -505,18 +509,19 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: -0.1,
+    textAlignVertical: "center",
     flexShrink: 1,
   },
 
-  // Reference — SF Pro MediumItalic 14px
+  // Reference — SF Pro Text Semibold 14px
   inspirationReference: {
     color: Colors.light.white,
-    fontFamily: fonts.primary.mediumItalic,
-    fontWeight: "500",
-    fontStyle: "italic",
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: -0.1,
+    textAlignVertical: "center",
   },
 
   // Pagination dots

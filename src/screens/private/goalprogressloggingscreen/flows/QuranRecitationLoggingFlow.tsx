@@ -546,6 +546,7 @@ export default function QuranRecitationLoggingFlow({
         canGoForward={canGoForward}
         canGoBack={!isLogging && stepIndex > 0}
         canConfirm={!isLogging && isLastStep && isStepValid(currentStep)}
+        isConfirmLoading={isLogging}
         styles={styles}
         style={styles.inPlaceFlowCard}
       >

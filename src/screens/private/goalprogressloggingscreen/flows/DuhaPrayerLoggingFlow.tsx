@@ -450,7 +450,8 @@ export default function DuhaPrayerLoggingFlow({
                   quantityValue >= 1 &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
-              styles={commonStyles}
+              isConfirmLoading={isLogging}
+                styles={commonStyles}
               style={commonStyles.inPlaceFlowCard}
             >
               {renderStepContent(currentStep)}

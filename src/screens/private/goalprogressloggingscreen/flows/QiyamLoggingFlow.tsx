@@ -1108,6 +1108,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                     isDurationEntered(durationHours, durationMinutes)) &&
                   (prayersCountValue >= 1 || isZeroPrayersFlow)
                 }
+                isConfirmLoading={isLogging}
                 showConfirmButton={
                   isLastStep ||
                   (currentStep !== "when-pray" && currentStep !== "prayed-witr")

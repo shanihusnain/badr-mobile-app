@@ -608,6 +608,7 @@ export default function MissedPrayersLoggingFlow({
                   !isLogging &&
                   Object.values(quantities).some((count) => count > 0)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

@@ -414,6 +414,7 @@ export default function QuranHoursLoggingFlow({
                   !!quranGoalType &&
                   durationTotalMinutes >= 1
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

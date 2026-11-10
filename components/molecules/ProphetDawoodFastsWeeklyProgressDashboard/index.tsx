@@ -60,7 +60,7 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
   onDeleted,
 }: ProphetDawoodFastsWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+  const { mutateAsync: deleteFastLog, isPending: isDeletingLog } =
     useDeleteFastingLog();
 
   const mappedWeekDays = useMemo(
@@ -138,15 +138,10 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
   );
 
   const handleDeleteLog = useCallback(
-    (date: string) => {
-      deleteFastLog(
-        { fastingType: "PROPHET_DAWOOD", date },
-        {
-          onSuccess: () => {
-            onDeleted?.();
-          },
-        },
-      );
+    async (date: string) => {
+      // Keep delete chrome + spinner until the API finishes.
+      await deleteFastLog({ fastingType: "PROPHET_DAWOOD", date });
+      onDeleted?.();
     },
     [deleteFastLog, onDeleted],
   );

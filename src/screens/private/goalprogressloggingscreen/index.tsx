@@ -210,7 +210,14 @@ function GoalProgressLoggingBody({
   const [weekViewPercent, setWeekViewPercent] = useState<number | null>(null);
   const template = getLoggingFlowTemplate(goalId);
   const hasHeroBackground = backgroundSource != null;
-  const needsHeroDarkScrim = template === "missed-prayers";
+  const needsHeroDarkScrim =
+    template === "missed-prayers" ||
+    template === "istikhara-prayer" ||
+    template === "tawbah-prayer";
+  const heroScrimStyle =
+    template === "istikhara-prayer" || template === "tawbah-prayer"
+      ? styles.heroBackgroundScrimSoft
+      : styles.heroBackgroundScrim;
   const [heroBottom, setHeroBottom] = useState(0);
   const prayerFrame = useOptionalPrayerGoalFrameContext();
   const quranFrame = useOptionalQuranGoalFrameContext();
@@ -477,7 +484,7 @@ function GoalProgressLoggingBody({
             />
           )}
           {needsHeroDarkScrim ? (
-            <View style={styles.heroBackgroundScrim} pointerEvents="none" />
+            <View style={heroScrimStyle} pointerEvents="none" />
           ) : null}
         </View>
       ) : null}

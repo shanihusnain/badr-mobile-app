@@ -435,6 +435,7 @@ export default function MissedZakatLoggingFlow({
                 canGoForward={!isLastStep}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                isConfirmLoading={isLogging}
                 showConfirmButton={isLastStep}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}

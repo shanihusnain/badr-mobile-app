@@ -90,6 +90,13 @@ export const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.55)",
   },
+  /** Softer dim for bright hero art (Istikhara / Tawbah) so the title stays readable. */
+  heroBackgroundScrimSoft: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0, 0, 0, 0.38)",
+    zIndex: 1,
+    elevation: 1,
+  },
   scrollForeground: {
     position: "relative",
     zIndex: 1,

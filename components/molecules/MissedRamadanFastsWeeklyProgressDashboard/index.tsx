@@ -60,7 +60,7 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
   onDeleted,
 }: MissedRamadanFastsWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+  const { mutateAsync: deleteFastLog, isPending: isDeletingLog } =
     useDeleteFastingLog();
 
   const mappedWeekDays = useMemo(
@@ -103,15 +103,11 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
   );
 
   const handleDeleteLog = useCallback(
-    (date: string) => {
-      deleteFastLog(
-        { fastingType: "MISSED_RAMADAN", date },
-        {
-          onSuccess: () => {
-            onDeleted?.();
-          },
-        },
-      );
+    async (date: string) => {
+      // Return a promise so SinglePrayer keeps the delete chrome + spinner
+      // visible until the API finishes (mutate would resolve immediately).
+      await deleteFastLog({ fastingType: "MISSED_RAMADAN", date });
+      onDeleted?.();
     },
     [deleteFastLog, onDeleted],
   );

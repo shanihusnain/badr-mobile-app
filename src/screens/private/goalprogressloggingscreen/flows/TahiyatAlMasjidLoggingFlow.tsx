@@ -444,6 +444,7 @@ export default function TahiyatAlMasjidLoggingFlow({
                   !isLogging &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

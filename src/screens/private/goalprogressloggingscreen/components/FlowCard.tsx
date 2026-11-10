@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ViewStyle,
   StyleProp,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -24,6 +25,7 @@ type FlowCardProps = {
   canGoForward: boolean;
   canGoBack?: boolean;
   canConfirm?: boolean;
+  isConfirmLoading?: boolean;
   /** When false, hides the checkmark confirm button (e.g. mid-flow steps). */
   showConfirmButton?: boolean;
   /** When false, hides back/forward/confirm row (e.g. open log-type menu). */
@@ -48,6 +50,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   canGoForward,
   canGoBack = true,
   canConfirm = true,
+  isConfirmLoading = false,
   showConfirmButton = true,
   showFooter = true,
   autoHeight = false,
@@ -119,19 +122,27 @@ export const FlowCard: React.FC<FlowCardProps> = ({
               style={[
                 styles.confirmButton,
                 canConfirm && styles.confirmButtonActive,
-                !canConfirm && styles.navButtonDisabled,
+                (!canConfirm || isConfirmLoading) && styles.navButtonDisabled,
               ]}
               onPress={onConfirm}
-              disabled={!canConfirm}
+              disabled={!canConfirm || isConfirmLoading}
               activeOpacity={0.8}
             >
-              <Ionicons
-                name="checkmark"
-                size={17}
-                color={
-                  canConfirm ? Colors.light.white : Colors.light.white + "CC"
-                }
-              />
+              {isConfirmLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.light.white}
+                  style={{ transform: [{ scale: 0.95 }] }}
+                />
+              ) : (
+                <Ionicons
+                  name="checkmark"
+                  size={17}
+                  color={
+                    canConfirm ? Colors.light.white : Colors.light.white + "CC"
+                  }
+                />
+              )}
             </TouchableOpacity>
           ) : (
             // Keep footer height/alignment identical to time steps (confirm has

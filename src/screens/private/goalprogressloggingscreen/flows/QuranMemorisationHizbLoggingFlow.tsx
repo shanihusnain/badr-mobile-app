@@ -560,7 +560,8 @@ export default function QuranMemorisationHizbLoggingFlow({
           !isLogging &&
           steps.every((step) => isStepValid(step))
         }
-        styles={styles}
+        isConfirmLoading={isLogging}
+                styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined

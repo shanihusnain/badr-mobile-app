@@ -1095,6 +1095,7 @@ export default function FiveDailyPrayersLoggingFlow({
                   !isFullyAchieved &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >
