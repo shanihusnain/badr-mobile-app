@@ -1203,9 +1203,7 @@ export default function HomeScreen() {
                   t("homeScreen.getStarted")}
               </Text>
               <Entypo
-                name={
-                  i18n.language === "ar" ? "chevron-left" : "chevron-right"
-                }
+                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
                 size={24}
                 color={Colors.light.green}
               />

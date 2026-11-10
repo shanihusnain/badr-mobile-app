@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
@@ -82,8 +82,20 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
   const [moonProgress, setMoonProgress] = useState(0);
   const [displayProgress, setDisplayProgress] = useState(0);
   const [moonSide, setMoonSide] = useState(MOON_SIZE);
+  const [moonReady, setMoonReady] = useState(false);
+
+  const handleMoonReady = useCallback(() => {
+    setMoonReady(true);
+  }, []);
 
   useEffect(() => {
+    // Wait for Rive moon — otherwise 0→N finishes before the moon is visible.
+    if (!moonReady) {
+      setMoonProgress(0);
+      setDisplayProgress(0);
+      return;
+    }
+
     const fromProgress = 0;
     const toProgress = targetProgress;
     let frameId = 0;
@@ -110,7 +122,7 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
 
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
-  }, [animationDurationMs, targetProgress]);
+  }, [animationDurationMs, moonReady, targetProgress]);
 
   const localizedDay = localizeNumber(String(dayValue), lng);
   const localizedProgress = localizeNumber(String(displayProgress), lng);
@@ -203,7 +215,10 @@ export const DaysTrackerContainer: React.FC<DaysTrackerContainerProps> = ({
       >
         <View style={{ width: moonSide, height: moonSide }} collapsable={false}>
           {/* Same mount as Plan GoalTabContent — % size inside fixed box, no size prop. */}
-          <MoonProgress progressPercent={moonProgress} />
+          <MoonProgress
+            progressPercent={moonProgress}
+            onReady={handleMoonReady}
+          />
         </View>
       </View>
 

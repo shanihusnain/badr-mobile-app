@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createTeamStyles as sharedStyles } from "../styles";
 import { LeaderboardToggleRow } from "./LeaderboardToggleRow";
@@ -54,8 +54,7 @@ export function ChooseLeaderboardStep({
   }, [categories]);
 
   const activeCategoryData = useMemo(
-    () =>
-      categories.find((category) => category.category === activeCategory),
+    () => categories.find((category) => category.category === activeCategory),
     [activeCategory, categories],
   );
 
@@ -166,7 +165,10 @@ export function ChooseLeaderboardStep({
           })}
         </View>
 
-        <View style={styles.optionsList}>
+        <ScrollView
+          contentContainerStyle={styles.optionsList}
+          showsVerticalScrollIndicator={false}
+        >
           {activeCategoryData?.metrics.map((metric) => (
             <LeaderboardToggleRow
               key={metric.metric}
@@ -176,7 +178,7 @@ export function ChooseLeaderboardStep({
               onToggle={() => handleToggle(metric.metric)}
             />
           ))}
-        </View>
+        </ScrollView>
 
         <PrimaryButton
           text="CREATE TEAM"
@@ -256,5 +258,6 @@ const styles = StyleSheet.create({
   },
   optionsList: {
     flex: 1,
+    flexGrow: 1,
   },
 });
