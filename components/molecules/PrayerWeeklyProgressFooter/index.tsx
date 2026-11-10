@@ -63,6 +63,24 @@ const LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT =
 /** Cap so long quotes wrap; short quotes stay text-sized. Side gaps stay equal via centering. */
 const WEEK_ONE_QUOTE_MAX_WIDTH = 220;
 
+/** Bold digit runs in comparison copy (e.g. "1 fast vs. last week"). */
+function renderComparisonLabelWithBoldDigits(
+  label: string,
+  countStyle: object,
+): React.ReactNode {
+  const parts = label.split(/(\d+)/);
+  if (parts.length <= 1) return label;
+  return parts.map((part, index) =>
+    /^\d+$/.test(part) ? (
+      <Text key={`cmp-digit-${index}`} style={countStyle}>
+        {part}
+      </Text>
+    ) : (
+      part
+    ),
+  );
+}
+
 export function PrayerWeeklyProgressFooter({
   loading = false,
   streakDays = 0,
@@ -93,8 +111,9 @@ export function PrayerWeeklyProgressFooter({
     vsLastWeekMagnitude === 0;
   const isFastsMatchLastWeek =
     comparisonVariant === "fasts" &&
-    !vsLastWeekDisplay?.trim() &&
-    vsLastWeekMagnitude === 0;
+    vsLastWeekMagnitude === 0 &&
+    (!vsLastWeekDisplay?.trim() ||
+      /\bmatch(?:es)?\s+last\s+week\b/i.test(vsLastWeekDisplay.trim()));
   const isQuranSameAsLastWeek =
     (comparisonVariant === "quranHours" ||
       comparisonVariant === "quranRecitations" ||
@@ -111,13 +130,16 @@ export function PrayerWeeklyProgressFooter({
         : isQuranSameAsLastWeek
           ? t("homeScreen.weeklyProgress_quranSameAsLastWeek")
           : vsLastWeekDisplay?.trim() || String(vsLastWeekMagnitude);
-  // Standalone API copy like "Same meals as last week" — do not append "vs. last week".
+  // Standalone / complete API copy — do not append another "vs. last week"
+  // (avoids "1 fast vs. last week fasts vs. last week").
   const omitComparisonSuffix =
     isSameOnTimeAsLastWeek ||
     isSamePrayersAsLastWeek ||
     isFastsMatchLastWeek ||
     isQuranSameAsLastWeek ||
-    /^same\b/i.test(comparisonCountLabel);
+    /^same\b/i.test(comparisonCountLabel) ||
+    /\bmatch(?:es)?\s+last\s+week\b/i.test(comparisonCountLabel) ||
+    /\bvs\.?\s+last\s+week\b/i.test(comparisonCountLabel);
 
   const resolvedQuote = loading
     ? "---"
@@ -214,7 +236,10 @@ export function PrayerWeeklyProgressFooter({
           )}
           <Text style={styles.comparisonText}>
             {omitComparisonSuffix ? (
-              comparisonCountLabel
+              renderComparisonLabelWithBoldDigits(
+                comparisonCountLabel,
+                styles.comparisonCount,
+              )
             ) : (
               <>
                 <Text style={styles.comparisonCount}>

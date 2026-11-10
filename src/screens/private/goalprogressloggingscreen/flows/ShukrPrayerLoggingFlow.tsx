@@ -450,6 +450,7 @@ export default function ShukrPrayerLoggingFlow({
                   quantityValue >= 1 &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

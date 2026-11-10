@@ -179,6 +179,7 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
               title={goalItem.title}
               subtitleCount={goalItem.count}
               subtitleLabel={goalItem.label}
+              centerIconOnMultiLine={overview.category === "QURAN"}
               icon={
                 overview.category === "PRAYER" || overview.category === "QURAN"
                   ? getDetailedIbadahIcon(goalItem.id, Colors.light.white)

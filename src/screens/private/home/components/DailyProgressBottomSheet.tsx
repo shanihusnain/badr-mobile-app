@@ -393,10 +393,15 @@ export const DailyProgressBottomSheet = ({
             detailGoals.map((goal) => (
               <DetailedIbadahsProgressCard
                 key={goal.goalId}
+                category={selectedUiCategory}
                 title={goal.title}
                 subtitleCount={goal.subtitleCount}
                 subtitleLabel={goal.subtitleLabel}
                 titleFontSize={goal.titleFontSize}
+                centerIconOnMultiLine={
+                  selectedUiCategory === "QURAN" ||
+                  goal.goalId?.startsWith("quran-")
+                }
                 icon={
                   goal.loading
                     ? getCategoryGoalIcon(

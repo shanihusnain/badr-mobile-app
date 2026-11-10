@@ -503,7 +503,8 @@ export default function QuranMemorisationJuzLoggingFlow({
         canGoForward={canGoForward}
         canGoBack={stepIndex > 0}
         canConfirm={isLastStep && steps.every((step) => isStepValid(step))}
-        styles={styles}
+        isConfirmLoading={isLogging}
+                styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
         headerStyle={isAyahRangeStep ? styles.flowHeaderAyahRange : undefined}

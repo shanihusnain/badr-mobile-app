@@ -497,7 +497,9 @@ export default function PrivateLayout() {
               const title =
                 goalId === "fasting-whiteDays"
                   ? "THE WHITE DAYS"
-                  : (goalData?.title?.toUpperCase() ?? "");
+                  : goalId === "fasting-mondayThursday"
+                    ? "MONDAYS & THURSDAYS"
+                    : (goalData?.title?.toUpperCase() ?? "");
               return (
                 <HeaderWithCrossTitleDynamicIcon
                   title={title}

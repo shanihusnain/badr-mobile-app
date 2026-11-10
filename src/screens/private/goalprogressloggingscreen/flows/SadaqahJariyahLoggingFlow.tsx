@@ -494,6 +494,7 @@ export default function SadaqahJariyahLoggingFlow({
                 canGoForward={canGoForward}
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                isConfirmLoading={isLogging}
                 showConfirmButton={isLastStep}
                 styles={commonStyles}
                 style={[

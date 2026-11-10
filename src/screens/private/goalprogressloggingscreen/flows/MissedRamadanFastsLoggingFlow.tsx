@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
-import { MissedRamadanGreenCardIcon } from "@/assets/icons/MissedRamadanGreenCardIcon";
+import { SvgComponent as MissedRamadanFastIconNew } from "@/assets/icons/MissedRamadanFasticonNew";
 import {
   AddLoggingFlowIcon,
   FlowCardCallender,
@@ -634,10 +634,7 @@ export default function MissedRamadanFastsLoggingFlow({
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
                 <View style={localStyles.summaryIconCircle}>
-                  <MissedRamadanGreenCardIcon
-                    size={21}
-                    color={Colors.light.white}
-                  />
+                  <MissedRamadanFastIconNew size={21} color={Colors.light.white} />
                 </View>
                 <View style={localStyles.titleContainer}>
                   <View
@@ -720,6 +717,7 @@ export default function MissedRamadanFastsLoggingFlow({
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                isConfirmLoading={isLogging}
                 showConfirmButton
                 headerSingleLine={
                   currentStep === "startTime" || currentStep === "endTime"

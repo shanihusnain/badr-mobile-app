@@ -857,7 +857,8 @@ export default function QuranJuzLoggingFlow({
         canGoForward={canGoForward}
         canGoBack={stepIndex > 0 && !isLogging}
         canConfirm={canConfirm}
-        styles={styles}
+        isConfirmLoading={isLogging}
+                styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={isAyahRangeStep ? styles.flowContentAyahRange : undefined}
         headerStyle={isAyahRangeStep ? styles.flowHeaderAyahRange : undefined}

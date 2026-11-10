@@ -826,7 +826,8 @@ export default function QuranCompletionLoggingFlow({
         canGoForward={canGoForward}
                 canGoBack={stepIndex > 0}
         canConfirm={canConfirm}
-        styles={styles}
+        isConfirmLoading={isLogging}
+                styles={styles}
         style={styles.inPlaceFlowCard}
         contentStyle={
           isAyahRangeStep ? styles.flowContentAyahRange : undefined

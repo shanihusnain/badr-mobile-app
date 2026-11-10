@@ -744,6 +744,7 @@ export default function MondayThursdayFastsLoggingFlow({
                 }
                 canGoBack={stepIndex > 0}
                 canConfirm={canConfirm}
+                isConfirmLoading={isLogging}
                 showConfirmButton
                 headerSingleLine={
                   currentStep === "startTime" || currentStep === "endTime"

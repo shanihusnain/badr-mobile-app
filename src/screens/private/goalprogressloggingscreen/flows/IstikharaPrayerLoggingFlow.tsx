@@ -8,6 +8,7 @@ import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import { isValidStartTime } from "../quranRecitationTarget";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -83,9 +84,20 @@ export default function IstikharaPrayerLoggingFlow({
 
   const applyDayDetailPrefill = useCallback(
     (prefill: SinglePrayerDayDetailPrefill) => {
-      setStartHour(prefill.startHour);
-      setStartMinute(prefill.startMinute);
-      setStartPeriod(prefill.startPeriod);
+      // Always keep a visible default clock time — never leave hour/minute blank.
+      const now = getCurrentStartTimeParts();
+      const hour = prefill.startHour?.trim() || now.hour;
+      const minute = prefill.startMinute?.trim() || now.minute;
+      const period = prefill.startPeriod || now.period;
+      setStartHour(
+        isValidStartTime(hour, minute, period) ? hour : now.hour,
+      );
+      setStartMinute(
+        isValidStartTime(hour, minute, period) ? minute : now.minute,
+      );
+      setStartPeriod(
+        isValidStartTime(hour, minute, period) ? period : now.period,
+      );
       setDurationHours(prefill.durationHours);
       setDurationMinutes(prefill.durationMinutes);
     },
@@ -143,6 +155,11 @@ export default function IstikharaPrayerLoggingFlow({
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
+  const hasValidStartTime = isValidStartTime(
+    startHour,
+    startMinute,
+    startPeriod,
+  );
 
   const dateLabel = formatProgressLoggingDateLabel(
     selectedDate,
@@ -194,6 +211,8 @@ export default function IstikharaPrayerLoggingFlow({
 
   const handleConfirm = () => {
     if (isLogging || dayDetailLoadingState) return;
+    if (!hasValidStartTime) return;
+    if (!isDurationEntered(durationHours, durationMinutes)) return;
 
     const run = async () => {
       const payload = {
@@ -234,11 +253,17 @@ export default function IstikharaPrayerLoggingFlow({
 
   const handleForward = () => {
     if (dayDetailLoadingState) return;
+    if (currentStep === "start-time" && !hasValidStartTime) return;
     if (!isLastStep) setStepIndex((index) => index + 1);
   };
 
   const handleOpenFlow = useCallback(() => {
     if (frameLoading || isFullyAchieved) return;
+    const now = getCurrentStartTimeParts();
+    setStartHour(now.hour);
+    setStartMinute(now.minute);
+    setStartPeriod(now.period);
+    setIsPeriodDropdownOpen(false);
     setFlowMode("active");
   }, [frameLoading, isFullyAchieved]);
 
@@ -412,14 +437,20 @@ export default function IstikharaPrayerLoggingFlow({
                 onBack={handleBack}
                 onForward={handleForward}
                 onConfirm={handleConfirm}
-                canGoForward={!dayDetailLoadingState && !isLastStep}
+                canGoForward={
+                  !dayDetailLoadingState &&
+                  !isLastStep &&
+                  !(currentStep === "start-time" && !hasValidStartTime)
+                }
                 canGoBack={stepIndex > 0}
                 canConfirm={
                   isLastStep &&
                   !dayDetailLoadingState &&
                   !isLogging &&
+                  hasValidStartTime &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

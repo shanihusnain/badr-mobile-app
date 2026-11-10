@@ -413,6 +413,7 @@ export default function TahiyatUlWudhuLoggingFlow({
                 canGoForward={!isLastStep}
                 canGoBack={stepIndex > 0}
                 canConfirm={isLastStep && !isLogging}
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

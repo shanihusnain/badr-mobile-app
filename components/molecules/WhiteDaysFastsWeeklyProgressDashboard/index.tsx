@@ -93,7 +93,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
   onDeleted,
 }: WhiteDaysFastsWeeklyProgressDashboardProps) {
   const { t } = useTranslation();
-  const { mutate: deleteFastLog, isPending: isDeletingLog } =
+  const { mutateAsync: deleteFastLog, isPending: isDeletingLog } =
     useDeleteFastingLog();
 
   const mappedWeekDays = useMemo(
@@ -175,15 +175,10 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
   );
 
   const handleDeleteLog = useCallback(
-    (date: string) => {
-      deleteFastLog(
-        { fastingType: "WHITE_DAYS", date },
-        {
-          onSuccess: () => {
-            onDeleted?.();
-          },
-        },
-      );
+    async (date: string) => {
+      // Keep delete chrome + spinner until the API finishes.
+      await deleteFastLog({ fastingType: "WHITE_DAYS", date });
+      onDeleted?.();
     },
     [deleteFastLog, onDeleted],
   );

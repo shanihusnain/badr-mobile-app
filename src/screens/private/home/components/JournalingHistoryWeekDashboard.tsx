@@ -1,13 +1,11 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import type { JournalingDayProgress } from "../journalingHistory";
-import { TopSpace } from "@/components/atoms/TopSpace";
-import { BulbIcon, JournalBulbIcon } from "@/assets/icons";
+import { Forwardchevron, JournalBulbIcon } from "@/assets/icons";
 
 export type JournalingHistoryWeekDashboardProps = {
   weekDays: JournalingDayProgress[];
@@ -20,8 +18,7 @@ export type JournalingHistoryWeekDashboardProps = {
   onBehaviorInsightsPress?: () => void;
 };
 
-const RING_SIZE = 20;
-const TODAY_BOX_PADDING = 16;
+const RING_SIZE = 22;
 
 const DAY_TRANSLATION_KEYS: Record<string, string> = {
   Sun: "homeScreen.weeklyProgress_daySun",
@@ -46,7 +43,7 @@ function JournalingDayRing({ logged }: JournalingDayRingProps) {
   if (logged) {
     return (
       <View style={styles.ringLogged}>
-        <AntDesign name="check" size={11} color={Colors.light.white} />
+        <AntDesign name="check" size={12} color={Colors.light.white} />
       </View>
     );
   }
@@ -77,7 +74,7 @@ export function JournalingHistoryWeekDashboard({
         disabled={!onPressHeader}
       >
         <Text style={styles.titleText}>{headerTitle}</Text>
-        <AntDesign name="right" size={14} color={Colors.light.white} />
+        <Forwardchevron />
       </TouchableOpacity>
 
       <View style={styles.daysRow}>
@@ -103,7 +100,9 @@ export function JournalingHistoryWeekDashboard({
               activeOpacity={canPress ? 0.75 : 1}
               disabled={!canPress}
             >
-              <View style={styles.dayItem}>
+              <View
+                style={[styles.dayItem, day.isToday && styles.dayItemToday]}
+              >
                 {day.isToday ? (
                   <View style={styles.dayItemTodayBackground} />
                 ) : null}
@@ -119,7 +118,7 @@ export function JournalingHistoryWeekDashboard({
           );
         })}
       </View>
-      <TopSpace top={16} />
+
       <TouchableOpacity
         style={styles.insightsButton}
         onPress={onBehaviorInsightsPress}
@@ -138,8 +137,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 16,
-    paddingVertical: 20,
-    gap: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    gap: 20,
   },
   titleRow: {
     flexDirection: "row",
@@ -148,10 +148,11 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: Colors.light.white,
-    fontSize: 16,
-    fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    textTransform: "uppercase",
+    fontWeight: "600",
+    fontSize: 16,
+    lineHeight: 19,
+    letterSpacing: 0,
   },
   daysRow: {
     flexDirection: "row",
@@ -171,14 +172,18 @@ const styles = StyleSheet.create({
     gap: 8,
     position: "relative",
   },
+  /** Extra gap drops the day label lower inside the today highlight. */
+  dayItemToday: {
+    gap: 14,
+  },
   dayItemTodayBackground: {
     position: "absolute",
-    top: -TODAY_BOX_PADDING,
-    right: -TODAY_BOX_PADDING,
-    bottom: -TODAY_BOX_PADDING,
-    left: -TODAY_BOX_PADDING,
+    top: -12,
+    right: -8,
+    bottom: -14,
+    left: -8,
     backgroundColor: Colors.light.dayProgressCardBg,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   ringLogged: {
     width: RING_SIZE,
@@ -197,15 +202,14 @@ const styles = StyleSheet.create({
   dayLabel: {
     color: Colors.light.grey,
     fontSize: 11,
-    lineHeight: 13,
+    lineHeight: 11,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
+  
     textAlign: "center",
   },
   dayLabelToday: {
     color: Colors.light.white,
-    fontWeight: "700",
-    fontFamily: fonts.primary.bold,
   },
   insightsButton: {
     flexDirection: "row",
@@ -219,10 +223,10 @@ const styles = StyleSheet.create({
   },
   insightsText: {
     color: Colors.light.green,
-    fontSize: 13,
-    fontWeight: "600",
-    fontFamily: fonts.primary.semiBold,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 16,
+    lineHeight: 21,
+   
   },
 });

@@ -75,6 +75,7 @@ import {
   resolveMyDayFilters,
 } from "./mapMyDayDetails";
 import { fonts } from "@/assets/fonts";
+import { hometabcard } from "@/assets/images";
 import { FastingOverviewCalendarSection } from "./components/FastingOverviewCalendarSection";
 import { TimeSpentOverview } from "./components/TimeSpentOverview";
 import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
@@ -1123,7 +1124,12 @@ export default function HomeScreen() {
             scrollEventThrottle={16}
           >
             {translatedInspirationCards.map((card) => (
-              <View key={card.id} style={styles.inspirationCard}>
+              <ImageBackground
+                key={card.id}
+                source={hometabcard}
+                style={styles.inspirationCard}
+                imageStyle={styles.inspirationCardImage}
+              >
                 <Text style={styles.inspirationTitle}>
                   {prepareFigmaForcedSmallCapsText(card.title)}
                 </Text>
@@ -1133,7 +1139,7 @@ export default function HomeScreen() {
                     {card.reference}
                   </Text>
                 </Text>
-              </View>
+              </ImageBackground>
             ))}
           </ScrollView>
           <View style={styles.inspirationDots}>
@@ -1322,6 +1328,7 @@ export default function HomeScreen() {
             title={journalCardTitle}
             buttonLabel={journalCardButton}
             onDayPress={handleJournalDayPress}
+            onPressHeader={handleJournalCardButtonPress}
             onBehaviorInsightsPress={handleJournalCardButtonPress}
           />
         ) : null}
@@ -1391,6 +1398,7 @@ export default function HomeScreen() {
           return (
             <DetailedIbadahsProgressCard
               key={goal.id}
+              category={goal.uiCategory}
               title={goal.title}
               subtitleCount={goal.subtitleCount}
               subtitleLabel={goal.subtitleLabel}
@@ -1398,6 +1406,7 @@ export default function HomeScreen() {
               iconBgColor={Colors.light.ibadahIconCircleBg}
               percentage={goal.percentage}
               progressColor={goal.progressColor}
+              centerIconOnMultiLine={goal.goalId?.startsWith("quran-") ?? false}
             />
           );
         })}

@@ -550,7 +550,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "fasting-mondayThursday": {
     id: "fasting-mondayThursday",
     category: "FASTING",
-    title: "Monday & Thursday\nFasts",
+    title: "Monday & Thursday",
     count: "3",
     label: "/8 days",
     percentage: "38%",

@@ -1025,6 +1025,7 @@ export default function SunnahRawatibLoggingFlow({
                   !isPrayerFullyLogged(selectedPrayer) &&
                   isDurationEntered(durationHours, durationMinutes)
                 }
+                isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
               >

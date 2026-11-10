@@ -20,6 +20,7 @@ import { QuranImageIcon } from "@/assets/icons/QuranImageIcon";
 import { QuranMemorizationIcon } from "@/assets/icons/QuranMemorizationIcon";
 import { ManQuranTajweedIcon } from "@/assets/icons/ManQuranTajweedIcon";
 import { MissedRamadanGreenCardIcon } from "@/assets/icons/MissedRamadanGreenCardIcon";
+import { SvgComponent as MissedRamadanFasticonNew } from "@/assets/icons/MissedRamadanFasticonNew";
 import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
 import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
 import { MissedZakatFlowCardIcon } from "@/assets/icons/MissedZakatFlowCardIcon";
@@ -44,8 +45,11 @@ type Props = {
   isSelected?: boolean;
   onPress?: () => void;
   titleFontSize?: number;
+  centerIconOnMultiLine?: boolean;
   /** Show "---" for progress count + ring until the category goals API responds. */
   loading?: boolean;
+  category?: string;
+  isQuranGoal?: boolean;
 };
 
 export function getDetailedIbadahIcon(
@@ -87,15 +91,15 @@ export function getDetailedIbadahIcon(
     case "quran-memorisationByJuz":
       return <QuranMemorizationIcon color={color} size={size} />;
     case "quran-Tajweed":
-      return <ManQuranTajweedIcon color={color} size={size} />;
+      return <ManQuranTajweedIcon color={color} size={Math.round(size * 1.1)} />;
     case "fasting-ramadan":
-      return <MissedRamadanGreenCardIcon color={color} size={size} />;
+      return <MissedRamadanFasticonNew color={color} size={Math.round(size * 1.1)} />;
     case "fasting-mondayThursday":
       return <FastingFlowCardMondayFasts color={color} size={size} />;
     case "fasting-Dawwod":
       return <FastingFlowCardProphetDawoodCalender color={color} size={size} />;
     case "fasting-whiteDays": {
-      const diameter = Math.round(size * 0.85);
+      const diameter = Math.round(size * 1.1);
       return (
         <View
           style={{
@@ -135,9 +139,19 @@ export const DetailedIbadahsProgressCard = ({
   isSelected = false,
   onPress,
   titleFontSize = 15,
+  centerIconOnMultiLine = false,
   loading = false,
+  category,
+  isQuranGoal,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
+  const isQuran = Boolean(
+    centerIconOnMultiLine ||
+      isQuranGoal ||
+      category?.toUpperCase() === "QURAN" ||
+      progressColor === Colors.light.ringQuran ||
+      title?.toLowerCase().includes("quran")
+  );
   const displayTitle = useMemo(
     () => (loading ? "---" : prepareFigmaForcedSmallCapsText(title)),
     [loading, title],
@@ -166,11 +180,18 @@ export const DetailedIbadahsProgressCard = ({
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress || loading}
     >
-      <View style={styles.leftSection}>
+      <View
+        style={[styles.leftSection, isQuran && styles.leftSectionCentered]}
+      >
         <View
           style={[
             styles.iconWrapper,
-            { backgroundColor: iconBgColor || Colors.light.ibadahIconCircleBg },
+            {
+              backgroundColor:
+                iconBgColor || Colors.light.ibadahIconCircleBg,
+              marginTop: isQuran ? 0 : 2,
+              alignSelf: isQuran ? "center" : "flex-start",
+            },
           ]}
         >
           {loading ? <Text style={styles.iconPlaceholder}>---</Text> : icon}
@@ -233,6 +254,10 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     marginRight: 12,
+  },
+  leftSectionCentered: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconWrapper: {
     width: 32,
