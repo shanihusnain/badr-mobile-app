@@ -1,3 +1,4 @@
+import { updateConnectSocketAuth } from "@/src/realtime/connectSocket";
 import {
   getRefreshToken,
   setAccessToken,
@@ -51,6 +52,8 @@ export const refreshAccessToken = async (): Promise<string> => {
   if (nextRefreshToken) {
     await setRefreshToken(nextRefreshToken);
   }
+
+  updateConnectSocketAuth(accessToken);
 
   return accessToken;
 };

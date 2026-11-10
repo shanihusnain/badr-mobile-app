@@ -1,5 +1,9 @@
-import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
+import { useEffect, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   interpolate,
@@ -8,7 +12,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useEffect } from "react";
 
 type LeaderboardToggleRowProps = {
   label: string;
@@ -28,6 +31,10 @@ export function LeaderboardToggleRow({
   onToggle,
 }: LeaderboardToggleRowProps) {
   const progress = useSharedValue(enabled ? 1 : 0);
+  const displayLabel = useMemo(
+    () => prepareFigmaForcedSmallCapsText(label),
+    [label],
+  );
 
   useEffect(() => {
     progress.value = withTiming(enabled ? 1 : 0, { duration: 200 });
@@ -60,7 +67,7 @@ export function LeaderboardToggleRow({
 
   return (
     <Pressable style={styles.row} onPress={handlePress}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label}>{displayLabel}</Text>
       <View style={styles.switchHitArea} pointerEvents="none">
         <Animated.View style={[styles.track, trackStyle]}>
           <Animated.View style={[styles.thumb, thumbStyle]} />
@@ -84,11 +91,11 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    color: Colors.light.white,
-    fontFamily: fonts.primary.medium,
-    fontWeight: "500",
-    fontSize: 13,
-    textTransform: "uppercase",
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 13,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+    }),
   },
   switchHitArea: {
     paddingVertical: 4,

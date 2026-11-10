@@ -15,6 +15,7 @@ import { fontAssets } from "@/assets/fonts";
 import { store } from "@/src/store/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "@/provider/AuthProvider";
+import { ConnectSocketProvider } from "@/provider/ConnectSocketProvider";
 import "@/i18next/i18next";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/src/config/toastConfig";
@@ -62,24 +63,26 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
           <AuthProvider>
-            <SafeAreaProvider>
-              <ThemeProvider value={AppTheme}>
-                <BottomSheetModalProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    {/* <Stack.Screen name="(tabs)" /> */}
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(private)" />
-                    <Stack.Screen
-                      name="modal"
-                      options={{ presentation: "modal", title: "Modal" }}
-                    />
-                  </Stack>
-                  <StatusBar style="light" />
-                  <Toast config={toastConfig} />
-                </BottomSheetModalProvider>
-              </ThemeProvider>
-            </SafeAreaProvider>
+            <ConnectSocketProvider>
+              <SafeAreaProvider>
+                <ThemeProvider value={AppTheme}>
+                  <BottomSheetModalProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" />
+                      {/* <Stack.Screen name="(tabs)" /> */}
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="(private)" />
+                      <Stack.Screen
+                        name="modal"
+                        options={{ presentation: "modal", title: "Modal" }}
+                      />
+                    </Stack>
+                    <StatusBar style="light" />
+                    <Toast config={toastConfig} />
+                  </BottomSheetModalProvider>
+                </ThemeProvider>
+              </SafeAreaProvider>
+            </ConnectSocketProvider>
           </AuthProvider>
         </Provider>
       </QueryClientProvider>

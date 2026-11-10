@@ -8,9 +8,10 @@ import { formatTeamRank, type MyTeam } from "../myTeamsMockData";
 type MyTeamCardProps = {
   team: MyTeam;
   onPress?: (team: MyTeam) => void;
+  onRankPress?: (team: MyTeam) => void;
 };
 
-export function MyTeamCard({ team, onPress }: MyTeamCardProps) {
+export function MyTeamCard({ team, onPress, onRankPress }: MyTeamCardProps) {
   return (
     <Pressable style={styles.card} onPress={() => onPress?.(team)}>
       <Image
@@ -24,16 +25,19 @@ export function MyTeamCard({ team, onPress }: MyTeamCardProps) {
           {team.name}
         </Text>
 
-        <View style={styles.rankPill}>
+        <Pressable
+          style={styles.rankPill}
+          onPress={(event) => {
+            event.stopPropagation?.();
+            onRankPress?.(team);
+          }}
+          hitSlop={6}
+        >
           <Text style={styles.rankPillText} numberOfLines={1}>
             {team.displayRankLabel}
           </Text>
-          <Ionicons
-            name="chevron-down"
-            size={14}
-            color={Colors.light.white}
-          />
-        </View>
+          <Ionicons name="chevron-down" size={14} color={Colors.light.white} />
+        </Pressable>
       </View>
 
       <Text style={styles.rankPosition}>

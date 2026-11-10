@@ -8,18 +8,27 @@ import BottomSheet, {
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 import { forwardRef, useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   buildDisplayRankLabel,
-  DISPLAY_RANK_METRICS,
   DISPLAY_RANK_PERIODS,
+  type DisplayRankMetric,
   type DisplayRankPeriod,
   type MyTeam,
 } from "../myTeamsMockData";
 
 type EditDisplayRankSheetProps = {
   team: MyTeam | null;
+  metrics?: DisplayRankMetric[];
+  isLoadingMetrics?: boolean;
+  isApplying?: boolean;
   onClose: () => void;
   onApply: (payload: {
     teamId: string;
@@ -34,13 +43,22 @@ export const EditDisplayRankSheet = forwardRef<
   BottomSheet,
   EditDisplayRankSheetProps
 >(function EditDisplayRankSheet(
-  { team, onClose, onApply, onChange },
+  {
+    team,
+    metrics = [],
+    isLoadingMetrics = false,
+    isApplying = false,
+    onClose,
+    onApply,
+    onChange,
+  },
   ref,
 ) {
   const insets = useSafeAreaInsets();
+  const metricOptions = metrics;
   const [isMetricPickerOpen, setIsMetricPickerOpen] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState(
-    team?.selectedMetricId ?? DISPLAY_RANK_METRICS[0].id,
+    team?.selectedMetricId ?? metricOptions[0]?.id ?? "",
   );
   const [selectedPeriod, setSelectedPeriod] = useState<DisplayRankPeriod>(
     team?.selectedPeriod ?? "today",
@@ -53,25 +71,60 @@ export const EditDisplayRankSheet = forwardRef<
     setIsMetricPickerOpen(false);
   }, [team]);
 
+  useEffect(() => {
+    if (metricOptions.length === 0) return;
+    const isSelectedAvailable = metricOptions.some(
+      (metric) => metric.id === selectedMetricId,
+    );
+    if (!isSelectedAvailable) {
+      setSelectedMetricId(metricOptions[0].id);
+    }
+  }, [metricOptions, selectedMetricId]);
+
   const handleApply = useCallback(() => {
-    if (!team) return;
+    if (!team || isApplying || !selectedMetricId) return;
+    const metricLabel =
+      metricOptions.find((item) => item.id === selectedMetricId)?.label;
     onApply({
       teamId: team.id,
       metricId: selectedMetricId,
       period: selectedPeriod,
-      displayRankLabel: buildDisplayRankLabel(selectedMetricId, selectedPeriod),
+      displayRankLabel: metricLabel
+        ? `${
+            selectedPeriod === "today"
+              ? "DAILY"
+              : selectedPeriod === "week"
+                ? "WEEKLY"
+                : "MONTHLY"
+          } RANK FOR ${metricLabel}`
+        : buildDisplayRankLabel(selectedMetricId, selectedPeriod),
     });
-  }, [onApply, selectedMetricId, selectedPeriod, team]);
+  }, [
+    isApplying,
+    metricOptions,
+    onApply,
+    selectedMetricId,
+    selectedPeriod,
+    team,
+  ]);
+
+  const canApply =
+    !isApplying && !isLoadingMetrics && metricOptions.length > 0 && !!selectedMetricId;
 
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={insets.bottom}>
         <View style={styles.footer}>
-          <PrimaryButton text="APPLY" onPress={handleApply} />
+          <PrimaryButton
+            text="APPLY"
+            onPress={handleApply}
+            isLoading={isApplying}
+            disabled={!canApply}
+          />
         </View>
       </BottomSheetFooter>
     ),
-    [handleApply, insets.bottom],
+    [canApply, handleApply, insets.bottom, isApplying],
   );
 
   return (
@@ -85,37 +138,51 @@ export const EditDisplayRankSheet = forwardRef<
     >
       <View style={styles.header}>
         <Text style={styles.title}>EDIT DISPLAY RANK</Text>
-        <Pressable onPress={handleApply} hitSlop={10} style={styles.checkButton}>
-          <Ionicons name="checkmark" size={22} color={Colors.light.white} />
+        <Pressable
+          onPress={handleApply}
+          hitSlop={10}
+          style={styles.checkButton}
+          disabled={!canApply}
+        >
+          <Ionicons
+            name="checkmark"
+            size={22}
+            color={canApply ? Colors.light.white : Colors.light.subtext}
+          />
         </Pressable>
       </View>
 
       <Pressable
         style={styles.dropdown}
-        onPress={() => setIsMetricPickerOpen((open) => !open)}
+        onPress={() => {
+          if (isLoadingMetrics || metricOptions.length === 0) return;
+          setIsMetricPickerOpen((open) => !open);
+        }}
       >
         <Text style={styles.dropdownText} numberOfLines={1}>
-          {isMetricPickerOpen
-            ? "DISPLAY RANK FOR ..."
-            : "DISPLAY RANK AS ..."}
+          {isMetricPickerOpen ? "DISPLAY RANK FOR" : "DISPLAY RANK AS"}
         </Text>
-        <Ionicons
-          name={isMetricPickerOpen ? "chevron-up" : "chevron-down"}
-          size={18}
-          color={Colors.light.white}
-        />
+        {isLoadingMetrics ? (
+          <ActivityIndicator size="small" color={Colors.light.white} />
+        ) : (
+          <Ionicons
+            name={isMetricPickerOpen ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={Colors.light.white}
+          />
+        )}
       </Pressable>
 
       {isMetricPickerOpen ? (
         <View style={styles.list}>
-          {DISPLAY_RANK_METRICS.map((metric, index) => {
+          {metricOptions.map((metric, index) => {
             const isSelected = metric.id === selectedMetricId;
             return (
               <Pressable
                 key={metric.id}
                 style={[
                   styles.listRow,
-                  index < DISPLAY_RANK_METRICS.length - 1 && styles.listRowBorder,
+                  index < metricOptions.length - 1 && styles.listRowBorder,
                 ]}
                 onPress={() => {
                   setSelectedMetricId(metric.id);
@@ -134,6 +201,9 @@ export const EditDisplayRankSheet = forwardRef<
               </Pressable>
             );
           })}
+          {!isLoadingMetrics && metricOptions.length === 0 ? (
+            <Text style={styles.emptyText}>NO LEADERBOARDS ON THIS TEAM</Text>
+          ) : null}
         </View>
       ) : (
         <View style={styles.periodSection}>
@@ -258,6 +328,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.medium,
     fontSize: 13,
     textTransform: "uppercase",
+  },
+  emptyText: {
+    color: Colors.light.subtext,
+    fontFamily: fonts.primary.medium,
+    fontSize: 13,
+    textTransform: "uppercase",
+    paddingVertical: 14,
   },
   footer: {
     paddingHorizontal: 16,

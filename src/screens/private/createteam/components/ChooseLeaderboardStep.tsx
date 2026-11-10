@@ -170,7 +170,7 @@ export function ChooseLeaderboardStep({
           {activeCategoryData?.metrics.map((metric) => (
             <LeaderboardToggleRow
               key={metric.metric}
-              label={metric.label.toUpperCase()}
+              label={metric.label}
               enabled={selectedIds.includes(metric.metric)}
               canEnable={selectedIds.length < maxMetricsPerCategory}
               onToggle={() => handleToggle(metric.metric)}

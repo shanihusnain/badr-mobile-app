@@ -22,16 +22,25 @@ export type MyTeam = {
   rankTotal: number;
 };
 
+/** Metric ids match connect API `displayMetric` / rank.metric.metric values. */
 export const DISPLAY_RANK_METRICS: DisplayRankMetric[] = [
-  { id: "mosque", label: "PRAYERS AT THE MOSQUE" },
-  { id: "qiyam", label: "QIYAM AL-LAYL PRAYERS" },
-  { id: "quran-completions", label: "QURAN COMPLETIONS" },
-  { id: "surahs-memorized", label: "SURAHS MEMORIZED" },
-  { id: "monday-thursday", label: "MONDAY & THURSDAY FASTS" },
-  { id: "white-days", label: "WHITE DAY FASTS" },
-  { id: "missed-zakat", label: "MISSED ZAKAT" },
-  { id: "sadaqah-parents", label: "SADAQAH FOR PARENTS" },
+  { id: "PRAYER_MOSQUE", label: "PRAYERS AT THE MOSQUE" },
+  { id: "PRAYER_QIYAM", label: "QIYAM AL-LAYL PRAYERS" },
+  { id: "QURAN_COMPLETIONS", label: "QURAN COMPLETIONS" },
+  { id: "QURAN_SURAHS_MEMORIZED", label: "SURAHS MEMORIZED" },
+  { id: "FASTING_MONDAY_THURSDAY", label: "MONDAY & THURSDAY FASTS" },
+  { id: "FASTING_WHITE_DAYS", label: "WHITE DAY FASTS" },
+  { id: "SADAQAH_MISSED_ZAKAT", label: "MISSED ZAKAT" },
+  { id: "SADAQAH_PARENTS", label: "SADAQAH FOR PARENTS" },
 ];
+
+export function mapDisplayPeriodToApi(
+  period: DisplayRankPeriod,
+): "DAILY" | "WEEKLY" | "MONTHLY" {
+  if (period === "week") return "WEEKLY";
+  if (period === "month") return "MONTHLY";
+  return "DAILY";
+}
 
 export const DISPLAY_RANK_PERIODS: {
   id: DisplayRankPeriod;
@@ -61,9 +70,9 @@ export const MOCK_MY_TEAMS: MyTeam[] = [
     name: "BADR'S TEAM",
     avatarUri:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
-    selectedMetricId: "qiyam",
+    selectedMetricId: "PRAYER_QIYAM",
     selectedPeriod: "today",
-    displayRankLabel: buildDisplayRankLabel("qiyam", "today"),
+    displayRankLabel: buildDisplayRankLabel("PRAYER_QIYAM", "today"),
     rankPosition: 1,
     rankTotal: 2,
   },
@@ -72,9 +81,9 @@ export const MOCK_MY_TEAMS: MyTeam[] = [
     name: "LA FAMILA",
     avatarUri:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-    selectedMetricId: "qiyam",
+    selectedMetricId: "PRAYER_QIYAM",
     selectedPeriod: "today",
-    displayRankLabel: buildDisplayRankLabel("qiyam", "today"),
+    displayRankLabel: buildDisplayRankLabel("PRAYER_QIYAM", "today"),
     rankPosition: 2,
     rankTotal: 8,
   },
@@ -83,9 +92,9 @@ export const MOCK_MY_TEAMS: MyTeam[] = [
     name: "MOM & I ❤️",
     avatarUri:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
-    selectedMetricId: "qiyam",
+    selectedMetricId: "PRAYER_QIYAM",
     selectedPeriod: "today",
-    displayRankLabel: buildDisplayRankLabel("qiyam", "today"),
+    displayRankLabel: buildDisplayRankLabel("PRAYER_QIYAM", "today"),
     rankPosition: 1,
     rankTotal: 2,
   },
@@ -94,9 +103,9 @@ export const MOCK_MY_TEAMS: MyTeam[] = [
     name: "SISTERS CIRCLE",
     avatarUri:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
-    selectedMetricId: "mosque",
+    selectedMetricId: "PRAYER_MOSQUE",
     selectedPeriod: "week",
-    displayRankLabel: buildDisplayRankLabel("mosque", "week"),
+    displayRankLabel: buildDisplayRankLabel("PRAYER_MOSQUE", "week"),
     rankPosition: 3,
     rankTotal: 12,
   },

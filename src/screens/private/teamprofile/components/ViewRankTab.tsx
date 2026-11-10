@@ -1,4 +1,5 @@
 import { fonts } from "@/assets/fonts";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -17,6 +18,7 @@ type ViewRankTabProps = {
   periodLabel: string;
   lastUpdated: string;
   entries: RankLeaderboardEntry[];
+  isLoading?: boolean;
 };
 
 export function ViewRankTab({
@@ -27,6 +29,7 @@ export function ViewRankTab({
   periodLabel,
   lastUpdated,
   entries,
+  isLoading = false,
 }: ViewRankTabProps) {
   return (
     <View style={styles.container}>
@@ -52,35 +55,47 @@ export function ViewRankTab({
         })}
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statsLeft}>
-          <Text style={styles.statsTitle}>{metricLabel}</Text>
-          <Text style={styles.statsTotal}>{totalLabel}</Text>
+      {isLoading ? (
+        <View style={styles.loadingWrap}>
+          <LoadingComponent size="medium" />
         </View>
-        <View style={styles.statsRight}>
-          <Text style={styles.statsTitle}>{periodLabel}</Text>
-          <Text style={styles.statsMeta}>{lastUpdated}</Text>
-        </View>
-      </View>
-
-      <View style={styles.list}>
-        {entries.map((entry) => (
-          <View key={entry.id} style={styles.row}>
-            <Image
-              source={{ uri: entry.avatarUri }}
-              style={styles.avatar}
-              contentFit="cover"
-            />
-            <View style={styles.meta}>
-              <Text style={styles.nameLine}>
-                <Text style={styles.name}>{entry.name} </Text>
-                <Text style={styles.score}>{formatRankScore(entry.score)}</Text>
-              </Text>
-              <Text style={styles.handle}>{entry.handle}</Text>
+      ) : (
+        <>
+          <View style={styles.statsRow}>
+            <View style={styles.statsLeft}>
+              <Text style={styles.statsTitle}>{metricLabel}</Text>
+              <Text style={styles.statsTotal}>{totalLabel}</Text>
+            </View>
+            <View style={styles.statsRight}>
+              <Text style={styles.statsTitle}>{periodLabel}</Text>
+              {lastUpdated ? (
+                <Text style={styles.statsMeta}>{lastUpdated}</Text>
+              ) : null}
             </View>
           </View>
-        ))}
-      </View>
+
+          <View style={styles.list}>
+            {entries.map((entry) => (
+              <View key={entry.id} style={styles.row}>
+                <Image
+                  source={{ uri: entry.avatarUri }}
+                  style={styles.avatar}
+                  contentFit="cover"
+                />
+                <View style={styles.meta}>
+                  <Text style={styles.nameLine}>
+                    <Text style={styles.name}>{entry.name} </Text>
+                    <Text style={styles.score}>
+                      {formatRankScore(entry.score)}
+                    </Text>
+                  </Text>
+                  <Text style={styles.handle}>{entry.handle}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -91,6 +106,11 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingBottom: 40,
+  },
+  loadingWrap: {
+    minHeight: 180,
+    alignItems: "center",
+    justifyContent: "center",
   },
   periodBar: {
     flexDirection: "row",

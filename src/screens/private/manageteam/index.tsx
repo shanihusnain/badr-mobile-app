@@ -3,6 +3,8 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import SecondaryButton from "@/components/atoms/Secondary-button";
 import WarningModal from "@/components/atoms/WarningModal";
 import { Colors } from "@/constants/theme";
+import { useAddTeamDescription } from "@/src/api/mutations/useAddTeamDescription";
+import { showToast } from "@/src/config/toastConfig";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
@@ -34,6 +36,11 @@ import { manageTeamStyles as styles } from "./styles";
 
 const ABOUT_MAX = 150;
 
+function asParamString(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0]?.trim() ?? "";
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export const ManageTeam = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -43,9 +50,11 @@ export const ManageTeam = () => {
     logoUri?: string;
     description?: string;
     teamChatEnabled?: string;
+    teamId?: string;
   }>();
 
-  const initialDescription = params.description ?? "";
+  const teamId = asParamString(params.teamId);
+  const initialDescription = asParamString(params.description);
   const initialDescriptionRef = useRef(initialDescription);
 
   const [bannerUri, setBannerUri] = useState(
@@ -88,6 +97,11 @@ export const ManageTeam = () => {
     [members],
   );
 
+  const {
+    mutateAsync: updateTeamAbout,
+    isPending: isSavingDescription,
+  } = useAddTeamDescription();
+
   const leaveScreen = useCallback(() => {
     setAllowLeave(true);
     setSaveChangesVisible(false);
@@ -107,14 +121,37 @@ export const ManageTeam = () => {
     leaveScreen();
   }, [isDescriptionDirty, leaveScreen]);
 
-  const handleSaveChanges = useCallback(() => {
-    console.log("Save team description to backend:", {
-      teamName,
-      description: description.trim(),
-    });
-    initialDescriptionRef.current = description.trim();
-    leaveScreen();
-  }, [description, leaveScreen, teamName]);
+  const handleSaveChanges = useCallback(async () => {
+    if (isSavingDescription) return;
+
+    if (!teamId) {
+      showToast("error", "Missing team id");
+      return;
+    }
+
+    if (isAboutOverLimit) {
+      showToast("error", `Description must be ${ABOUT_MAX} characters or less`);
+      return;
+    }
+
+    try {
+      await updateTeamAbout({
+        teamId,
+        about: description.trim(),
+      });
+      initialDescriptionRef.current = description.trim();
+      leaveScreen();
+    } catch {
+      // Toast is handled in the mutation.
+    }
+  }, [
+    description,
+    isAboutOverLimit,
+    isSavingDescription,
+    leaveScreen,
+    teamId,
+    updateTeamAbout,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -338,9 +375,16 @@ export const ManageTeam = () => {
         primaryButtonStyle={styles.saveYesButton}
         primaryButtonTextStyle={styles.saveYesButtonText}
         secondaryButtonTextStyle={styles.saveCancelText}
+        primaryButtonLoading={isSavingDescription}
         onPrimaryPress={handleSaveChanges}
-        onSecondaryPress={() => setSaveChangesVisible(false)}
-        onBackdropPress={() => setSaveChangesVisible(false)}
+        onSecondaryPress={() => {
+          if (isSavingDescription) return;
+          setSaveChangesVisible(false);
+        }}
+        onBackdropPress={() => {
+          if (isSavingDescription) return;
+          setSaveChangesVisible(false);
+        }}
       />
 
       <WarningModal

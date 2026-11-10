@@ -6,6 +6,7 @@ import {
   ThreeDotsIcon,
 } from "@/assets/icons";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import MoreActionButton from "@/components/atoms/MoreActionButton";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
@@ -14,11 +15,13 @@ import {
   type StudyMaterialItem,
 } from "@/components/molecules/PastAchievementStudyMaterial";
 import { Colors } from "@/constants/theme";
+import { useUpdateConnectTeamMe } from "@/src/api/mutations/useUpdateConnectTeamMe";
 import {
   useConnectHomeData,
   type ConnectHomeLearnMoreItem,
   type ConnectHomeTeam,
 } from "@/src/api/queries/useConnectHomeData";
+import { useGetConnectTeam } from "@/src/api/queries/useGetConnectTeam";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
@@ -35,6 +38,8 @@ import { EditDisplayRankSheet } from "./components/EditDisplayRankSheet";
 import { MyTeamsList } from "./components/MyTeamsList";
 import {
   buildDisplayRankLabel,
+  mapDisplayPeriodToApi,
+  type DisplayRankMetric,
   type DisplayRankPeriod,
   type MyTeam,
 } from "./myTeamsMockData";
@@ -137,7 +142,10 @@ function mapLearnMoreItems(
 export const ConnectHome = () => {
   const teamsMenuSheetRef = useRef<BottomSheet>(null);
   const editRankSheetRef = useRef<BottomSheet>(null);
-  const { data: connectHomeData } = useConnectHomeData();
+  const { data: connectHomeData, isLoading: isLoadingConnectHome } =
+    useConnectHomeData();
+  const { mutateAsync: updateConnectTeamMe, isPending: isUpdatingDisplayRank } =
+    useUpdateConnectTeamMe();
 
   const apiTeams = useMemo(
     () => mapConnectHomeTeams(connectHomeData?.teams),
@@ -146,9 +154,45 @@ export const ConnectHome = () => {
   const [myTeams, setMyTeams] = useState<MyTeam[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<MyTeam | null>(null);
 
+  const {
+    data: selectedTeamDetail,
+    isLoading: isLoadingTeamDetail,
+    isFetching: isFetchingTeamDetail,
+  } = useGetConnectTeam(selectedTeam?.id);
+
   useEffect(() => {
     setMyTeams(apiTeams);
   }, [apiTeams]);
+
+  const displayRankMetrics = useMemo<DisplayRankMetric[]>(() => {
+    const metrics = selectedTeamDetail?.metrics;
+    if (!Array.isArray(metrics) || metrics.length === 0) return [];
+
+    return metrics.flatMap((metric) => {
+      const id = asString(metric.metric);
+      const label = asString(metric.label);
+      if (!id || !label) return [];
+      return [{ id, label: label.toUpperCase() } satisfies DisplayRankMetric];
+    });
+  }, [selectedTeamDetail?.metrics]);
+
+  const editSheetTeam = useMemo<MyTeam | null>(() => {
+    if (!selectedTeam) return null;
+
+    const me = selectedTeamDetail?.me;
+    if (!me) return selectedTeam;
+
+    const selectedMetricId =
+      asString(me.displayMetric) ?? selectedTeam.selectedMetricId;
+    const selectedPeriod = mapApiPeriodToDisplayPeriod(me.displayPeriod);
+
+    return {
+      ...selectedTeam,
+      selectedMetricId,
+      selectedPeriod,
+      displayRankLabel: buildDisplayRankLabel(selectedMetricId, selectedPeriod),
+    };
+  }, [selectedTeam, selectedTeamDetail?.me]);
 
   const hasJoinedTeams = myTeams.length > 0;
   const visibleTeamCount = connectHomeData?.visibleTeamCount ?? 4;
@@ -168,6 +212,18 @@ export const ConnectHome = () => {
   }, []);
 
   const handleTeamPress = useCallback((team: MyTeam) => {
+    router.push({
+      pathname: "/teamprofile",
+      params: {
+        teamId: team.id,
+        teamName: team.name,
+        bannerUri: team.avatarUri,
+        logoUri: team.avatarUri,
+      },
+    });
+  }, []);
+
+  const handleRankPress = useCallback((team: MyTeam) => {
     setSelectedTeam(team);
     requestAnimationFrame(() => {
       editRankSheetRef.current?.expand();
@@ -175,27 +231,27 @@ export const ConnectHome = () => {
   }, []);
 
   const handleApplyDisplayRank = useCallback(
-    (payload: {
+    async (payload: {
       teamId: string;
       metricId: string;
       period: DisplayRankPeriod;
       displayRankLabel: string;
     }) => {
-      setMyTeams((current) =>
-        current.map((team) =>
-          team.id === payload.teamId
-            ? {
-                ...team,
-                selectedMetricId: payload.metricId,
-                selectedPeriod: payload.period,
-                displayRankLabel: payload.displayRankLabel,
-              }
-            : team,
-        ),
-      );
-      closeEditRankSheet();
+      try {
+        await updateConnectTeamMe({
+          teamId: payload.teamId,
+          body: {
+            displayMetric: payload.metricId,
+            displayPeriod: mapDisplayPeriodToApi(payload.period),
+          },
+        });
+        // Connect home + team detail caches are invalidated in the mutation.
+        closeEditRankSheet();
+      } catch {
+        // Toast is handled in the mutation.
+      }
     },
-    [closeEditRankSheet],
+    [closeEditRankSheet, updateConnectTeamMe],
   );
 
   const sections = useMemo<ConnectHomeSection[]>(
@@ -281,6 +337,7 @@ export const ConnectHome = () => {
             teams={myTeams}
             visibleTeamCount={visibleTeamCount}
             onTeamPress={handleTeamPress}
+            onRankPress={handleRankPress}
           />
         ) : (
           item.button?.map((button) => (
@@ -295,7 +352,7 @@ export const ConnectHome = () => {
         )}
       </View>
     ),
-    [handleTeamPress, myTeams, visibleTeamCount],
+    [handleRankPress, handleTeamPress, myTeams, visibleTeamCount],
   );
 
   const ListFooter = useCallback(() => {
@@ -309,6 +366,16 @@ export const ConnectHome = () => {
       />
     );
   }, [learnMoreItems]);
+
+  if (isLoadingConnectHome) {
+    return (
+      <BlackScreenWrapper edges={["top"]}>
+        <View style={styles.loadingContainer}>
+          <LoadingComponent size="large" />
+        </View>
+      </BlackScreenWrapper>
+    );
+  }
 
   return (
     <BlackScreenWrapper edges={["top"]}>
@@ -352,7 +419,14 @@ export const ConnectHome = () => {
 
       <EditDisplayRankSheet
         ref={editRankSheetRef}
-        team={selectedTeam}
+        team={editSheetTeam}
+        metrics={displayRankMetrics}
+        isLoadingMetrics={
+          Boolean(selectedTeam) &&
+          (isLoadingTeamDetail || isFetchingTeamDetail) &&
+          displayRankMetrics.length === 0
+        }
+        isApplying={isUpdatingDisplayRank}
         onClose={closeEditRankSheet}
         onApply={handleApplyDisplayRank}
       />
@@ -361,6 +435,11 @@ export const ConnectHome = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   contentContainer: {
     paddingBottom: 24,
   },

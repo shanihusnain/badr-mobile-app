@@ -1,27 +1,33 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { RANK_METRICS } from "../rankMockData";
+
+export type RankMetricOption = {
+  id: string;
+  label: string;
+};
 
 type RankMetricDropdownProps = {
+  metrics: RankMetricOption[];
   selectedMetricId: string;
   onSelect: (metricId: string) => void;
 };
 
 export function RankMetricDropdown({
+  metrics,
   selectedMetricId,
   onSelect,
 }: RankMetricDropdownProps) {
   return (
     <View style={styles.menu}>
-      {RANK_METRICS.map((metric, index) => {
+      {metrics.map((metric, index) => {
         const selected = metric.id === selectedMetricId;
         return (
           <Pressable
             key={metric.id}
             style={[
               styles.row,
-              index < RANK_METRICS.length - 1 && styles.rowBorder,
+              index < metrics.length - 1 && styles.rowBorder,
             ]}
             onPress={() => onSelect(metric.id)}
           >

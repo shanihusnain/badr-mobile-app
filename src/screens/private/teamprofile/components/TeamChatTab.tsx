@@ -1,5 +1,8 @@
 import { fonts } from "@/assets/fonts";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
+import type { ConnectTeamMessage } from "@/src/api/queries/useGetConnectTeamMessages";
+import type { TeamTypingUser } from "@/src/realtime/useTeamTyping";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useMemo, useState } from "react";
@@ -14,55 +17,103 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  CURRENT_USER,
-  EXTRA_TEAM_MEMBERS,
-  type TeamMember,
-} from "../mockData";
-import type { TeamChatMessage } from "../rankMockData";
+import { TypingBubble } from "./TypingBubble";
 
 const MUTED = "#8E98A8";
-
-const MEMBERS_BY_ID: Record<string, TeamMember> = Object.fromEntries(
-  [CURRENT_USER, ...EXTRA_TEAM_MEMBERS].map((member) => [member.id, member]),
-);
+const FALLBACK_AVATAR =
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200";
 
 type TeamChatTabProps = {
   enabled?: boolean;
   teamName: string;
   teamLogoUri: string;
-  userAvatarUri?: string;
+  userAvatarUri?: string | null;
+  /** Newest first — FlatList is inverted for chat UX */
+  messages: ConnectTeamMessage[];
+  isLoading?: boolean;
+  isSending?: boolean;
+  isFetchingOlder?: boolean;
+  hasOlderMessages?: boolean;
+  typingUsers?: TeamTypingUser[];
+  onLoadOlder?: () => void;
+  onTypingChange?: (text: string) => void;
+  onSend: (text: string) => Promise<void> | void;
 };
+
+function formatMessageTime(value?: string): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * FlatList `inverted` expects newest-first data so that:
+ * - visual top = oldest
+ * - visual bottom = newest (WhatsApp-style)
+ */
+function sortMessagesNewestFirst(
+  messages: ConnectTeamMessage[],
+): ConnectTeamMessage[] {
+  return [...messages].sort((a, b) => {
+    const aTime = a.createdAt ? Date.parse(a.createdAt) : Number.NaN;
+    const bTime = b.createdAt ? Date.parse(b.createdAt) : Number.NaN;
+
+    // Messages without a timestamp (optimistic / socket edge) stay at the newest end.
+    if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+    if (Number.isNaN(aTime)) return -1;
+    if (Number.isNaN(bTime)) return 1;
+    if (bTime !== aTime) return bTime - aTime;
+
+    // Stable tie-breaker so equal timestamps don't jitter.
+    return b.id.localeCompare(a.id);
+  });
+}
 
 export function TeamChatTab({
   enabled = true,
   teamName,
   teamLogoUri,
-  userAvatarUri = CURRENT_USER.avatarUri,
+  userAvatarUri,
+  messages,
+  isLoading = false,
+  isSending = false,
+  isFetchingOlder = false,
+  hasOlderMessages = false,
+  typingUsers = [],
+  onLoadOlder,
+  onTypingChange,
+  onSend,
 }: TeamChatTabProps) {
   const insets = useSafeAreaInsets();
-  const [messages, setMessages] = useState<TeamChatMessage[]>([]);
   const [draft, setDraft] = useState("");
 
-  const canSend = draft.trim().length > 0;
+  const canSend = draft.trim().length > 0 && !isSending;
+  const composerAvatar = userAvatarUri?.trim() || FALLBACK_AVATAR;
+  const showTyping = typingUsers.length > 0;
 
-  const handleSend = () => {
-    if (!canSend) return;
-    setMessages((current) => [
-      ...current,
-      {
-        id: String(Date.now()),
-        memberId: "me",
-        text: draft.trim(),
-        time: "Just now",
-        isMine: true,
-      },
-    ]);
-    setDraft("");
+  const handleDraftChange = (text: string) => {
+    setDraft(text);
+    onTypingChange?.(text);
   };
 
-  const listData = useMemo(() => messages, [messages]);
-  const isEmpty = listData.length === 0;
+  const handleSend = async () => {
+    if (!canSend) return;
+    const text = draft.trim();
+    setDraft("");
+    await onSend(text);
+  };
+
+  const listData = useMemo(
+    () => sortMessagesNewestFirst(messages),
+    [messages],
+  );
+  const isEmpty = !isLoading && listData.length === 0;
+
+  const handleEndReached = () => {
+    if (!hasOlderMessages || isFetchingOlder || !onLoadOlder) return;
+    onLoadOlder();
+  };
 
   if (!enabled) {
     return (
@@ -90,7 +141,11 @@ export function TeamChatTab({
         <Text style={styles.teamName}>{teamName}</Text>
       </View>
 
-      {isEmpty ? (
+      {isLoading ? (
+        <View style={styles.loadingWrap}>
+          <LoadingComponent size="medium" />
+        </View>
+      ) : isEmpty ? (
         <View style={styles.emptyState}>
           <Image
             source={{ uri: teamLogoUri }}
@@ -103,10 +158,32 @@ export function TeamChatTab({
         <FlatList
           data={listData}
           keyExtractor={(item) => item.id}
+          inverted
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.2}
+          ListFooterComponent={
+            isFetchingOlder ? (
+              <View style={styles.olderLoading}>
+                <LoadingComponent size="small" />
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => {
-            const member = MEMBERS_BY_ID[item.memberId];
+            if (item.type === "SYSTEM") {
+              return (
+                <View style={styles.systemRow}>
+                  <Text style={styles.systemText}>{item.text}</Text>
+                </View>
+              );
+            }
+
+            const senderAvatar =
+              item.sender?.avatarUrl?.trim() || FALLBACK_AVATAR;
+            const senderName = item.sender?.name ?? "";
+
             return (
               <View
                 style={[
@@ -114,9 +191,9 @@ export function TeamChatTab({
                   item.isMine && styles.messageRowMine,
                 ]}
               >
-                {!item.isMine && member ? (
+                {!item.isMine ? (
                   <Image
-                    source={{ uri: member.avatarUri }}
+                    source={{ uri: senderAvatar }}
                     style={styles.messageAvatar}
                     contentFit="cover"
                   />
@@ -129,17 +206,28 @@ export function TeamChatTab({
                     item.isMine ? styles.bubbleMine : styles.bubbleOther,
                   ]}
                 >
-                  {!item.isMine && member ? (
-                    <Text style={styles.sender}>{member.name}</Text>
+                  {!item.isMine && senderName ? (
+                    <Text style={styles.sender}>{senderName}</Text>
                   ) : null}
                   <Text style={styles.messageText}>{item.text}</Text>
-                  <Text style={styles.time}>{item.time}</Text>
+                  {item.createdAt ? (
+                    <Text style={styles.time}>
+                      {formatMessageTime(item.createdAt)}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             );
           }}
         />
       )}
+
+      {/* Outside inverted FlatList so the bubble is never flipped/clipped */}
+      {showTyping ? (
+        <View style={styles.typingWrap}>
+          <TypingBubble users={typingUsers} />
+        </View>
+      ) : null}
 
       <View
         style={[
@@ -149,7 +237,7 @@ export function TeamChatTab({
       >
         <View style={styles.composerBar}>
           <Image
-            source={{ uri: userAvatarUri }}
+            source={{ uri: composerAvatar }}
             style={styles.composerAvatar}
             contentFit="cover"
           />
@@ -157,10 +245,11 @@ export function TeamChatTab({
           <TextInput
             style={styles.input}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={handleDraftChange}
             placeholder="SAY SOMETHING"
             placeholderTextColor={MUTED}
             multiline
+            editable={!isSending}
           />
 
           <View style={styles.composerDivider} />
@@ -177,10 +266,7 @@ export function TeamChatTab({
               name="send"
               size={18}
               color={MUTED}
-              style={[
-                styles.sendIcon,
-                !canSend && styles.sendIconDisabled,
-              ]}
+              style={[styles.sendIcon, !canSend && styles.sendIconDisabled]}
             />
           </Pressable>
         </View>
@@ -216,6 +302,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 18,
   },
+  loadingWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   emptyState: {
     flex: 1,
     alignItems: "center",
@@ -241,8 +332,28 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingTop: 12,
     gap: 10,
+  },
+  olderLoading: {
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  typingWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  systemRow: {
+    alignSelf: "center",
+    maxWidth: "90%",
+    paddingVertical: 4,
+  },
+  systemText: {
+    color: MUTED,
+    fontFamily: fonts.primary.regular,
+    fontSize: 12,
+    textAlign: "center",
   },
   messageRow: {
     flexDirection: "row",
@@ -343,7 +454,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendIcon: {
-    // Feather "send" glyph sits slightly left/high in its box
     marginTop: 1,
     marginLeft: 2,
   },

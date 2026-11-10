@@ -11,16 +11,17 @@ type MyTeamsListProps = {
   /** How many teams to show before "SHOW MORE". Falls back to mock default. */
   visibleTeamCount?: number;
   onTeamPress?: (team: MyTeam) => void;
+  onRankPress?: (team: MyTeam) => void;
 };
 
 export function MyTeamsList({
   teams,
   visibleTeamCount = MY_TEAMS_INITIAL_VISIBLE,
   onTeamPress,
+  onRankPress,
 }: MyTeamsListProps) {
   const [showAll, setShowAll] = useState(false);
   const initialVisible = Math.max(1, visibleTeamCount);
-  console.log("teams", teams);
   const visibleTeams = useMemo(() => {
     if (showAll || teams.length <= initialVisible) {
       return teams;
@@ -36,7 +37,12 @@ export function MyTeamsList({
     <View>
       <Text style={styles.subtitle}>MY TEAMS</Text>
       {visibleTeams.map((team) => (
-        <MyTeamCard key={team.id} team={team} onPress={onTeamPress} />
+        <MyTeamCard
+          key={team.id}
+          team={team}
+          onPress={onTeamPress}
+          onRankPress={onRankPress}
+        />
       ))}
       {canShowMore ? (
         <Pressable

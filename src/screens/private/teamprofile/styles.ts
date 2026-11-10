@@ -10,6 +10,17 @@ export const teamProfileStyles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  centeredState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  stateText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    textAlign: "center",
+  },
   banner: {
     width: "100%",
     height: 280,

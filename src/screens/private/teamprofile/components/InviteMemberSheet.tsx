@@ -9,23 +9,29 @@ import { teamProfileStyles as styles } from "../styles";
 type InviteMemberSheetProps = {
   inviteCode: string;
   referralCode: string;
+  shareText?: string;
   onClose: () => void;
 };
 
 export const InviteMemberSheet = forwardRef<BottomSheet, InviteMemberSheetProps>(
-  function InviteMemberSheet({ inviteCode, referralCode, onClose }, ref) {
+  function InviteMemberSheet(
+    { inviteCode, referralCode, shareText, onClose },
+    ref,
+  ) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = useCallback(async () => {
       try {
-        await Share.share({ message: inviteCode });
+        await Share.share({
+          message: shareText?.trim() || inviteCode,
+        });
         setCopied(true);
       } catch (error: unknown) {
         const message =
           error instanceof Error ? error.message : "Unable to share code";
         Alert.alert(message);
       }
-    }, [inviteCode]);
+    }, [inviteCode, shareText]);
 
     const handleShareReferral = useCallback(async () => {
       try {
