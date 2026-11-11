@@ -470,6 +470,7 @@ function readSunnahSlotFrameState(
   if (raw && typeof raw === "object") {
     const slot = raw as {
       logged?: boolean;
+      loggedCount?: number;
       count?: number;
       completed?: number;
       wasQadha?: boolean;
@@ -484,7 +485,12 @@ function readSunnahSlotFrameState(
       };
     }
     let userUnits: number | undefined;
-    if (typeof slot.count === "number" && Number.isFinite(slot.count)) {
+    if (
+      typeof slot.loggedCount === "number" &&
+      Number.isFinite(slot.loggedCount)
+    ) {
+      userUnits = Math.max(0, slot.loggedCount);
+    } else if (typeof slot.count === "number" && Number.isFinite(slot.count)) {
       userUnits = Math.max(0, slot.count);
     } else if (
       typeof slot.completed === "number" &&
