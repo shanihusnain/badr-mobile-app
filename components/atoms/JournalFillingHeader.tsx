@@ -13,6 +13,8 @@ type JournalFillingHeaderProps = {
   onBackPress?: () => void;
   onEditPress?: () => void;
   backgroundColor?: string;
+  /** Skip status-bar inset — for embedding in a bottom sheet. */
+  compact?: boolean;
 };
 
 function JournalFillingHeaderComponent({
@@ -21,6 +23,7 @@ function JournalFillingHeaderComponent({
   onBackPress,
   onEditPress,
   backgroundColor = "transparent",
+  compact = false,
 }: JournalFillingHeaderProps) {
   const insets = useSafeAreaInsets();
 
@@ -29,7 +32,7 @@ function JournalFillingHeaderComponent({
       style={[
         styles.headerRow,
         {
-          paddingTop: insets.top + 10,
+          paddingTop: compact ? 4 : insets.top + 10,
           backgroundColor,
         },
       ]}

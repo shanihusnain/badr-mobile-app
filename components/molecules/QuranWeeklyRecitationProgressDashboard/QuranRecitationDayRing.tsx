@@ -80,7 +80,11 @@ export function QuranRecitationDayRing({
           ]}
         >
           {showBestDayStar ? (
-            <View pointerEvents="none" style={styles.starWrap} collapsable={false}>
+            <View
+              pointerEvents="none"
+              style={styles.starWrap}
+              collapsable={false}
+            >
               <BestdayStarIcon Size={starSize} />
             </View>
           ) : null}

@@ -41,6 +41,10 @@ export const useUpdateJournalDay = () => {
       queryClient.invalidateQueries({
         queryKey: [JOURNAL_DAY_QUERY_KEY, variables.date],
       });
+      // Clear home "what happened yesterday" prompt when journal is saved.
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-data-for-date"],
+      });
     },
     onError: (error) => {
       console.error("Error updating journal day:", error);

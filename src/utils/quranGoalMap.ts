@@ -309,6 +309,8 @@ export type QuranGoalDetailItem = {
   verseEnd?: number | null;
   targetCount?: number | null;
   completedCount?: number | null;
+  /** Ayahs covered by this juz/hizb/surah item (RECITATION_JUZ). */
+  totalVerses?: number | null;
   status?: string | null;
   /** Per-item cadence echoed from config (RECITATION_SURAH). */
   frequency?: string | null;

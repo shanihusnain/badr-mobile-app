@@ -1,7 +1,13 @@
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useCallback, useState } from "react";
-import { StyleSheet, useWindowDimensions, View, Text, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { AllDoneCheckIcon } from "@/assets/icons/AllDoneCheckIcon";
@@ -34,6 +40,7 @@ type SwipeCardDeckProps = {
   onCardSwiped?: (swipedIndex: number) => void;
   /** Fires when the last card has been fully swiped away. */
   onAllCardsSwiped?: () => void;
+  showPagination?: boolean;
 };
 
 type DeckSwipeCardProps = {
@@ -143,6 +150,7 @@ export const SwipeCardDeck = ({
   renderTextWithHighlight,
   onCardSwiped,
   onAllCardsSwiped,
+  showPagination = true,
 }: SwipeCardDeckProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const cardWidth = windowWidth - SCREEN_H_PADDING * 2;
@@ -169,15 +177,17 @@ export const SwipeCardDeck = ({
 
   return (
     <View>
-      <View style={[styles.deckContainer, { height: deckHeight, width: cardWidth }]}>
+      <View
+        style={[styles.deckContainer, { height: deckHeight, width: cardWidth }]}
+      >
         {remainingCards.length === 0 ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCenter}>
               <AllDoneCheckIcon size={48} color={Colors.light.white} />
               <Text style={styles.emptyStateText}>You're all set!</Text>
             </View>
-            <TouchableOpacity 
-              activeOpacity={0.8} 
+            <TouchableOpacity
+              activeOpacity={0.8}
               style={styles.emptyStateDoneBtn}
               onPress={() => setIsDismissed(true)}
             >
@@ -198,14 +208,14 @@ export const SwipeCardDeck = ({
                   stackIndex={stackIndex}
                   total={remainingCards.length - stackIndex}
                   renderTextWithHighlight={renderTextWithHighlight}
-                  onSwiped={stackIndex === 0 ? handleCardSwiped : () => { }}
+                  onSwiped={stackIndex === 0 ? handleCardSwiped : () => {}}
                 />
               );
             })
         )}
       </View>
 
-      {remainingCards.length > 0 && (
+      {showPagination && remainingCards.length > 0 && (
         <View style={styles.dotRow}>
           {data.map((_, index) => (
             <View

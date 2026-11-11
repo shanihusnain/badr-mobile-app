@@ -140,67 +140,40 @@ const attachSocketHandlers = (instance: Socket) => {
     emitTeamMessage(payload);
   });
 
+  // INCOMING from server — other members must see this when someone types.
   instance.on("team:typing", (payload) => {
-    console.log("[connect-socket] team:typing", payload);
+    console.log("[connect-socket] incoming team:typing", payload);
     emitTeamTypingEvent(payload);
   });
 
-  // Also accept common alternate event names until backend contract is confirmed.
-  instance.on("typing", (payload) => {
-    console.log("[connect-socket] typing", payload);
-    emitTeamTypingEvent(
-      normalizeIncomingTypingPayload(payload, true),
-    );
-  });
-  instance.on("stop_typing", (payload) => {
-    console.log("[connect-socket] stop_typing", payload);
-    emitTeamTypingEvent(
-      normalizeIncomingTypingPayload(payload, false),
-    );
-  });
-  instance.on("user_typing", (payload) => {
-    console.log("[connect-socket] user_typing", payload);
-    emitTeamTypingEvent(
-      normalizeIncomingTypingPayload(payload, true),
-    );
-  });
-  instance.on("user_stop_typing", (payload) => {
-    console.log("[connect-socket] user_stop_typing", payload);
-    emitTeamTypingEvent(
-      normalizeIncomingTypingPayload(payload, false),
-    );
-  });
-
+  // Debug: surface unexpected events (helps verify backend broadcast names).
   instance.onAny((event, ...args) => {
-    if (event === "team:message" || event.startsWith("team:")) return;
+    if (
+      event === "team:message" ||
+      event === "team:typing" ||
+      event === "connect" ||
+      event === "disconnect"
+    ) {
+      return;
+    }
     console.log("[connect-socket] event", event, args?.[0]);
   });
 };
 
-const normalizeIncomingTypingPayload = (
-  payload: unknown,
-  typingFallback: boolean,
-) => {
-  if (!payload || typeof payload !== "object") {
-    return { typing: typingFallback };
-  }
-  const raw = payload as Record<string, unknown>;
-  return {
-    ...raw,
-    typing:
-      typeof raw.typing === "boolean"
-        ? raw.typing
-        : typeof raw.isTyping === "boolean"
-          ? raw.isTyping
-          : typingFallback,
-  };
-};
-
-/** Tell other team members this user started/stopped typing. */
-export const emitTeamTyping = (payload: {
+export type EmitTeamTypingPayload = {
   teamId: string;
   typing: boolean;
-}) => {
+  /** Included so a simple server rebroadcast can identify the typer. */
+  userId?: string;
+  name?: string;
+  avatarUrl?: string | null;
+};
+
+/**
+ * Tell other team members this user started/stopped typing.
+ * Server must broadcast to other room members (not the sender).
+ */
+export const emitTeamTyping = (payload: EmitTeamTypingPayload) => {
   if (!socket?.connected) {
     console.log("[connect-socket] skip typing emit — socket not connected");
     return;
@@ -210,14 +183,19 @@ export const emitTeamTyping = (payload: {
     return;
   }
 
-  console.log("[connect-socket] emit team:typing", payload);
-  socket.emit("team:typing", payload);
-  // Compatibility emits in case backend listens under different names.
-  if (payload.typing) {
-    socket.emit("typing", payload);
-  } else {
-    socket.emit("stop_typing", payload);
-  }
+  const body: EmitTeamTypingPayload = {
+    teamId: payload.teamId,
+    typing: payload.typing,
+    ...(payload.userId ? { userId: payload.userId } : {}),
+    ...(payload.name ? { name: payload.name } : {}),
+    ...(payload.avatarUrl !== undefined
+      ? { avatarUrl: payload.avatarUrl }
+      : {}),
+  };
+
+  // OUTGOING only — other devices must log "[connect-socket] team:typing" (no "emit").
+  console.log("[connect-socket] emit team:typing", body);
+  socket.emit("team:typing", body);
 };
 /**
  * Connect once after login. Server auto-joins the user to all team rooms.

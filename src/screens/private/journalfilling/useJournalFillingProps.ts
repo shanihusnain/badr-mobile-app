@@ -42,6 +42,8 @@ import type {
 type UseJournalFillingPropsOptions = {
   initialDateKey?: string;
   userName?: string;
+  /** When set (e.g. home bottom sheet), used instead of `router.back()`. */
+  onRequestClose?: () => void;
 };
 
 function areDraftsEqual(
@@ -87,6 +89,7 @@ function normalizeDayItems(
 export function useJournalFillingProps({
   initialDateKey,
   userName = "Mariam",
+  onRequestClose,
 }: UseJournalFillingPropsOptions = {}) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -500,7 +503,8 @@ export function useJournalFillingProps({
     setDontShowDiscardAgain(false);
 
     if (navigationAction === "back") {
-      router.back();
+      if (onRequestClose) onRequestClose();
+      else router.back();
       return;
     }
 
@@ -510,6 +514,7 @@ export function useJournalFillingProps({
   }, [
     applyDateChange,
     dontShowDiscardAgain,
+    onRequestClose,
     pendingDateKey,
     pendingNavigationAction,
   ]);
@@ -545,7 +550,8 @@ export function useJournalFillingProps({
       setShowSuccessToast(true);
 
       setTimeout(() => {
-        router.back();
+        if (onRequestClose) onRequestClose();
+        else router.back();
       }, 900);
     } catch (error) {
       console.error("Error saving journal day:", error);
@@ -558,6 +564,7 @@ export function useJournalFillingProps({
     draft,
     hasChanges,
     isSaving,
+    onRequestClose,
     queryClient,
     selectedDateKey,
     updateJournalDay,
@@ -571,8 +578,9 @@ export function useJournalFillingProps({
       return;
     }
 
-    router.back();
-  }, [hasChanges, hideDiscardDialogPreference]);
+    if (onRequestClose) onRequestClose();
+    else router.back();
+  }, [hasChanges, hideDiscardDialogPreference, onRequestClose]);
 
   const handleInsightsPress = useCallback(() => {
     router.push("/(tabs)/(plan)");

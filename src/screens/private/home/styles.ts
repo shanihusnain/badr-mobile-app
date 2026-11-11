@@ -157,13 +157,13 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp(2.5),
+    marginBottom: hp(2),
   },
   prayerTimelineRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: wp(1),
+    // paddingHorizontal: wp(1),
   },
   prayerTimelineIcon: {
     width: 38,
@@ -172,8 +172,6 @@ export const styles = StyleSheet.create({
     backgroundColor: "#2C3E50",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#2C3E50",
   },
   prayerTimelineDash: {
     flex: 1,
@@ -264,6 +262,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: wp(2),
+    marginBottom: hp(2),
   },
 
   categoryItemWrapper: {
@@ -327,7 +326,6 @@ export const styles = StyleSheet.create({
 
   // Containers Section
   containersSection: {
-    // marginTop: hp(3),
     marginBottom: hp(2),
     alignItems: "center",
     justifyContent: "center",
@@ -465,7 +463,7 @@ export const styles = StyleSheet.create({
   // ── Inspiration Cards Section ──────────────────────────────────────────────
 
   inspirationSection: {
-    marginTop: 16,
+    marginTop: hp(3),
     marginBottom: 16,
     //width: "100%",
     alignItems: "center",

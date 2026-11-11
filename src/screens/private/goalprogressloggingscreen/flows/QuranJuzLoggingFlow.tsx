@@ -41,7 +41,11 @@ import {
 } from "@/src/api/mutations/useLogQuranRecitationJuzGoal";
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getQuranJuzFlowDefinition } from "../loggingFlowRegistry";
-import { resolveApiJuzVerseCount } from "../quranApiVerseSpan";
+import {
+  resolveApiJuzVerseCount,
+  resolveJuzPartialSubtitle,
+  resolveJuzTotalVersesForFullLog,
+} from "../quranApiVerseSpan";
 import {
   getJuzVerseCountFromMap,
   getJuzVerseMetadata,
@@ -603,15 +607,10 @@ export default function QuranJuzLoggingFlow({
         const durations = splitDurationMinutes(fullMinutes, juzNumbers.length);
         juzNumbers.forEach((juz, index) => {
           const toAyah =
-            resolveApiJuzVerseCount({
+            resolveJuzTotalVersesForFullLog({
               juzNumber: juz,
-              items: quranFrame?.frame?.items,
-            }) ||
-            resolveApiJuzVerseCount({
-              juzNumber: juz,
-              items: juzGoalDetail?.items,
-            }) ||
-            getJuzVerseCountFromMap(juz);
+              itemsLists: [juzGoalDetail?.items, quranFrame?.frame?.items],
+            }) || getJuzVerseCountFromMap(juz);
           payloads.push({
             quranGoalType: "RECITATION_JUZ",
             date: selectedDate,
@@ -785,8 +784,17 @@ export default function QuranJuzLoggingFlow({
               }}
             >
               {(() => {
+                const fromApi = resolveJuzPartialSubtitle({
+                  juzNumber: partialJuz,
+                  itemsLists: [juzGoalDetail?.items, quranFrame?.frame?.items],
+                });
                 const meta = getJuzVerseMetadata(partialJuz);
-                return `${meta.rangeLabel} (${formatNumber(meta.totalVerses)} ${t(
+                const rangeLabel = fromApi?.rangeLabel || meta.rangeLabel;
+                const totalVerses =
+                  fromApi?.totalVerses != null
+                    ? fromApi.totalVerses
+                    : meta.totalVerses;
+                return `${rangeLabel} (${formatNumber(totalVerses)} ${t(
                   "progressLogging.versesCountLabel",
                 )})`;
               })()}

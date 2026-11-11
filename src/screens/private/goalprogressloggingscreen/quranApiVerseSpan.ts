@@ -287,28 +287,55 @@ export function formatApiVerseLabel(
   return formatNumber(pos);
 }
 
+/** Smallest Hafs juz still has dozens of ayahs; below this is a unit count. */
+const MIN_PLAUSIBLE_JUZ_AYAHS = 20;
+
+type JuzVerseCountItem = {
+  itemNumber?: number | null;
+  title?: string | null;
+  subtitle?: string | null;
+  surahName?: string | null;
+  target?: number | null;
+  targetCount?: number | null;
+  verseStart?: number | null;
+  verseEnd?: number | null;
+  totalVerses?: number | null;
+};
+
+function findJuzItem(
+  juzNumber: number,
+  items?: Array<JuzVerseCountItem | null | undefined> | null,
+): JuzVerseCountItem | null {
+  const juz = Math.round(juzNumber);
+  if (!Number.isFinite(juz) || juz <= 0) return null;
+  for (const item of items ?? []) {
+    if (!item) continue;
+    const itemNumber = Number(item.itemNumber);
+    if (!Number.isFinite(itemNumber) || itemNumber !== juz) continue;
+    return item;
+  }
+  return null;
+}
+
+function readPlausibleTotalVerses(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  const n = Math.round(value);
+  return n >= MIN_PLAUSIBLE_JUZ_AYAHS ? n : 0;
+}
+
 /**
  * Prefer title/subtitle verse span for a juz item.
  * RECITATION_JUZ items often set `target: 1` (complete one juz) — that is not
  * an ayah total, so only trust target when it looks like a real verse count.
  * Returns 0 when the API does not expose a usable count for that juz.
+ * Intentionally ignores `totalVerses` so partial slider bounds stay map-driven.
  */
 export function resolveApiJuzVerseCount(input: {
   juzNumber: number;
-  items?: Array<{
-    itemNumber?: number | null;
-    title?: string | null;
-    subtitle?: string | null;
-    target?: number | null;
-    targetCount?: number | null;
-    verseStart?: number | null;
-    verseEnd?: number | null;
-  } | null | undefined> | null;
+  items?: Array<JuzVerseCountItem | null | undefined> | null;
 }): number {
   const juz = Math.round(input.juzNumber);
   if (!Number.isFinite(juz) || juz <= 0) return 0;
-  /** Smallest Hafs juz still has dozens of ayahs; below this is a unit count. */
-  const MIN_PLAUSIBLE_JUZ_AYAHS = 20;
   const items = input.items ?? [];
   for (const item of items) {
     if (!item) continue;
@@ -340,4 +367,48 @@ export function resolveApiJuzVerseCount(input: {
     if (fromTarget >= MIN_PLAUSIBLE_JUZ_AYAHS) return fromTarget;
   }
   return 0;
+}
+
+/**
+ * Full-juz log `toAyah`: prefer API `totalVerses`, then title/span resolve, else 0
+ * (caller falls back to the local map). Does not change partial slider bounds.
+ */
+export function resolveJuzTotalVersesForFullLog(input: {
+  juzNumber: number;
+  itemsLists?: Array<Array<JuzVerseCountItem | null | undefined> | null | undefined>;
+}): number {
+  for (const items of input.itemsLists ?? []) {
+    const item = findJuzItem(input.juzNumber, items);
+    const fromTotalVerses = readPlausibleTotalVerses(item?.totalVerses);
+    if (fromTotalVerses > 0) return fromTotalVerses;
+  }
+  for (const items of input.itemsLists ?? []) {
+    const fromResolve = resolveApiJuzVerseCount({
+      juzNumber: input.juzNumber,
+      items,
+    });
+    if (fromResolve > 0) return fromResolve;
+  }
+  return 0;
+}
+
+/**
+ * Partial JuzStepper subtitle: prefer API range label + totalVerses.
+ * Returns null when the API does not expose a usable label for that juz.
+ */
+export function resolveJuzPartialSubtitle(input: {
+  juzNumber: number;
+  itemsLists?: Array<Array<JuzVerseCountItem | null | undefined> | null | undefined>;
+}): { rangeLabel: string; totalVerses: number | null } | null {
+  for (const items of input.itemsLists ?? []) {
+    const item = findJuzItem(input.juzNumber, items);
+    if (!item) continue;
+    const rawLabel = (item.surahName ?? item.title ?? "").trim();
+    const rangeLabel = rangeSideOfTitle(rawLabel) || rawLabel;
+    const totalVerses = readPlausibleTotalVerses(item.totalVerses) || null;
+    if (rangeLabel) {
+      return { rangeLabel, totalVerses };
+    }
+  }
+  return null;
 }

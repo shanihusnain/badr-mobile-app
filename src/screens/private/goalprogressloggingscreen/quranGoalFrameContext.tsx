@@ -1,11 +1,12 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   type ReactNode,
 } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import {
   getQuranGoalFrame,
   quranGoalFrameQueryKey,
@@ -83,6 +84,7 @@ export function QuranGoalFrameProvider({
   onOpenInsights?: () => void;
   initialItemNumber?: number | null;
 }) {
+  const queryClient = useQueryClient();
   const quranGoalType = resolveQuranTypeFromGoalId(goalId);
   const requiresItemNumber = quranTypeRequiresItemNumber(quranGoalType);
   const isCompletionGoal = quranGoalType === "RECITATION_COMPLETION";
@@ -102,6 +104,17 @@ export function QuranGoalFrameProvider({
   const [cycleActiveWeek, setCycleActiveWeek] = React.useState<number | null>(
     null,
   );
+
+  /**
+   * Primary "current" frame + every week frame used for juz/ayah resume.
+   * Delete/log paths must refresh both or `fullExcludedJuz` stays stale.
+   */
+  const refetchAllFrames = useCallback(() => {
+    if (!quranGoalType) return;
+    void queryClient.invalidateQueries({
+      queryKey: ["quran-goal-frame", quranGoalType],
+    });
+  }, [queryClient, quranGoalType]);
 
   const {
     data: detail,
@@ -139,7 +152,7 @@ export function QuranGoalFrameProvider({
     (!requiresItemNumber || itemNumber != null || canFetchFrameWithoutItem);
 
   // Always fetch the current cycle frame — week browsing uses WeeklyBrowseFrameProvider.
-  const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } =
+  const { data, isLoading, isFetching, isPlaceholderData, isError } =
     useGetQuranGoalFrame(quranGoalType, {
       enabled: frameEnabled,
       itemNumber: itemNumber ?? undefined,
@@ -147,9 +160,9 @@ export function QuranGoalFrameProvider({
 
   useEffect(() => {
     if (refreshKey > 0) {
-      refetch();
+      refetchAllFrames();
     }
-  }, [refreshKey, refetch]);
+  }, [refreshKey, refetchAllFrames]);
 
   useEffect(() => {
     if (!data?.week?.weekNumber) return;
@@ -235,7 +248,7 @@ export function QuranGoalFrameProvider({
       isFetching,
       isPlaceholderData,
       isError,
-      refetch,
+      refetch: refetchAllFrames,
       weekNumber,
       setWeekNumber,
       itemNumber,
@@ -251,7 +264,7 @@ export function QuranGoalFrameProvider({
       isFetching,
       isPlaceholderData,
       isError,
-      refetch,
+      refetchAllFrames,
       weekNumber,
       setWeekNumber,
       itemNumber,

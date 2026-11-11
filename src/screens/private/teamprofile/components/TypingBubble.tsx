@@ -7,32 +7,55 @@ import { Animated, Easing, StyleSheet, View } from "react-native";
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200";
 
+/** WhatsApp-style bouncing dot */
 function Dot({ delay }: { delay: number }) {
-  const opacity = useRef(new Animated.Value(0.35)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 320,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.35,
-          duration: 320,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.timing(translateY, {
+            toValue: -4,
+            duration: 280,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 280,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(translateY, {
+            toValue: 0,
+            duration: 280,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0.45,
+            duration: 280,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.delay(120),
       ]),
     );
     animation.start();
     return () => animation.stop();
-  }, [delay, opacity]);
+  }, [delay, opacity, translateY]);
 
-  return <Animated.View style={[styles.dot, { opacity }]} />;
+  return (
+    <Animated.View
+      style={[styles.dot, { opacity, transform: [{ translateY }] }]}
+    />
+  );
 }
 
 type TypingBubbleProps = {
@@ -46,7 +69,7 @@ export function TypingBubble({ users }: TypingBubbleProps) {
   const avatarUri = primary.avatarUrl?.trim() || FALLBACK_AVATAR;
 
   return (
-    <View style={styles.row}>
+    <View style={styles.row} accessibilityLabel="Someone is typing">
       <Image
         source={{ uri: avatarUri }}
         style={styles.avatar}
@@ -54,8 +77,8 @@ export function TypingBubble({ users }: TypingBubbleProps) {
       />
       <View style={styles.bubble}>
         <Dot delay={0} />
-        <Dot delay={140} />
-        <Dot delay={280} />
+        <Dot delay={150} />
+        <Dot delay={300} />
       </View>
     </View>
   );
@@ -78,18 +101,20 @@ const styles = StyleSheet.create({
   bubble: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 5,
-    borderRadius: 14,
+    borderRadius: 16,
     borderBottomLeftRadius: 4,
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 14,
     paddingVertical: 12,
     minWidth: 58,
+    minHeight: 36,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.75)",
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: "rgba(255,255,255,0.85)",
   },
 });

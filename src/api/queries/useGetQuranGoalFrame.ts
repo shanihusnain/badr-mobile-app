@@ -77,6 +77,8 @@ export type QuranGoalFrameItem = {
   itemNumber?: number | null;
   title?: string | null;
   subtitle?: string | null;
+  /** Display name / range from detail-style payloads (e.g. RECITATION_JUZ). */
+  surahName?: string | null;
   icon?: string | null;
   pill?: {
     state?: string;
@@ -86,6 +88,8 @@ export type QuranGoalFrameItem = {
   completed?: number | null;
   /** Verses (or units) target for this item — MEMORIZATION_SURAH. */
   target?: number | null;
+  /** Ayahs covered by this item when the API exposes them. */
+  totalVerses?: number | null;
   achievementPct?: number;
   dailyTarget?: number | null;
   /** Per-item cadence for RECITATION_SURAH (DAILY / WEEKLY). */

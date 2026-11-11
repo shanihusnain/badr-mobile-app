@@ -5,10 +5,11 @@ import {
   type ConnectTeamTypingEvent,
 } from "@/src/realtime/connectSocket";
 import { useAuth } from "@/provider/useAuth";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const STOP_TYPING_MS = 2000;
 const EMIT_THROTTLE_MS = 1200;
+const REMOTE_TYPING_EXPIRY_MS = 5000;
 
 export type TeamTypingUser = {
   userId: string;
@@ -17,10 +18,13 @@ export type TeamTypingUser = {
 };
 
 /**
- * Emits local typing and tracks other users typing in this team chat.
- * Assumes backend event: `team:typing` with `{ teamId?, typing, userId|sender }`.
+ * Emits local typing and tracks OTHER users typing in this team chat.
+ * The person typing never sees their own bubble.
  */
-export const useTeamTyping = (teamId: string | null | undefined, enabled = true) => {
+export const useTeamTyping = (
+  teamId: string | null | undefined,
+  enabled = true,
+) => {
   const { user } = useAuth();
   const [typingUsers, setTypingUsers] = useState<TeamTypingUser[]>([]);
 
@@ -32,6 +36,21 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
   );
 
   const currentUserId = user?.id ?? user?.userId ?? user?.sub ?? null;
+  const selfProfile = useMemo(
+    () => ({
+      userId:
+        typeof currentUserId === "string" && currentUserId.length > 0
+          ? currentUserId
+          : undefined,
+      name:
+        user?.username?.trim() ||
+        user?.name?.trim() ||
+        user?.email?.split("@")[0]?.trim() ||
+        undefined,
+      avatarUrl: user?.avatarUrl ?? null,
+    }),
+    [currentUserId, user?.avatarUrl, user?.email, user?.name, user?.username],
+  );
 
   const clearExpiry = useCallback((userId: string) => {
     const existing = expiryTimersRef.current.get(userId);
@@ -41,14 +60,24 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
     }
   }, []);
 
-  const removeTypingUser = useCallback((userId: string) => {
-    clearExpiry(userId);
-    setTypingUsers((prev) => prev.filter((item) => item.userId !== userId));
-  }, [clearExpiry]);
+  const removeTypingUser = useCallback(
+    (userId: string) => {
+      clearExpiry(userId);
+      setTypingUsers((prev) => prev.filter((item) => item.userId !== userId));
+    },
+    [clearExpiry],
+  );
+
+  const isSelfUserId = useCallback(
+    (userId: string) =>
+      Boolean(currentUserId && userId && userId === currentUserId),
+    [currentUserId],
+  );
 
   const upsertTypingUser = useCallback(
     (person: TeamTypingUser) => {
-      if (currentUserId && person.userId === currentUserId) return;
+      // Typer never sees their own bubble.
+      if (isSelfUserId(person.userId)) return;
 
       setTypingUsers((prev) => {
         const without = prev.filter((item) => item.userId !== person.userId);
@@ -56,13 +85,15 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
       });
 
       clearExpiry(person.userId);
-      // Safety: hide if we never get typing:false
       expiryTimersRef.current.set(
         person.userId,
-        setTimeout(() => removeTypingUser(person.userId), 5000),
+        setTimeout(
+          () => removeTypingUser(person.userId),
+          REMOTE_TYPING_EXPIRY_MS,
+        ),
       );
     },
-    [clearExpiry, currentUserId, removeTypingUser],
+    [clearExpiry, isSelfUserId, removeTypingUser],
   );
 
   useEffect(() => {
@@ -72,11 +103,16 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
     }
 
     const unsubscribeTyping = onTeamTyping((event: ConnectTeamTypingEvent) => {
-      // Same as team:message — backend may omit teamId; only ignore mismatches.
+      // Backend may omit teamId — only ignore clear mismatches.
       if (event.teamId && event.teamId !== teamId) return;
 
-      const userId = event.userId || `team:${teamId}`;
-      if (currentUserId && userId === currentUserId) return;
+      const userId = event.userId?.trim() || `team:${teamId}`;
+
+      // Never show a bubble for the local typer.
+      if (isSelfUserId(userId)) {
+        console.log("[connect-socket] ignore own typing event", userId);
+        return;
+      }
 
       if (!event.typing) {
         removeTypingUser(userId);
@@ -96,18 +132,47 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
       });
     });
 
-    // A sent message means they stopped typing.
+    // Incoming message from someone → clear their typing indicator.
     const unsubscribeMessage = onTeamMessage((message) => {
       if (message.teamId && message.teamId !== teamId) return;
       const senderId = message.sender?.userId;
-      if (senderId) removeTypingUser(senderId);
+      if (senderId) {
+        removeTypingUser(senderId);
+        return;
+      }
+      // No sender id — clear all remote typing for this open chat.
+      setTypingUsers((prev) => {
+        prev.forEach((person) => clearExpiry(person.userId));
+        return [];
+      });
     });
 
     return () => {
       unsubscribeTyping();
       unsubscribeMessage();
     };
-  }, [currentUserId, enabled, removeTypingUser, teamId, upsertTypingUser]);
+  }, [
+    clearExpiry,
+    enabled,
+    isSelfUserId,
+    removeTypingUser,
+    teamId,
+    upsertTypingUser,
+  ]);
+
+  const emitTypingState = useCallback(
+    (typing: boolean) => {
+      if (!teamId) return;
+      emitTeamTyping({
+        teamId,
+        typing,
+        userId: selfProfile.userId,
+        name: selfProfile.name,
+        avatarUrl: selfProfile.avatarUrl,
+      });
+    },
+    [selfProfile.avatarUrl, selfProfile.name, selfProfile.userId, teamId],
+  );
 
   const stopTyping = useCallback(() => {
     if (stopTimerRef.current) {
@@ -116,8 +181,8 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
     }
     if (!teamId || !isTypingRef.current) return;
     isTypingRef.current = false;
-    emitTeamTyping({ teamId, typing: false });
-  }, [teamId]);
+    emitTypingState(false);
+  }, [emitTypingState, teamId]);
 
   const notifyTyping = useCallback(() => {
     if (!enabled || !teamId) return;
@@ -126,14 +191,14 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
     if (!isTypingRef.current || now - lastEmitAtRef.current > EMIT_THROTTLE_MS) {
       isTypingRef.current = true;
       lastEmitAtRef.current = now;
-      emitTeamTyping({ teamId, typing: true });
+      emitTypingState(true);
     }
 
     if (stopTimerRef.current) clearTimeout(stopTimerRef.current);
     stopTimerRef.current = setTimeout(() => {
       stopTyping();
     }, STOP_TYPING_MS);
-  }, [enabled, stopTyping, teamId]);
+  }, [emitTypingState, enabled, stopTyping, teamId]);
 
   useEffect(() => {
     return () => {
@@ -141,11 +206,22 @@ export const useTeamTyping = (teamId: string | null | undefined, enabled = true)
       expiryTimersRef.current.forEach((timer) => clearTimeout(timer));
       expiryTimersRef.current.clear();
       if (teamId && isTypingRef.current) {
-        emitTeamTyping({ teamId, typing: false });
+        emitTeamTyping({
+          teamId,
+          typing: false,
+          userId: selfProfile.userId,
+          name: selfProfile.name,
+          avatarUrl: selfProfile.avatarUrl,
+        });
         isTypingRef.current = false;
       }
     };
-  }, [teamId]);
+  }, [
+    selfProfile.avatarUrl,
+    selfProfile.name,
+    selfProfile.userId,
+    teamId,
+  ]);
 
   return {
     typingUsers,

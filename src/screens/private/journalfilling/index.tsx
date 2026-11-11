@@ -1,7 +1,7 @@
 import React, { useCallback, useLayoutEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
@@ -19,12 +19,28 @@ import { JournalCalendarModal } from "./components/JournalCalendarModal";
 import { journalFillingStyles as styles } from "./styles";
 import { useJournalFillingProps } from "./useJournalFillingProps";
 
-export function JournalFillingScreen() {
+export type JournalFillingScreenProps = {
+  /** Override route param — used when embedded in a home bottom sheet. */
+  initialDateKey?: string;
+  /** `sheet` renders an inline close header and skips stack navigation header. */
+  presentation?: "screen" | "sheet";
+  onClose?: () => void;
+  userName?: string;
+};
+
+export function JournalFillingScreen({
+  initialDateKey: initialDateKeyProp,
+  presentation = "screen",
+  onClose,
+  userName,
+}: JournalFillingScreenProps = {}) {
   const navigation = useNavigation();
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
   const { date } = useLocalSearchParams<{ date?: string | string[] }>();
-  const initialDateKey = Array.isArray(date) ? date[0] : date;
+  const routeDateKey = Array.isArray(date) ? date[0] : date;
+  const initialDateKey = initialDateKeyProp ?? routeDateKey;
+  const isSheet = presentation === "sheet";
 
   const {
     sections,
@@ -69,15 +85,21 @@ export function JournalFillingScreen() {
     closeCalendar,
     shiftCalendarWindow,
     handleCalendarDayPress,
-  } = useJournalFillingProps({ initialDateKey });
+  } = useJournalFillingProps({
+    initialDateKey,
+    userName,
+    onRequestClose: onClose,
+  });
 
   useLayoutEffect(() => {
+    // Don't touch the parent route header when embedded in a home sheet.
+    if (isSheet) return;
     navigation.setOptions({
       header: () => (
         <JournalFillingHeader showEdit={showEdit} onBackPress={handleBack} />
       ),
     });
-  }, [navigation, showEdit, handleBack]);
+  }, [handleBack, isSheet, navigation, showEdit]);
 
   const renderSection = useCallback(
     (section: (typeof sections)[number]) => (
@@ -93,10 +115,21 @@ export function JournalFillingScreen() {
     [canLog, draft.answers, handleAnswerChange],
   );
 
+  const topPadding = isSheet ? 8 : headerHeight;
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, isSheet && styles.sheetScreen]}>
+      {isSheet ? (
+        <JournalFillingHeader
+          showEdit={showEdit}
+          onBackPress={handleBack}
+          backgroundColor={Colors.light.blackBackground}
+          compact
+        />
+      ) : null}
+
       <JournalFillingTopGradient style={styles.topGradient}>
-        <View style={[styles.topGradientContent, { paddingTop: headerHeight }]}>
+        <View style={[styles.topGradientContent, { paddingTop: topPadding }]}>
           <JournalDateTextRow
             selectedDateKey={selectedDateKey}
             onPressDate={openCalendar}
@@ -158,7 +191,7 @@ export function JournalFillingScreen() {
             label={saveLabel}
             disabled={!canLog || !hasChanges}
             loading={isSaving}
-            bottomInset={insets.bottom}
+            bottomInset={isSheet ? Math.max(insets.bottom, 8) : insets.bottom}
             onPress={handleSave}
           />
         </>

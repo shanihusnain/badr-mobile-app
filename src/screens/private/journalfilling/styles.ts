@@ -6,6 +6,9 @@ export const journalFillingStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.blackBackground,
   },
+  sheetScreen: {
+    minHeight: 520,
+  },
   topGradient: {
     width: "100%",
   },

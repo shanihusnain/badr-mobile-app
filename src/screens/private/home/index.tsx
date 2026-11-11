@@ -42,7 +42,7 @@ import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContaine
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
 
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
-
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { DashboardCustomizeBottomSheet } from "./components/DashboardCustomizeBottomSheet";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -83,6 +83,8 @@ import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
 import { type JournalingDayProgress } from "./journalingHistory";
+import { resolveYesterdayJournalPrompt } from "./yesterdayJournalPrompt";
+import { JournalFillingScreen } from "@/src/screens/private/journalfilling";
 import { useAuth } from "@/provider/useAuth";
 import { Image } from "expo-image";
 import {
@@ -320,6 +322,8 @@ export default function HomeScreen() {
   const goldenBottomSheetRef = useRef<BottomSheet>(null);
   const dashboardSheetRef = useRef<BottomSheet>(null);
   const timeSpentSheetRef = useRef<BottomSheet>(null);
+  const yesterdayJournalSheetRef = useRef<BottomSheet>(null);
+  const yesterdayJournalPromptShownRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isPrayerCardVisible, setIsPrayerCardVisible] = useState(true);
@@ -584,6 +588,16 @@ export default function HomeScreen() {
   );
   const journalCardTitle = journalCard?.title?.trim() || undefined;
   const journalCardButton = journalCard?.button?.trim() || undefined;
+  const yesterdayJournalPrompt = useMemo(
+    () => resolveYesterdayJournalPrompt(journalCard, todayDateKey),
+    [journalCard, todayDateKey],
+  );
+  const journalPromptDisplayName = useMemo(() => {
+    const fromUsername = user?.username?.trim();
+    if (fromUsername) return fromUsername;
+    const email = user?.email?.trim() || "";
+    return email.split("@")[0]?.trim() || "";
+  }, [user?.email, user?.username]);
   const { mutate: swipeGreetingCard } = useSwipeGreetingCardHomeScreen();
 
   const handleGreetingCardsFullySwiped = useCallback(() => {
@@ -617,6 +631,34 @@ export default function HomeScreen() {
   const handleCustomizeJournalPress = useCallback(() => {
     router.push("/(private)/journalappsetting");
   }, [router]);
+
+  const closeYesterdayJournalSheet = useCallback(() => {
+    yesterdayJournalPromptShownRef.current = true;
+    yesterdayJournalSheetRef.current?.close();
+  }, []);
+
+  // Auto-open journal filling (day pills + calendar) when yesterday is unlogged.
+  useFocusEffect(
+    useCallback(() => {
+      if (!yesterdayJournalPrompt) return;
+      if (selectedMyDayDate !== todayDateKey) return;
+      if (yesterdayJournalPromptShownRef.current) return;
+      if (isAnyBottomSheetOpen) return;
+
+      const timer = setTimeout(() => {
+        if (yesterdayJournalPromptShownRef.current) return;
+        yesterdayJournalPromptShownRef.current = true;
+        yesterdayJournalSheetRef.current?.expand();
+      }, 450);
+
+      return () => clearTimeout(timer);
+    }, [
+      isAnyBottomSheetOpen,
+      selectedMyDayDate,
+      todayDateKey,
+      yesterdayJournalPrompt,
+    ]),
+  );
 
   // Greeting / welcome cards — backend-only; hide entirely when greetingCard is null.
   // Keep the same highlight phrases so ContainerCard bold/white styling still applies.
@@ -1090,6 +1132,7 @@ export default function HomeScreen() {
               data={translatedWelcomeCards}
               renderTextWithHighlight={buildTextParts}
               onAllCardsSwiped={handleGreetingCardsFullySwiped}
+              showPagination={false}
             />
           </View>
         ) : null}
@@ -1100,7 +1143,7 @@ export default function HomeScreen() {
           style={{
             width: SCREEN_CARD_WIDTH,
             alignSelf: "center",
-            marginTop: 16,
+            marginTop: hp(2),
           }}
           collapsable={false}
           onPress={openNamazSheet}
@@ -1473,6 +1516,29 @@ export default function HomeScreen() {
           resumeTarget={dailyProgressResume}
           onResumeConsumed={handleDailyProgressResumeConsumed}
         />
+      </BottomSheetWrapper>
+
+      <BottomSheetWrapper
+        ref={yesterdayJournalSheetRef}
+        snapPoints={["92%"]}
+        bgColor={Colors.light.blackBackground}
+        borderRadius={30}
+        handleTopInset={8}
+        scrollable={false}
+        onChange={(index) =>
+          handleBottomSheetChange("yesterdayJournal", index)
+        }
+      >
+        {yesterdayJournalPrompt ? (
+          <View style={{ flex: 1, height: Dimensions.get("window").height * 0.88 }}>
+            <JournalFillingScreen
+              presentation="sheet"
+              initialDateKey={yesterdayJournalPrompt.date}
+              userName={journalPromptDisplayName || undefined}
+              onClose={closeYesterdayJournalSheet}
+            />
+          </View>
+        ) : null}
       </BottomSheetWrapper>
 
       {!isAnyBottomSheetOpen ? (
