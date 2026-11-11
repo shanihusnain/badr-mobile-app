@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode } from "react";
+import React, { useCallback, useRef, useState, type ReactNode } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
+  type LayoutChangeEvent,
+  type View as RNView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -13,6 +15,8 @@ import { fonts } from "@/assets/fonts";
 
 /** Some goal titles embed `\n` for multi-line cards; headers always stay one line. */
 const toSingleLine = (value: string) => value.replace(/\s*\n\s*/g, " ").trim();
+
+const DROPDOWN_GAP = 2;
 
 export type HeaderTitleDropdownOption = {
   value: string;
@@ -45,6 +49,11 @@ export type HeaderWithCrossTitleDynamicIconProps = {
   dropdownOffsetY?: number;
 };
 
+type HeaderWindowRect = {
+  y: number;
+  height: number;
+};
+
 export const HeaderWithCrossTitleDynamicIcon = ({
   title,
   navigation,
@@ -70,6 +79,38 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   const hasTitleDropdown =
     Array.isArray(titleDropdownOptions) && titleDropdownOptions.length > 0;
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [headerRect, setHeaderRect] = useState<HeaderWindowRect | null>(null);
+  const headerRef = useRef<RNView | null>(null);
+
+  const measureHeader = useCallback(() => {
+    headerRef.current?.measureInWindow((_x, y, _width, height) => {
+      if (!Number.isFinite(y) || !Number.isFinite(height)) return;
+      setHeaderRect({ y, height });
+    });
+  }, []);
+
+  const openDropdown = useCallback(() => {
+    measureHeader();
+    setDropdownOpen(true);
+  }, [measureHeader]);
+
+  const closeDropdown = useCallback(() => {
+    setDropdownOpen(false);
+  }, []);
+
+  const handleHeaderLayout = useCallback(
+    (_event: LayoutChangeEvent) => {
+      if (dropdownOpen) {
+        measureHeader();
+      }
+    },
+    [dropdownOpen, measureHeader],
+  );
+
+  const dropdownTop =
+    headerRect != null
+      ? headerRect.y + headerRect.height + DROPDOWN_GAP + dropdownOffsetY
+      : undefined;
 
   const titleBlock = (
     <>
@@ -85,13 +126,13 @@ export const HeaderWithCrossTitleDynamicIcon = ({
           style={[
             styles.titleText,
             { letterSpacing },
-            hasTitleDropdown && !singleLineSecondTitle && styles.titleWithChevron,
+            hasTitleDropdown &&
+              !singleLineSecondTitle &&
+              styles.titleWithChevron,
           ]}
         >
           {!!titleHighlight && (
-            <Text style={{ color: Colors.light.green }}>
-              {titleHighlight}{" "}
-            </Text>
+            <Text style={{ color: Colors.light.green }}>{titleHighlight} </Text>
           )}
           {singleLineTitle}
           {hasTitleDropdown && !singleLineSecondTitle ? (
@@ -122,6 +163,8 @@ export const HeaderWithCrossTitleDynamicIcon = ({
 
   return (
     <View
+      ref={headerRef}
+      onLayout={handleHeaderLayout}
       style={{
         height: 100,
         position: "relative",
@@ -149,7 +192,13 @@ export const HeaderWithCrossTitleDynamicIcon = ({
       >
         {hasTitleDropdown ? (
           <Pressable
-            onPress={() => setDropdownOpen((open) => !open)}
+            onPress={() => {
+              if (dropdownOpen) {
+                closeDropdown();
+              } else {
+                openDropdown();
+              }
+            }}
             hitSlop={8}
             style={styles.titlePressable}
           >
@@ -220,15 +269,19 @@ export const HeaderWithCrossTitleDynamicIcon = ({
           visible={dropdownOpen}
           transparent
           animationType="fade"
-          onRequestClose={() => setDropdownOpen(false)}
+          onRequestClose={closeDropdown}
+          onShow={measureHeader}
         >
           <View style={styles.dropdownBackdrop}>
             <Pressable
               style={StyleSheet.absoluteFill}
-              onPress={() => setDropdownOpen(false)}
+              onPress={closeDropdown}
             />
             <View
-              style={[styles.dropdownAnchor, { marginTop: 103 + dropdownOffsetY }]}
+              style={[
+                styles.dropdownAnchor,
+                dropdownTop != null ? { top: dropdownTop } : null,
+              ]}
               pointerEvents="box-none"
             >
               <View style={styles.dropdownMenu}>
@@ -240,7 +293,7 @@ export const HeaderWithCrossTitleDynamicIcon = ({
                       style={styles.dropdownOption}
                       activeOpacity={0.8}
                       onPress={() => {
-                        setDropdownOpen(false);
+                        closeDropdown();
                         if (option.value !== selectedTitleValue) {
                           onTitleOptionSelect?.(option.value);
                         }
@@ -313,7 +366,9 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   dropdownAnchor: {
-    marginTop: 66,
+    position: "absolute",
+    left: 0,
+    right: 0,
     alignItems: "center",
     paddingHorizontal: 18,
   },
