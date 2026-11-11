@@ -41,7 +41,7 @@ export const useLogQuranHoursGoal = () => {
       queryClient.invalidateQueries({ queryKey: ["all-quran-goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-categories"] });
       queryClient.invalidateQueries({ queryKey: ["goal-cycle-category-goals"] });
-      showToast("success", "Quran logged successfully");
+      showToast("success", "Quran activity logged successfully");
     },
     onError: (error) => {
       showToast(

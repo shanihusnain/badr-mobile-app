@@ -301,6 +301,10 @@ export function SinglePrayerWeeklyProgressDashboard({
                                         : isSelected
                                           ? Colors.light.white
                                           : Colors.light.grey,
+                              fontFamily: isSelected
+                                ? fonts.primary.bold
+                                : fonts.primary.medium,
+                              fontWeight: isSelected ? "700" : "500",
                             },
                             styles.durationText,
                           ]}
@@ -475,7 +479,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
-    lineHeight: 13,
+    lineHeight: 11,
   },
   statsRow: {
     flexDirection: "row",

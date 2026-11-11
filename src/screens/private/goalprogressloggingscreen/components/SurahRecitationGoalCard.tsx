@@ -76,6 +76,7 @@ export function SurahRecitationGoalCard({
       goal.completed,
       goal.pillLabel,
       goal.status,
+      isInView,
       quranFrame?.frame,
       t,
     ],

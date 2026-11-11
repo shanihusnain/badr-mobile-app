@@ -57,7 +57,7 @@ export const useLogQuranMemorisationHizbGoal = () => {
       queryClient.invalidateQueries({
         queryKey: ["goal-cycle-category-goals"],
       });
-      showToast("success", "Quran logged successfully");
+      showToast("success", "Quran activity logged successfully");
     },
     onError: (error) => {
       showToast(

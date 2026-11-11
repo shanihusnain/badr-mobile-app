@@ -65,6 +65,7 @@ export function JuzMemorisationGoalCard({
       goal.pillLabel,
       goal.progressPercentage,
       goal.status,
+      isInView,
       quranFrame?.frame,
       t,
     ],

@@ -8,12 +8,16 @@ import {
   QuranRecitationBySurahFlowCardImage,
 } from "@/assets/icons";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
-import { quranFrameShowsInsights } from "@/src/utils/quranGoalFrameMap";
+import {
+  quranFrameCycleEnded,
+  quranFrameShowsInsights,
+} from "@/src/utils/quranGoalFrameMap";
 import { GoalData } from "../../home/components/goalsData";
 import QuranJuzLoggingFlow from "../flows/QuranJuzLoggingFlow";
 import { useOptionalQuranGoalFrameContext } from "../quranGoalFrameContext";
 import type { QuranJuzLogEntry } from "../types";
 import { styles } from "./DailyProgressLogging.styles";
+import { resolveQuranGoalCardStatusLabel } from "./resolveQuranGoalCardStatusLabel";
 import { surahGoalStyles } from "./SurahRecitationGoals.styles";
 
 type Props = {
@@ -74,7 +78,6 @@ export function JuzRecitationGoalCard({
     frameItem?.achievementPct ?? frame?.goal?.achievementPct ?? 0,
   );
 
-  const pillLabel = frameItem?.pill?.label?.trim();
   const pillState = String(frameItem?.pill?.state ?? "").toUpperCase();
   const goalStatus = String(frame?.goal?.status ?? "").toUpperCase();
   const isComplete =
@@ -83,25 +86,30 @@ export function JuzRecitationGoalCard({
     goalStatus === "COMPLETED" ||
     achievementPct >= 100;
 
-  const statusLabel = useMemo(() => {
-    if (pillLabel) return pillLabel;
-    if (isComplete) return t("progressLogging.fullyAchieved");
-    if (
-      goalStatus === "IN_PROGRESS" ||
-      achievementPct > 0 ||
-      Number(frame?.goal?.completed ?? 0) > 0
-    ) {
-      return t("progressLogging.surahStatusInProgress");
-    }
-    return t("progressLogging.surahStatusNotStarted");
-  }, [
-    achievementPct,
-    frame?.goal?.completed,
-    goalStatus,
-    isComplete,
-    pillLabel,
-    t,
-  ]);
+  const statusChip = useMemo(
+    () =>
+      resolveQuranGoalCardStatusLabel({
+        status:
+          goalStatus === "COMPLETED" || isComplete ? "completed" : "in-progress",
+        pillLabel: frameItem?.pill?.label?.trim(),
+        progressPercent: achievementPct,
+        completed: isComplete,
+        cycleEnded: quranFrame?.frame
+          ? quranFrameCycleEnded(quranFrame.frame)
+          : false,
+        t,
+        formatNumber,
+      }),
+    [
+      achievementPct,
+      formatNumber,
+      frameItem?.pill?.label,
+      goalStatus,
+      isComplete,
+      quranFrame?.frame,
+      t,
+    ],
+  );
 
   const showInsights = frame ? quranFrameShowsInsights(frame) : false;
 
@@ -132,16 +140,17 @@ export function JuzRecitationGoalCard({
                 <View
                   style={[
                     surahGoalStyles.statusChip,
-                    isComplete && surahGoalStyles.statusChipAchieved,
+                    statusChip.showPercent && surahGoalStyles.statusChipAchieved,
                   ]}
                 >
                   <Text
                     style={[
                       surahGoalStyles.statusChipText,
-                      isComplete && surahGoalStyles.statusChipTextAchieved,
+                      statusChip.showPercent &&
+                        surahGoalStyles.statusChipTextAchieved,
                     ]}
                   >
-                    {statusLabel}
+                    {statusChip.label}
                   </Text>
                 </View>
 

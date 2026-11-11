@@ -1161,6 +1161,7 @@ export const GoalProgressLoggingScreen = ({
                       : undefined
                 }
                 titleOffsetY={template.startsWith("quran-") ? 4 : 0}
+                dropdownOffsetY={template.startsWith("quran-") ? 8 : 0}
                 navigation={navigation}
                 bgcolor="transparent"
                 iconName="chevron-left"

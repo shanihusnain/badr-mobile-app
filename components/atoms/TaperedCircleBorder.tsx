@@ -119,9 +119,15 @@ const RIBBON_SAMPLES = 64;
 const CAP_SAMPLES = 10;
 
 export function parsePercent(value?: string | number): number {
-  const n = Number.parseFloat(String(value ?? "0").replace("%", ""));
-  if (Number.isNaN(n)) return 0;
-  return Math.min(100, Math.max(0, Math.round(n)));
+  const raw = String(value ?? "0").trim();
+  if (!raw) return 0;
+
+  const numeric = Number.parseFloat(raw.replace("%", ""));
+  if (Number.isNaN(numeric)) return 0;
+
+  // API values may arrive as a ratio (0.30) or as a direct percent (30).
+  const normalized = numeric > 0 && numeric <= 1 ? numeric * 100 : numeric;
+  return Math.min(100, Math.max(0, Math.round(normalized)));
 }
 
 export function getGlowSlab(percent: number): 0 | 1 | 2 | 3 {
