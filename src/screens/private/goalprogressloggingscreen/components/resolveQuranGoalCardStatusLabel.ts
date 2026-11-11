@@ -31,7 +31,7 @@ export function resolveQuranGoalCardStatusLabel(options: {
     options.status === "completed" ||
     options.status === "achieved" ||
     pct >= 100;
-  const showPercent = isItemComplete || options.cycleEnded;
+  const showPercent = (pct >= 100 || options.cycleEnded) && isItemComplete;
 
   if (!showPercent) {
     if (options.status === "not-started") {

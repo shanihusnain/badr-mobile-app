@@ -90,7 +90,7 @@ export const useLogQuranRecitationJuzGoal = () => {
         : logQuranRecitationJuz(input),
     onSuccess: () => {
       invalidate();
-      showToast("success", "Quran logged successfully");
+      showToast("success", "Quran activity logged successfully");
     },
     onError: (error) => {
       // Prefer backend `message` only — no frontend copy.

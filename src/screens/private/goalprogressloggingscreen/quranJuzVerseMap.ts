@@ -34,7 +34,7 @@ const JUZ_STARTS: readonly { surah: number; ayah: number }[] = [
   { surah: 1, ayah: 1 },
   { surah: 2, ayah: 142 },
   { surah: 2, ayah: 253 },
-  { surah: 3, ayah: 92 },
+  { surah: 3, ayah: 93 },
   { surah: 4, ayah: 24 },
   { surah: 4, ayah: 147 },
   { surah: 5, ayah: 82 },

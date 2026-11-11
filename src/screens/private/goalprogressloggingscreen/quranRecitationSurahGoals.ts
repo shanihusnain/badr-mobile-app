@@ -66,11 +66,7 @@ export function deriveSurahRecitationStatus(
     return { status: "achieved", achievementPercent: 100 };
   }
 
-  if (percent < 15) {
-    return { status: "in-progress" };
-  }
-
-  return { status: "achieved", achievementPercent: percent };
+  return { status: "in-progress", achievementPercent: percent };
 }
 
 const MOCK_SURAH_GOALS: SurahRecitationGoal[] = [

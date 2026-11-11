@@ -91,7 +91,7 @@ export const useLogQuranRecitationCompletionGoal = () => {
     mutationFn: logQuranRecitationCompletion,
     onSuccess: () => {
       invalidate();
-      showToast("success", "Quran logged successfully");
+      showToast("success", "Quran activity logged successfully");
     },
     onError: (error) => {
       if (axios.isAxiosError(error)) {

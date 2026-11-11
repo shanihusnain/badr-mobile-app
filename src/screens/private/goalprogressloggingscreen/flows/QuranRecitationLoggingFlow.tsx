@@ -143,13 +143,28 @@ export default function QuranRecitationLoggingFlow({
     return getQuranFrameWeekNumberForDate(frame, selectedDate);
   }, [quranFrame?.frame, selectedDate]);
 
+  const matchingWeekForSelectedDate = useMemo(() => {
+    const week = quranFrame?.frame?.week;
+    if (!week) return null;
+    const weekNumber = Number(week.weekNumber ?? 0);
+    if (
+      selectedDateWeekNumber != null &&
+      Number.isFinite(weekNumber) &&
+      weekNumber > 0 &&
+      weekNumber !== selectedDateWeekNumber
+    ) {
+      return null;
+    }
+    return week;
+  }, [quranFrame?.frame?.week, selectedDateWeekNumber]);
+
   useEffect(() => {
     if (selectedDateWeekNumber == null || !browseDispatch) return;
     browseDispatch.setWeekNumber(selectedDateWeekNumber);
   }, [browseDispatch, selectedDateWeekNumber]);
 
   const alreadyLoggedForSelectedDate = useMemo(() => {
-    const week = quranFrame?.frame?.week;
+    const week = matchingWeekForSelectedDate;
     if (!week) return 0;
 
     // Weekly quota is period-wide; daily quotas are per selected day.
@@ -171,7 +186,7 @@ export default function QuranRecitationLoggingFlow({
     return Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
   }, [
     config?.frequency,
-    quranFrame?.frame?.week,
+    matchingWeekForSelectedDate,
     selectedDate,
   ]);
 

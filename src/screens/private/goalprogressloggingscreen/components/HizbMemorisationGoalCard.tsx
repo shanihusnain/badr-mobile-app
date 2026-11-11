@@ -69,6 +69,7 @@ export function HizbMemorisationGoalCard({
       goal.pillLabel,
       goal.progressPercentage,
       goal.status,
+      isInView,
       quranFrame?.frame,
       t,
     ],

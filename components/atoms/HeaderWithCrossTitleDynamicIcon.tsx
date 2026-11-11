@@ -19,26 +19,7 @@ export type HeaderTitleDropdownOption = {
   label: string;
 };
 
-export const HeaderWithCrossTitleDynamicIcon = ({
-  title,
-  navigation,
-  letterSpacing = 0,
-  iconName = "x",
-  bgcolor = Colors.light.blackBackground,
-  secondTitle = "",
-  titleHighlight,
-  onBackPress,
-  rightIconName,
-  rightIcon,
-  onRightPress,
-  leftButtonBackground,
-  forloggingFlow = false,
-  titleDropdownOptions,
-  selectedTitleValue,
-  onTitleOptionSelect,
-  /** Nudge the centered title down (e.g. Quran hero headers). */
-  titleOffsetY = 0,
-}: {
+export type HeaderWithCrossTitleDynamicIconProps = {
   title: string;
   navigation: any;
   letterSpacing?: number;
@@ -58,8 +39,32 @@ export const HeaderWithCrossTitleDynamicIcon = ({
   titleDropdownOptions?: HeaderTitleDropdownOption[];
   selectedTitleValue?: string;
   onTitleOptionSelect?: (value: string) => void;
+  /** Nudge the centered title down (e.g. Quran hero headers). */
   titleOffsetY?: number;
-}) => {
+  /** Small downward offset for the dropdown menu so it sits beneath the header. */
+  dropdownOffsetY?: number;
+};
+
+export const HeaderWithCrossTitleDynamicIcon = ({
+  title,
+  navigation,
+  letterSpacing = 0,
+  iconName = "x",
+  bgcolor = Colors.light.blackBackground,
+  secondTitle = "",
+  titleHighlight,
+  onBackPress,
+  rightIconName,
+  rightIcon,
+  onRightPress,
+  leftButtonBackground,
+  forloggingFlow = false,
+  titleDropdownOptions,
+  selectedTitleValue,
+  onTitleOptionSelect,
+  titleOffsetY = 0,
+  dropdownOffsetY = 0,
+}: HeaderWithCrossTitleDynamicIconProps) => {
   const singleLineTitle = toSingleLine(title);
   const singleLineSecondTitle = secondTitle ? toSingleLine(secondTitle) : "";
   const hasTitleDropdown =
@@ -222,7 +227,10 @@ export const HeaderWithCrossTitleDynamicIcon = ({
               style={StyleSheet.absoluteFill}
               onPress={() => setDropdownOpen(false)}
             />
-            <View style={styles.dropdownAnchor} pointerEvents="box-none">
+            <View
+              style={[styles.dropdownAnchor, { marginTop: 103 + dropdownOffsetY }]}
+              pointerEvents="box-none"
+            >
               <View style={styles.dropdownMenu}>
                 {titleDropdownOptions!.map((option) => {
                   const isSelected = option.value === selectedTitleValue;
