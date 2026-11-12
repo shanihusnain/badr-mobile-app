@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -71,7 +77,7 @@ const getQiyamTimingOptions = (isFemale: boolean): QiyamTimingOption[] => [
     value: "after-isha",
     label: "After Isha",
     description:
-      "(Concluding your day with Qiyam after the\nIsha prayer and before going to sleep.)",
+      "(Concluding your day with Qiyam after the Isha prayer and before going to sleep.)",
     renderIcon: () => <QiyamAfterIshaIcon size={16} outline />,
   },
   {
@@ -173,7 +179,7 @@ const QiyamTimingStep = ({
       </View>
 
       {!isOpen ? (
-        <Text style={timingStepStyles.description} numberOfLines={2}>
+        <Text style={timingStepStyles.description} numberOfLines={3}>
           {selectedOption.description}
         </Text>
       ) : null}
@@ -187,7 +193,7 @@ const timingStepStyles = StyleSheet.create({
     gap: 6,
     paddingTop: 0,
     // Clear the "When did you pray?" header before the timing chip + description.
-    marginTop: 14,
+    marginTop: 12,
   },
   /** Same width for selector + open menu (no asymmetric shared wrapper insets). */
   dropdownWrapper: {
@@ -249,7 +255,7 @@ const timingStepStyles = StyleSheet.create({
     fontWeight: "400",
     opacity: 0.8,
     textAlign: "left",
-    alignSelf: "stretch",
+    // alignSelf: "stretch",
     width: "100%",
   },
 });
@@ -388,9 +394,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(getDefaultQiyamLogDate);
   const [prayersCount, setPrayersCount] = useState("0");
-  const [loggedTime, setLoggedTimeState] = useState<"after-isha" | "before-fajr">(
-    "before-fajr",
-  );
+  const [loggedTime, setLoggedTimeState] = useState<
+    "after-isha" | "before-fajr"
+  >("before-fajr");
   const [isTimingDropdownOpen, setIsTimingDropdownOpen] = useState(false);
   const [startHour, setStartHour] = useState(QIYAM_TAHAJJUD_DEFAULT.hour);
   const [startMinute, setStartMinute] = useState(QIYAM_TAHAJJUD_DEFAULT.minute);
@@ -999,9 +1005,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
 
   return (
     <>
-      {flowMode === "active" && (
-        <LoggingBackdrop />
-      )}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -1116,7 +1120,8 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                 styles={commonStyles}
                 style={[
                   commonStyles.inPlaceFlowCard,
-                  isDropdownOpen && commonStyles.flowCardDropdownOpen,
+                  (isDropdownOpen || currentStep === "when-pray") &&
+                    commonStyles.flowCardDropdownOpen,
                 ]}
                 contentStyle={
                   currentStep === "when-pray"
