@@ -270,10 +270,11 @@ function GoalProgressLoggingBody({
   const isSadaqahFrameGoal = isSadaqahFrameGoalId(goalId);
   const frameLoading =
     (isPrayerFrameRingGoal &&
-    (prayerFrame?.isLoading ||
+      (prayerFrame?.isLoading ||
         (!prayerFrame?.frame && !prayerFrame?.isError))) ||
     (isQuranFrameGoal &&
-      (quranFrame?.isLoading || (!quranFrame?.frame && !quranFrame?.isError))) ||
+      (quranFrame?.isLoading ||
+        (!quranFrame?.frame && !quranFrame?.isError))) ||
     (isFastingFrameGoal &&
       (fastingFrame?.isLoading ||
         (!fastingFrame?.frame && !fastingFrame?.isError))) ||
@@ -309,9 +310,9 @@ function GoalProgressLoggingBody({
         ? `${fastingFrameAchievementPct ?? 0}%`
         : isSadaqahFrameGoal
           ? `${sadaqahFrameAchievementPct ?? 0}%`
-      : frameAchievementPct != null
-        ? `${frameAchievementPct}%`
-        : liveGoalData.percentage;
+          : frameAchievementPct != null
+            ? `${frameAchievementPct}%`
+            : liveGoalData.percentage;
   const mondayThursdayCompletedCount = useMemo(() => {
     if (!isMondayThursdayFasts) return 0;
     const fromFrame = fastingFrame?.frame?.goal?.completed;
@@ -386,66 +387,66 @@ function GoalProgressLoggingBody({
                 ),
               })
             : "---"
-        : isSurahRecitationFrameGoal
-          ? quranFrame?.frame
-            ? t("homeScreen.weeklyProgress_goalLabel", {
-                label: getQuranFrameRecitationRingLabel(
-                  quranFrame.frame,
-                  t("progressLogging.unitRecitations"),
-                ),
-              })
-            : "---"
-          : isMissedRamadanFrameGoal
-            ? fastingFrame?.frame
-              ? fastingFrame.frame.goal?.targetLabel?.trim() ||
-                t("progressLogging.missedRamadanRingGoal", {
-                  count:
-                    fastingFrame.frame.goal?.target ??
-                    liveGoalData.target ??
-                    cleanLabel,
+          : isSurahRecitationFrameGoal
+            ? quranFrame?.frame
+              ? t("homeScreen.weeklyProgress_goalLabel", {
+                  label: getQuranFrameRecitationRingLabel(
+                    quranFrame.frame,
+                    t("progressLogging.unitRecitations"),
+                  ),
                 })
               : "---"
-            : isMondayThursdayFrameGoal
+            : isMissedRamadanFrameGoal
               ? fastingFrame?.frame
                 ? fastingFrame.frame.goal?.targetLabel?.trim() ||
-                  t("progressLogging.mondayThursdayRingGoal", {
+                  t("progressLogging.missedRamadanRingGoal", {
                     count:
                       fastingFrame.frame.goal?.target ??
                       liveGoalData.target ??
                       cleanLabel,
                   })
                 : "---"
-              : isWhiteDaysFrameGoal
+              : isMondayThursdayFrameGoal
                 ? fastingFrame?.frame
                   ? fastingFrame.frame.goal?.targetLabel?.trim() ||
-                    t("progressLogging.whiteDaysRingGoal", {
+                    t("progressLogging.mondayThursdayRingGoal", {
                       count:
                         fastingFrame.frame.goal?.target ??
                         liveGoalData.target ??
                         cleanLabel,
                     })
                   : "---"
-                : isProphetDawoodFrameGoal
+                : isWhiteDaysFrameGoal
                   ? fastingFrame?.frame
                     ? fastingFrame.frame.goal?.targetLabel?.trim() ||
-                      t("progressLogging.dawoodRingGoal", {
+                      t("progressLogging.whiteDaysRingGoal", {
                         count:
                           fastingFrame.frame.goal?.target ??
                           liveGoalData.target ??
                           cleanLabel,
                       })
                     : "---"
-                  : isSadaqahFrameGoal
-                    ? sadaqahFrame?.frame
-                      ? sadaqahFrame.frame.goal?.targetLabel?.trim() ||
-                        sadaqahFrame.frame.goal?.targetDisplay?.trim() ||
-                        t("homeScreen.weeklyProgress_goalLabel", {
-                          label: cleanLabel,
+                  : isProphetDawoodFrameGoal
+                    ? fastingFrame?.frame
+                      ? fastingFrame.frame.goal?.targetLabel?.trim() ||
+                        t("progressLogging.dawoodRingGoal", {
+                          count:
+                            fastingFrame.frame.goal?.target ??
+                            liveGoalData.target ??
+                            cleanLabel,
                         })
                       : "---"
-                    : t("homeScreen.weeklyProgress_goalLabel", {
-                        label: cleanLabel,
-                      });
+                    : isSadaqahFrameGoal
+                      ? sadaqahFrame?.frame
+                        ? sadaqahFrame.frame.goal?.targetLabel?.trim() ||
+                          sadaqahFrame.frame.goal?.targetDisplay?.trim() ||
+                          t("homeScreen.weeklyProgress_goalLabel", {
+                            label: cleanLabel,
+                          })
+                        : "---"
+                      : t("homeScreen.weeklyProgress_goalLabel", {
+                          label: cleanLabel,
+                        });
 
   const ringGoalLineCount =
     isSurahRecitationFrameGoal || isCompletionRecitationFrameGoal ? 2 : 1;
@@ -496,67 +497,67 @@ function GoalProgressLoggingBody({
       */}
       <WeeklyBrowseDispatchProvider>
         <View style={styles.scrollForeground} collapsable={false}>
-      <View style={styles.goalInfoContainer}>
-        <TaperedCircleBorder
-          percentage={displayPercentage}
+          <View style={styles.goalInfoContainer}>
+            <TaperedCircleBorder
+              percentage={displayPercentage}
               borderColor={Colors.light.unfilledTaperred}
               size={110}
-          variant="illuminated"
-        >
-          <View style={styles.largeCircleInner}>
-            <Text
-              style={[
-                styles.circleGoalText,
-                frameLoading && styles.loadingPlaceholderText,
-              ]}
+              variant="illuminated"
+            >
+              <View style={styles.largeCircleInner}>
+                <Text
+                  style={[
+                    styles.circleGoalText,
+                    frameLoading && styles.loadingPlaceholderText,
+                  ]}
                   numberOfLines={ringGoalLineCount}
                   adjustsFontSizeToFit
                   minimumFontScale={0.75}
-            >
-              {frameLoading ? "---" : ringGoalLabel}
-            </Text>
-            <View style={styles.circlePercentRow}>
-              <Text
-                style={[
-                  styles.circlePercentNumber,
-                  frameLoading && styles.loadingPlaceholderText,
-                ]}
-              >
-                {percentageNum}
-              </Text>
+                >
+                  {frameLoading ? "---" : ringGoalLabel}
+                </Text>
+                <View style={styles.circlePercentRow}>
+                  <Text
+                    style={[
+                      styles.circlePercentNumber,
+                      frameLoading && styles.loadingPlaceholderText,
+                    ]}
+                  >
+                    {percentageNum}
+                  </Text>
                   {!frameLoading ? (
                     <Text style={styles.circlePercentSymbol}>%</Text>
                   ) : null}
-            </View>
+                </View>
+              </View>
+            </TaperedCircleBorder>
           </View>
-        </TaperedCircleBorder>
-      </View>
           <TopSpace top={LOGGING_SCREEN_SPACING.afterRing} />
-      <LoggingFlowSlot
-        goalData={liveGoalData}
-        onDropdownOpenChange={onDropdownOpenChange}
-        onLogComplete={() => {
-          setWeeklyRefreshKey((current) => current + 1);
-        }}
-      />
+          <LoggingFlowSlot
+            goalData={liveGoalData}
+            onDropdownOpenChange={onDropdownOpenChange}
+            onLogComplete={() => {
+              setWeeklyRefreshKey((current) => current + 1);
+            }}
+          />
         </View>
 
         <TopSpace top={LOGGING_SCREEN_SPACING.afterMyProgress} />
-      <View style={styles.weeklyDashboardWrapper}>
+        <View style={styles.weeklyDashboardWrapper}>
           <WeeklyBrowseStateProvider
             goalId={goalId}
             refreshKey={weeklyRefreshKey}
           >
-        <WeeklyProgressSection
-          goalData={liveGoalData}
-          refreshKey={weeklyRefreshKey}
+            <WeeklyProgressSection
+              goalData={liveGoalData}
+              refreshKey={weeklyRefreshKey}
               onDeleted={() => setWeeklyRefreshKey((current) => current + 1)}
-          onWeekProgressPercentChange={
-            isMondayThursdayFasts ? setWeekViewPercent : undefined
-          }
-        />
+              onWeekProgressPercentChange={
+                isMondayThursdayFasts ? setWeekViewPercent : undefined
+              }
+            />
           </WeeklyBrowseStateProvider>
-      </View>
+        </View>
       </WeeklyBrowseDispatchProvider>
       <TopSpace top={LOGGING_SCREEN_SPACING.afterDashboard} />
 
@@ -828,12 +829,7 @@ export const GoalProgressLoggingScreen = ({
     ) {
       setInsightsSheetMounted(true);
     }
-  }, [
-    prayerType,
-    quranInsightsType,
-    fastingInsightsType,
-    sadaqahInsightsType,
-  ]);
+  }, [prayerType, quranInsightsType, fastingInsightsType, sadaqahInsightsType]);
 
   const expandInsightsSheet = useCallback(() => {
     infoSheetRef.current?.expand();
@@ -882,8 +878,7 @@ export const GoalProgressLoggingScreen = ({
   }, [expandInsightsSheet, insightsSheetMounted]);
 
   useLayoutEffect(() => {
-    if (!deletePrayerSheetMounted || !pendingDeleteSheetOpenRef.current)
-      return;
+    if (!deletePrayerSheetMounted || !pendingDeleteSheetOpenRef.current) return;
     pendingDeleteSheetOpenRef.current = false;
     const frame = requestAnimationFrame(() => {
       deletePrayerSheetRef.current?.expand();
@@ -902,8 +897,8 @@ export const GoalProgressLoggingScreen = ({
         requestAnimationFrame(() => {
           deletePrayerSheetRef.current?.expand();
         });
-      return;
-    }
+        return;
+      }
       pendingDeleteSheetOpenRef.current = true;
       setDeletePrayerSheetMounted(true);
     },
@@ -1055,7 +1050,7 @@ export const GoalProgressLoggingScreen = ({
   };
 
   useLayoutEffect(() => {
-      navigation.setOptions({ headerShown: false });
+    navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
   useLayoutEffect(() => {
@@ -1174,14 +1169,14 @@ export const GoalProgressLoggingScreen = ({
               />
             </View>
           ) : null}
-        <GoalProgressLoggingContent
-          goalData={goalData}
-          goalId={goalId}
+          <GoalProgressLoggingContent
+            goalData={goalData}
+            goalId={goalId}
             onDropdownOpenChange={handleDropdownOpenChange}
             weeklyRefreshKey={weeklyRefreshKey}
             setWeeklyRefreshKey={setWeeklyRefreshKey}
             backgroundSource={backgroundSource}
-        />
+          />
         </View>
       </ScrollView>
       {insightsSheetMounted && prayerType ? (

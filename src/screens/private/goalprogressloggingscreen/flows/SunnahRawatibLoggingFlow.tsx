@@ -216,7 +216,11 @@ export default function SunnahRawatibLoggingFlow({
       dashboardForDate?.prayerTimesCard?.timeline,
       key,
     );
-  }, [dashboardForDate?.prayerTimesCard?.timeline, getSunnahPrayerTimelineKey, selectedPrayer]);
+  }, [
+    dashboardForDate?.prayerTimesCard?.timeline,
+    getSunnahPrayerTimelineKey,
+    selectedPrayer,
+  ]);
 
   const applyOnTimeWindowStart = useCallback(
     (prayer: SunnahPrayerId) => {
@@ -235,7 +239,11 @@ export default function SunnahRawatibLoggingFlow({
       const now = getCurrentStartTimeParts();
       applyStartTimeParts(now);
     },
-    [applyStartTimeParts, dashboardForDate?.prayerTimesCard?.timeline, getSunnahPrayerTimelineKey],
+    [
+      applyStartTimeParts,
+      dashboardForDate?.prayerTimesCard?.timeline,
+      getSunnahPrayerTimelineKey,
+    ],
   );
 
   useEffect(() => {
@@ -967,13 +975,7 @@ export default function SunnahRawatibLoggingFlow({
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
-                  <SunnahRawatibDetailedIbadhasIcon
-                    color={Colors.light.white}
-                    size={22}
-                  />
-                </View>
-                <View style={localStyles.summaryTextBlock}>
+                <View style={localStyles.summaryColumn}>
                   <View
                     style={[
                       localStyles.badge,
@@ -982,7 +984,7 @@ export default function SunnahRawatibLoggingFlow({
                         : badgeStatus.type === "not-started"
                           ? localStyles.badgeNotStarted
                           : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start" },
+                      localStyles.badgeAlignedWithTitle,
                     ]}
                   >
                     <Text
@@ -998,10 +1000,18 @@ export default function SunnahRawatibLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <View style={localStyles.summaryTitleBlock}>
-                    <Text style={localStyles.summaryTitle} numberOfLines={2}>
-                      {goalLabelParts.title}
-                    </Text>
+                  <View style={localStyles.summaryTitleRow}>
+                    <View style={localStyles.summaryIconCircle}>
+                      <SunnahRawatibDetailedIbadhasIcon
+                        color={Colors.light.white}
+                        size={22}
+                      />
+                    </View>
+                    <View style={localStyles.summaryTitleBlock}>
+                      <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                        {goalLabelParts.title}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -1089,7 +1099,6 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -1118,7 +1127,23 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "flex-start",
+  },
+  /** One column: badge above, then icon + title row. */
+  summaryColumn: {
+    flex: 1,
     gap: 6,
+    minWidth: 0,
+  },
+  /** Icon circle (38) + gap (6) so badge left-aligns with title text. */
+  badgeAlignedWithTitle: {
+    alignSelf: "flex-start",
+    marginLeft: 44,
+  },
+  summaryTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
   },
   summaryIconCircle: {
     width: 38,
@@ -1127,11 +1152,6 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 17,
-  },
-  summaryTextBlock: {
-    flex: 1,
-    gap: 9,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -1140,8 +1160,11 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
+    flexWrap: "wrap",
   },
   summaryTitleBlock: {
+    flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   summaryTotalLine: {

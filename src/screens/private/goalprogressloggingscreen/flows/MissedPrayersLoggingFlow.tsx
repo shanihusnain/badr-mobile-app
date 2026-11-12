@@ -498,10 +498,7 @@ export default function MissedPrayersLoggingFlow({
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
-                  <MissedPastPrayerCalenderIcon size={22} />
-                </View>
-                <View style={{ flex: 1, gap: 9 }}>
+                <View style={localStyles.summaryColumn}>
                   <View
                     style={[
                       localStyles.badge,
@@ -510,7 +507,7 @@ export default function MissedPrayersLoggingFlow({
                         : badgeStatus.type === "not-started"
                           ? localStyles.badgeNotStarted
                           : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start" },
+                      localStyles.badgeAlignedWithTitle,
                     ]}
                   >
                     <Text
@@ -526,17 +523,21 @@ export default function MissedPrayersLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <View style={localStyles.titleBlock}>
-                    <Text
-                      style={[
-                        localStyles.summaryTitle,
-                        { flex: undefined },
-                        frameLoading && localStyles.loadingPlaceholderText,
-                      ]}
-                      numberOfLines={2}
-                    >
-                      {goalLabel}
-                    </Text>
+                  <View style={localStyles.summaryTitleRow}>
+                    <View style={localStyles.summaryIconCircle}>
+                      <MissedPastPrayerCalenderIcon size={22} />
+                    </View>
+                    <View style={localStyles.titleBlock}>
+                      <Text
+                        style={[
+                          localStyles.summaryTitle,
+                          frameLoading && localStyles.loadingPlaceholderText,
+                        ]}
+                        numberOfLines={2}
+                      >
+                        {goalLabel}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -645,7 +646,23 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "flex-start",
+  },
+  /** One column: badge above, then icon + title row. */
+  summaryColumn: {
+    flex: 1,
     gap: 6,
+    minWidth: 0,
+  },
+  /** Icon circle (38) + gap (6) so badge left-aligns with title text. */
+  badgeAlignedWithTitle: {
+    alignSelf: "flex-start",
+    marginLeft: 44,
+  },
+  summaryTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
   },
   summaryIconCircle: {
     width: 38,
@@ -654,7 +671,6 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
   },
   summaryTitle: {
     color: Colors.light.white,
@@ -663,9 +679,10 @@ const localStyles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0,
-    flex: 1,
   },
   titleBlock: {
+    flex: 1,
+    minWidth: 0,
     gap: 4,
   },
   loadingPlaceholderText: {
