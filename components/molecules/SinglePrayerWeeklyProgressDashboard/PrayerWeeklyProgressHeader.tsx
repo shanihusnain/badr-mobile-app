@@ -33,19 +33,11 @@ export function PrayerWeeklyProgressHeader({
     <View style={styles.headerRow}>
       <View style={styles.headerLeft}>
         <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
-        {loading ? (
-          <View style={styles.loadingCircleWrap}>
-            <ActivityIndicator
-              size="small"
-              color={Colors.light.white}
-              style={styles.loadingCircle}
-            />
-          </View>
-        ) : (
+        {!loading ? (
           <Text style={styles.weekFractionText} numberOfLines={1}>
             {`${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
           </Text>
-        )}
+        ) : null}
       </View>
 
       <View style={styles.headerNav}>
@@ -66,15 +58,7 @@ export function PrayerWeeklyProgressHeader({
           />
         </TouchableOpacity>
         <View style={styles.weekRangeTextWrap}>
-          {loading ? (
-            <View style={styles.loadingRangeWrap}>
-              <ActivityIndicator
-                size="small"
-                color={Colors.light.white}
-                style={styles.loadingCircle}
-              />
-            </View>
-          ) : (
+          {!loading ? (
             <Text
               style={styles.weekRangeText}
               numberOfLines={1}
@@ -84,7 +68,7 @@ export function PrayerWeeklyProgressHeader({
             >
               {weekRangeLabel}
             </Text>
-          )}
+          ) : null}
         </View>
         <TouchableOpacity
           onPress={onNextWeek}
