@@ -200,21 +200,43 @@ export default function MissedPrayersLoggingFlow({
   const rawGoalLabel = formatPrayerGoalFlowCardLabel(
     frame?.goal.label ?? "---",
   );
-  const totalPrayersRequired = frame?.goal.targetCount;
-  const goalLabel =
-    rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
-    "---";
   const goalLabelParts = useMemo(() => {
-    const trimmed = goalLabel.trim();
-    if (!trimmed || trimmed === "---") return { primary: trimmed, secondary: null };
+    const trimmed = (rawGoalLabel || "---").trim();
+    if (!trimmed || trimmed === "---") {
+      return {
+        primary: trimmed,
+        secondary: null as string | null,
+        totalCount: null as string | null,
+      };
+    }
 
-    const match = trimmed.match(/^(.*?)(\s*\([^)]*\))$/);
-    if (!match) return { primary: trimmed, secondary: null };
+    // Prefer "(total N prayers)" — same shape as Five Daily.
+    const totalMatch = trimmed.match(
+      /^(.*?)\s*\(total\s+(\d+)\s+prayers?\)\s*$/i,
+    );
+    if (totalMatch) {
+      return {
+        primary: totalMatch[1].trim() || trimmed,
+        secondary: null as string | null,
+        totalCount: totalMatch[2],
+      };
+    }
 
-    const primary = match[1].trim();
-    const secondary = match[2].trim();
-    return { primary: primary || trimmed, secondary: secondary || null };
-  }, [goalLabel]);
+    // Fallback: trailing "(...)" — bold any digits in that secondary line.
+    const parenMatch = trimmed.match(/^(.*?)(\s*\([^)]*\))$/);
+    if (!parenMatch) {
+      return {
+        primary: trimmed,
+        secondary: null as string | null,
+        totalCount: null as string | null,
+      };
+    }
+    return {
+      primary: parenMatch[1].trim() || trimmed,
+      secondary: parenMatch[2].trim(),
+      totalCount: null as string | null,
+    };
+  }, [rawGoalLabel]);
 
   // Clamp into the valid range when cycle bounds change. Use functional
   // setState and omit `selectedDate` from deps to avoid an update loop when
@@ -534,34 +556,63 @@ export default function MissedPrayersLoggingFlow({
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <View style={localStyles.summaryTitleRow}>
+                  <View style={localStyles.summaryPrimaryRow}>
                     <View style={localStyles.summaryIconCircle}>
                       <MissedPastPrayerCalenderIcon size={22} />
                     </View>
-                    <View style={localStyles.titleBlock}>
-                      <Text
-                        style={[
-                          localStyles.summaryTitle,
-                          frameLoading && localStyles.loadingPlaceholderText,
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {goalLabelParts.primary}
-                      </Text>
-                      {goalLabelParts.secondary ? (
-                        <Text
-                          style={[
-                            localStyles.summaryTitle,
-                            localStyles.summaryTitleSecondary,
-                            frameLoading && localStyles.loadingPlaceholderText,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {goalLabelParts.secondary}
-                        </Text>
-                      ) : null}
-                    </View>
+                    <Text
+                      style={[
+                        localStyles.summaryTitle,
+                        localStyles.summaryPrimaryTitle,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {goalLabelParts.primary}
+                    </Text>
                   </View>
+                  {goalLabelParts.totalCount ? (
+                    <Text
+                      style={[
+                        localStyles.summarySubtitle,
+                        localStyles.summaryTitleSecondary,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      <Text style={localStyles.summarySubtitle}>(total </Text>
+                      <Text style={localStyles.subtitleBold}>
+                        {goalLabelParts.totalCount}
+                      </Text>
+                      <Text style={localStyles.summarySubtitle}> Prayers)</Text>
+                    </Text>
+                  ) : goalLabelParts.secondary ? (
+                    <Text
+                      style={[
+                        localStyles.summarySubtitle,
+                        localStyles.summaryTitleSecondary,
+                        frameLoading && localStyles.loadingPlaceholderText,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {goalLabelParts.secondary
+                        .split(/(\d+)/)
+                        .map((part, index) =>
+                          /^\d+$/.test(part) ? (
+                            <Text key={index} style={localStyles.subtitleBold}>
+                              {part}
+                            </Text>
+                          ) : (
+                            <Text
+                              key={index}
+                              style={localStyles.summarySubtitle}
+                            >
+                              {part}
+                            </Text>
+                          ),
+                        )}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
 
@@ -681,7 +732,8 @@ const localStyles = StyleSheet.create({
     alignSelf: "flex-start",
     marginLeft: 44,
   },
-  summaryTitleRow: {
+  /** Icon centered with primary label only; secondary sits on the next row. */
+  summaryPrimaryRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
@@ -703,15 +755,13 @@ const localStyles = StyleSheet.create({
     lineHeight: 18,
     letterSpacing: 0,
   },
-  summaryTitleSecondary: {
-    marginTop: 0,
-  },
-  titleBlock: {
+  summaryPrimaryTitle: {
     flex: 1,
     minWidth: 0,
-    gap: 4,
-    flexDirection: "column",
-    alignItems: "flex-start",
+  },
+  /** Indent under primary text (38 icon + 6 gap). */
+  summaryTitleSecondary: {
+    marginLeft: 44,
   },
   loadingPlaceholderText: {
     opacity: 0.35,
