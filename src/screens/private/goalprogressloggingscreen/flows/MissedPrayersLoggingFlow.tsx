@@ -204,6 +204,17 @@ export default function MissedPrayersLoggingFlow({
   const goalLabel =
     rawGoalLabel.replace(/\s*\(total\s+\d+\s+prayers?\)\s*/i, "").trim() ||
     "---";
+  const goalLabelParts = useMemo(() => {
+    const trimmed = goalLabel.trim();
+    if (!trimmed || trimmed === "---") return { primary: trimmed, secondary: null };
+
+    const match = trimmed.match(/^(.*?)(\s*\([^)]*\))$/);
+    if (!match) return { primary: trimmed, secondary: null };
+
+    const primary = match[1].trim();
+    const secondary = match[2].trim();
+    return { primary: primary || trimmed, secondary: secondary || null };
+  }, [goalLabel]);
 
   // Clamp into the valid range when cycle bounds change. Use functional
   // setState and omit `selectedDate` from deps to avoid an update loop when
@@ -535,8 +546,20 @@ export default function MissedPrayersLoggingFlow({
                         ]}
                         numberOfLines={2}
                       >
-                        {goalLabel}
+                        {goalLabelParts.primary}
                       </Text>
+                      {goalLabelParts.secondary ? (
+                        <Text
+                          style={[
+                            localStyles.summaryTitle,
+                            localStyles.summaryTitleSecondary,
+                            frameLoading && localStyles.loadingPlaceholderText,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {goalLabelParts.secondary}
+                        </Text>
+                      ) : null}
                     </View>
                   </View>
                 </View>
@@ -680,10 +703,15 @@ const localStyles = StyleSheet.create({
     lineHeight: 18,
     letterSpacing: 0,
   },
+  summaryTitleSecondary: {
+    marginTop: 0,
+  },
   titleBlock: {
     flex: 1,
     minWidth: 0,
     gap: 4,
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   loadingPlaceholderText: {
     opacity: 0.35,
