@@ -1030,17 +1030,14 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
-                  <QiyamMainFlowCardIcon size={22} color={Colors.light.white} />
-                </View>
-                <View style={localStyles.summaryTextBlock}>
+                <View style={localStyles.summaryColumn}>
                   <View
                     style={[
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
                         : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start" },
+                      localStyles.badgeAlignedWithTitle,
                     ]}
                   >
                     <Text
@@ -1054,7 +1051,19 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                       {badgeStatus.text}
                     </Text>
                   </View>
-                  <Text style={localStyles.summaryTitle}>{summaryTitle}</Text>
+                  <View style={localStyles.summaryTitleRow}>
+                    <View style={localStyles.summaryIconCircle}>
+                      <QiyamMainFlowCardIcon
+                        size={22}
+                        color={Colors.light.white}
+                      />
+                    </View>
+                    <View style={localStyles.summaryTitleBlock}>
+                      <Text style={localStyles.summaryTitle} numberOfLines={2}>
+                        {summaryTitle}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </View>
 
@@ -1159,7 +1168,6 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginTop: 3,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -1182,11 +1190,23 @@ const localStyles = StyleSheet.create({
   summaryBody: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 6,
   },
-  summaryTextBlock: {
+  /** One column: badge above, then icon + title row. */
+  summaryColumn: {
     flex: 1,
-    gap: 9,
+    gap: 6,
+    minWidth: 0,
+  },
+  /** Icon circle (38) + gap (6) so badge left-aligns with title text. */
+  badgeAlignedWithTitle: {
+    alignSelf: "flex-start",
+    marginLeft: 44,
+  },
+  summaryTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
   },
   summaryIconCircle: {
     width: 38,
@@ -1195,7 +1215,10 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+  },
+  summaryTitleBlock: {
+    flex: 1,
+    minWidth: 0,
   },
   summaryTitle: {
     color: Colors.light.white,

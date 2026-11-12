@@ -31,10 +31,20 @@ import type {
   PrayerGoalFrameData,
   PrayerGoalFrameDay,
 } from "@/src/api/queries/useGetPrayerGoalFrame";
+import {
+  isSunnahRawatibDayDetail,
+  useGetPrayerGoalDayDetail,
+} from "@/src/api/queries/useGetPrayerGoalDayDetail";
 import type { SunnahPrayerId } from "@/components/molecules/SunnahRawatibDayRing";
 import { resolvePrayerType } from "@/src/utils/prayerGoalMap";
 import { buildSunnahGoalFromSlotConfig } from "@/src/utils/prayerGoalFrameMap";
 import SecondaryButton from "@/components/atoms/Secondary-button";
+
+function normalizeDayDate(value?: string | null): string | null {
+  if (!value) return null;
+  const slice = String(value).trim().slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(slice) ? slice : null;
+}
 
 /** Scroll padding so the last option isn't covered by the pinned footer. */
 const FOOTER_SCROLL_SPACER = 140;
@@ -74,6 +84,12 @@ const SUNNAH_UI_TO_API: Record<SunnahPrayerId, string> = {
   after_isha: "AFTER_ISHA",
 };
 
+/**
+ * User-logged units for a Sunnah slot (excludes auto-qadha-only fills).
+ * Frame/day-detail may send a number or an object with `userLoggedCount` /
+ * `loggedCount` / `logged` — the old number-only reader always returned 0
+ * for object slots, so the delete sheet showed "No prayers available".
+ */
 function readSunnahLoggedUnits(
   slots: PrayerGoalFrameDay["slots"],
   apiKey: string,
@@ -83,7 +99,35 @@ function readSunnahLoggedUnits(
   if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
     return Math.max(0, Math.floor(raw));
   }
-  return 0;
+  if (!raw || typeof raw !== "object") return 0;
+  const slot = raw as {
+    userLoggedCount?: number;
+    loggedCount?: number;
+    count?: number;
+    completed?: number;
+    logged?: boolean;
+    isAutoQadha?: boolean;
+  };
+  if (
+    typeof slot.userLoggedCount === "number" &&
+    Number.isFinite(slot.userLoggedCount)
+  ) {
+    return Math.max(0, Math.floor(slot.userLoggedCount));
+  }
+  // Auto-qadha alone must not appear as a deletable user log.
+  if (slot.isAutoQadha === true && slot.logged !== true) {
+    return 0;
+  }
+  if (typeof slot.loggedCount === "number" && Number.isFinite(slot.loggedCount)) {
+    return Math.max(0, Math.floor(slot.loggedCount));
+  }
+  if (typeof slot.count === "number" && Number.isFinite(slot.count)) {
+    return Math.max(0, Math.floor(slot.count));
+  }
+  if (typeof slot.completed === "number" && Number.isFinite(slot.completed)) {
+    return Math.max(0, Math.floor(slot.completed));
+  }
+  return slot.logged === true ? 1 : 0;
 }
 
 function buildFiveDailyOptions(
@@ -101,7 +145,7 @@ function buildFiveDailyOptions(
 
 function buildSunnahOptions(
   frame: PrayerGoalFrameData | null | undefined,
-  day: PrayerGoalFrameDay | undefined,
+  slots: PrayerGoalFrameDay["slots"] | Record<string, unknown> | undefined,
 ): DeleteSlotOption[] {
   const goal = buildSunnahGoalFromSlotConfig(frame?.slotConfig);
   const options: DeleteSlotOption[] = [];
@@ -109,7 +153,10 @@ function buildSunnahOptions(
   for (const prayer of goal) {
     const api = SUNNAH_UI_TO_API[prayer.id];
     const base = SUNNAH_BASE_LABEL[prayer.id];
-    const loggedUnits = readSunnahLoggedUnits(day?.slots, api);
+    const loggedUnits = readSunnahLoggedUnits(
+      slots as PrayerGoalFrameDay["slots"],
+      api,
+    );
 
     if (prayer.weight === 2) {
       if (loggedUnits >= 1) {
@@ -167,21 +214,34 @@ export const DeletePrayerGoalOptions = forwardRef<BottomSheet, Props>(
     const prayerType = prayerFrame?.frame?.prayerType ?? "";
     const resolvedType = resolvePrayerType(prayerType);
     const isSunnah = resolvedType === "SUNNAH_RAWATIB";
+    const dateKey = normalizeDayDate(date);
+
+    /** Day-detail is source of truth for deletable user logs (userLoggedCount). */
+    const { data: dayDetail } = useGetPrayerGoalDayDetail(prayerType, dateKey ?? undefined, {
+      enabled: Boolean(dateKey && prayerType),
+    });
 
     const day = useMemo(() => {
-      if (!date || !prayerFrame?.frame?.week?.days) return undefined;
-      return prayerFrame.frame.week.days.find((d) => d.date === date);
-    }, [date, prayerFrame?.frame?.week?.days]);
+      if (!dateKey || !prayerFrame?.frame?.week?.days) return undefined;
+      return prayerFrame.frame.week.days.find(
+        (d) => normalizeDayDate(d.date) === dateKey,
+      );
+    }, [dateKey, prayerFrame?.frame?.week?.days]);
 
     const options = useMemo(() => {
       if (resolvedType === "FIVE_DAILY_PRAYERS") {
         return buildFiveDailyOptions(day);
       }
       if (resolvedType === "SUNNAH_RAWATIB") {
-        return buildSunnahOptions(prayerFrame?.frame, day);
+        const detailSlots =
+          isSunnahRawatibDayDetail(dayDetail) ? dayDetail.slots : undefined;
+        return buildSunnahOptions(
+          prayerFrame?.frame,
+          detailSlots ?? day?.slots,
+        );
       }
       return [];
-    }, [resolvedType, day, prayerFrame?.frame]);
+    }, [resolvedType, day, dayDetail, prayerFrame?.frame]);
 
     const instructionTitle = isSunnah
       ? "Choose the Sunnah prayer(s) you want to remove from your log."
