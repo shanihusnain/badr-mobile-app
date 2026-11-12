@@ -40,8 +40,7 @@ type RingVisual =
       /** Non–White Day + menstruating: solid red */
       variant: "menstruatingUnplanned";
       scale?: number;
-    }
-
+    };
 
 function getRingVisual(
   state: WhiteDaysFastDayState,
@@ -139,7 +138,7 @@ export function WhiteDaysFastDayRing({
     isToday,
     isFuture,
   );
-  const borderWidth = 1.5;
+  const borderWidth = 1;
   const outlineBorderWidth =
     visual.variant === "outline" && visual.borderWidth != null
       ? visual.borderWidth
