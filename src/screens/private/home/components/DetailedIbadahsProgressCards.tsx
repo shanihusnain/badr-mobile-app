@@ -61,7 +61,9 @@ export function getDetailedIbadahIcon(
     case "prayer-tahiyyat":
       return <Ionicons name="water" size={25} color={color} />;
     case "prayer-fiveDailyPrayers":
-      return <FiveDailyPrayerIDetailedIbadhasIcon color={color} size={size} />;
+      return (
+        <FiveDailyPrayerIDetailedIbadhasIcon color={color} size={size + 1} />
+      );
     case "prayer-sunnah":
       return <SunnahRawatibDetailedIbadhasIcon color={color} size={size} />;
     case "prayer-tahiyyatMasjid":
@@ -73,7 +75,7 @@ export function getDetailedIbadahIcon(
     case "prayer-tawbah":
       return <TawbahPrayerDetailedIbadhasIcon color={color} size={size} />;
     case "prayer-istikhara":
-      return <IstikharaPrayerDetailedIcon color={color} size={size} />;
+      return <IstikharaPrayerDetailedIcon color={color} size={size + 2} />;
     case "prayer-shukr":
       return <ShukrPrayerDetailedIbadhasIcon color={color} size={size} />;
     case "prayer-qiyam":
@@ -85,15 +87,19 @@ export function getDetailedIbadahIcon(
     case "quran-recitationByCompletion":
     case "quran-recitationByJuz":
       // Slightly larger book glyph only — circle (iconWrapper) stays 32.
-      return <QuranImageIcon color={color} size={Math.round(size * 1.30)} />;
+      return <QuranImageIcon color={color} size={Math.round(size * 1.3)} />;
     case "quran-memorisationBySurah":
     case "quran-memorisationByHizb":
     case "quran-memorisationByJuz":
       return <QuranMemorizationIcon color={color} size={size} />;
     case "quran-Tajweed":
-      return <ManQuranTajweedIcon color={color} size={Math.round(size * 1.1)} />;
+      return (
+        <ManQuranTajweedIcon color={color} size={Math.round(size * 1.1)} />
+      );
     case "fasting-ramadan":
-      return <MissedRamadanFasticonNew color={color} size={Math.round(size * 1.1)} />;
+      return (
+        <MissedRamadanFasticonNew color={color} size={Math.round(size * 1.1)} />
+      );
     case "fasting-mondayThursday":
       return <FastingFlowCardMondayFasts color={color} size={size} />;
     case "fasting-Dawwod":
@@ -145,12 +151,17 @@ export const DetailedIbadahsProgressCard = ({
   isQuranGoal,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
+  const isFiveDailyPrayerIcon =
+    React.isValidElement(icon) &&
+    icon.type === FiveDailyPrayerIDetailedIbadhasIcon;
+  const isIstikharaIcon =
+    React.isValidElement(icon) && icon.type === IstikharaPrayerDetailedIcon;
   const isQuran = Boolean(
     centerIconOnMultiLine ||
-      isQuranGoal ||
-      category?.toUpperCase() === "QURAN" ||
-      progressColor === Colors.light.ringQuran ||
-      title?.toLowerCase().includes("quran")
+    isQuranGoal ||
+    category?.toUpperCase() === "QURAN" ||
+    progressColor === Colors.light.ringQuran ||
+    title?.toLowerCase().includes("quran"),
   );
   const displayTitle = useMemo(
     () => (loading ? "---" : prepareFigmaForcedSmallCapsText(title)),
@@ -180,16 +191,16 @@ export const DetailedIbadahsProgressCard = ({
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress || loading}
     >
-      <View
-        style={[styles.leftSection, isQuran && styles.leftSectionCentered]}
-      >
+      <View style={[styles.leftSection, isQuran && styles.leftSectionCentered]}>
         <View
           style={[
             styles.iconWrapper,
             {
-              backgroundColor:
-                iconBgColor || Colors.light.ibadahIconCircleBg,
+              backgroundColor: iconBgColor || Colors.light.ibadahIconCircleBg,
               marginTop: isQuran ? 0 : 2,
+              paddingBottom: isFiveDailyPrayerIcon ? 2 : 0,
+              paddingTop: isIstikharaIcon ? 3 : 0,
+              paddingLeft: isIstikharaIcon ? 2 : 0,
               alignSelf: isQuran ? "center" : "flex-start",
             },
           ]}

@@ -4,8 +4,14 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 
+/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
+const PRAYER_FUTURE_OUTLINE = {
+  color: "rgba(255, 255, 255, 0.32)",
+  borderWidth: 1,
+} as const;
+
 type RingVisual =
-  | { variant: "outline"; color: string; opacity?: number }
+  | { variant: "outline"; color: string; opacity?: number; borderWidth?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
   /** Solid disc + border on the same view (booked for another goal). */
   | {
@@ -38,8 +44,12 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      // #1 — grey empty ring when no fast planned
-      return { variant: "outline", color: Colors.light.grey };
+      // Match prayer upcoming empty ring (thin translucent white outline).
+      return {
+        variant: "outline",
+        color: PRAYER_FUTURE_OUTLINE.color,
+        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+      };
     case "disabledPast":
     case "todayDisabled":
     case "pastNeutral":
@@ -96,10 +106,11 @@ export function MissedRamadanFastDayRing({
 }: Props) {
   const visual = getRingVisual(state, isMenstruating, isPlanned);
   const borderWidth = 1.5;
-  const wrapperStyle = [
-    styles.wrapper,
-    { width: size + 4, height: size + 4 },
-  ];
+  const outlineBorderWidth =
+    visual.variant === "outline" && visual.borderWidth != null
+      ? visual.borderWidth
+      : borderWidth;
+  const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "skippedWarning") {
     // #9 — grey outline with yellow warning centered
@@ -248,7 +259,7 @@ export function MissedRamadanFastDayRing({
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth,
+            borderWidth: outlineBorderWidth,
             borderColor: visual.color,
           },
         ]}

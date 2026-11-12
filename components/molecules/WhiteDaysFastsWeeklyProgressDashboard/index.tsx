@@ -28,10 +28,21 @@ export type WhiteDaysFastsWeeklyProgressDashboardProps = {
   onDeleted?: () => void;
 };
 
+function isWhiteDaysFutureDate(date: string, isToday: boolean): boolean {
+  if (isToday || !date) return false;
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return date.slice(0, 10) > `${yyyy}-${mm}-${dd}`;
+}
+
 function mapWhiteDaysDayToSinglePrayerDay(
   day: WhiteDaysFastDayProgress,
 ): SinglePrayerDayProgress {
   const isCompleted = day.state === "completed";
+  const isFuture =
+    day.state === "planned" || isWhiteDaysFutureDate(day.date, day.isToday);
 
   return {
     day: day.day,
@@ -41,7 +52,7 @@ function mapWhiteDaysDayToSinglePrayerDay(
     isBestDay: false,
     isToday: day.isToday,
     isMenstruation: day.isMenstruating,
-    isFuture: day.state === "planned",
+    isFuture,
     canDelete: day.canDelete,
   };
 }
@@ -168,6 +179,10 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
           isMenstruating={whiteDay.bookedFor ? false : whiteDay.isMenstruating}
           isWhiteDay={whiteDay.bookedFor ? false : whiteDay.isWhiteDay}
           isToday={whiteDay.isToday}
+          isFuture={
+            !whiteDay.bookedFor &&
+            isWhiteDaysFutureDate(whiteDay.date, whiteDay.isToday)
+          }
         />
       );
     },

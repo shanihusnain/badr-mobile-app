@@ -4,11 +4,18 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { WhiteDaysFastDayState } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 
+/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
+const PRAYER_FUTURE_OUTLINE = {
+  color: "rgba(255, 255, 255, 0.32)",
+  borderWidth: 1,
+} as const;
+
 type RingVisual =
   | {
       variant: "outline";
       color: string;
       showWarning?: boolean;
+      borderWidth?: number;
     }
   | {
       variant: "solid";
@@ -36,6 +43,7 @@ function getRingVisual(
   isMenstruating: boolean,
   isWhiteDay: boolean,
   isToday: boolean,
+  isFuture: boolean,
 ): RingVisual {
   if (isMenstruating && state !== "completed") {
     if (isWhiteDay) {
@@ -46,8 +54,22 @@ function getRingVisual(
 
   switch (state) {
     case "todayDisabled":
+      // Today, not a White Day — solid muted grey
+      return {
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
+      };
     case "inactive":
-      // Disabled for this goal (booked elsewhere) or non–White Day — solid grey
+      // Upcoming non–White Day — match prayer future outline.
+      // Past non–White Day — solid muted grey.
+      if (isFuture) {
+        return {
+          variant: "outline",
+          color: PRAYER_FUTURE_OUTLINE.color,
+          borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+        };
+      }
       return {
         variant: "solid",
         color: Colors.light.selectcategory,
@@ -84,6 +106,7 @@ type Props = {
   isMenstruating?: boolean;
   isWhiteDay?: boolean;
   isToday?: boolean;
+  isFuture?: boolean;
 };
 
 export function WhiteDaysFastDayRing({
@@ -92,9 +115,20 @@ export function WhiteDaysFastDayRing({
   isMenstruating = false,
   isWhiteDay = false,
   isToday = false,
+  isFuture = false,
 }: Props) {
-  const visual = getRingVisual(state, isMenstruating, isWhiteDay, isToday);
+  const visual = getRingVisual(
+    state,
+    isMenstruating,
+    isWhiteDay,
+    isToday,
+    isFuture,
+  );
   const borderWidth = 1.5;
+  const outlineBorderWidth =
+    visual.variant === "outline" && visual.borderWidth != null
+      ? visual.borderWidth
+      : borderWidth;
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "solid") {
@@ -196,7 +230,7 @@ export function WhiteDaysFastDayRing({
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth,
+            borderWidth: outlineBorderWidth,
             borderColor: visual.color,
           },
         ]}

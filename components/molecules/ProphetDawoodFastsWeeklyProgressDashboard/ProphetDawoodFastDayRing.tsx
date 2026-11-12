@@ -4,6 +4,12 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { ProphetDawoodFastDayState } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 
+/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
+const PRAYER_FUTURE_OUTLINE = {
+  color: "rgba(255, 255, 255, 0.32)",
+  borderWidth: 1,
+} as const;
+
 type RingVisual = {
   variant: "outline" | "solid" | "menstruating" | "completedWithOutline";
   borderColor: string;
@@ -11,6 +17,7 @@ type RingVisual = {
   opacity?: number;
   showWarning?: boolean;
   blur?: boolean;
+  borderWidth?: number;
 };
 
 function getRingVisual(
@@ -30,8 +37,9 @@ function getRingVisual(
     case "future":
       return {
         variant: "outline",
-        borderColor: Colors.light.grey,
+        borderColor: PRAYER_FUTURE_OUTLINE.color,
         backgroundColor: "transparent",
+        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
       };
     case "today":
       // Empty today — same inner fill as Dashboard / prayer rings.
@@ -99,7 +107,7 @@ export function ProphetDawoodFastDayRing({
   isMenstruating = false,
 }: Props) {
   const visual = getRingVisual(state, isMenstruating);
-  const borderWidth = 1.5;
+  const borderWidth = visual.borderWidth ?? 1.5;
   const wrapperStyle = [
     styles.wrapper,
     {

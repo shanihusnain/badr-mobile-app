@@ -4,8 +4,14 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { MondayThursdayFastDayState } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 
+/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
+const PRAYER_FUTURE_OUTLINE = {
+  color: "rgba(255, 255, 255, 0.32)",
+  borderWidth: 1,
+} as const;
+
 type RingVisual =
-  | { variant: "outline"; color: string; opacity?: number }
+  | { variant: "outline"; color: string; opacity?: number; borderWidth?: number }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
   | {
     variant: "outlineWithFill";
@@ -43,8 +49,12 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      // #1 — calendarBg outline
-      return { variant: "outline", color: Colors.light.calendarBg };
+      // Match prayer upcoming empty ring (thin translucent white outline).
+      return {
+        variant: "outline",
+        color: PRAYER_FUTURE_OUTLINE.color,
+        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+      };
     case "today":
       // #2 — solid dark disc + thin light border. Fill matches dashboard card.
       return {
@@ -98,6 +108,10 @@ export function MondayThursdayFastDayRing({
 }: Props) {
   const visual = getRingVisual(state, isMenstruating, isPlanned, isToday);
   const borderWidth = 1.5;
+  const outlineBorderWidth =
+    visual.variant === "outline" && visual.borderWidth != null
+      ? visual.borderWidth
+      : borderWidth;
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "skippedWarning") {
@@ -249,7 +263,7 @@ export function MondayThursdayFastDayRing({
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth,
+            borderWidth: outlineBorderWidth,
             borderColor: visual.color,
           },
         ]}
