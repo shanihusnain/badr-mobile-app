@@ -252,7 +252,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 13.5,
+    fontSize: 13,
     lineHeight: 18,
   },
   flowContent: {
