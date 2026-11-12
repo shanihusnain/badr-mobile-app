@@ -19,7 +19,9 @@ import {
   StartTimeStep,
   DurationStep,
   getCurrentStartTimeParts,
+  getPrayerWindowFromTimeline,
   isDurationEntered,
+  type StartTimeParts,
 } from "../components/TimePickerSteps";
 import { OptionSelectStep } from "../components/OptionSelectStep";
 import { FlowCard } from "../components/FlowCard";
@@ -36,11 +38,11 @@ import { useOptionalPrayerGoalFrameContext } from "../prayerGoalFrameContext";
 import {
   getSunnahAfterDhuhrPrayersPerDay,
   getSunnahBeforeAsrPrayersPerDay,
-  formatPrayerGoalFlowCardLabel,
   getPrayerFrameAchievementLabel,
   prayerFrameShowsInsights,
 } from "@/src/utils/prayerGoalFrameMap";
 import { resolvePrayerTypeFromGoalId } from "@/src/utils/prayerGoalMap";
+import { useGetDashboardDataForDate } from "@/src/api/queries/useGetDashboardDataForDate";
 import { useGetPrayerGoalFrame } from "@/src/api/queries/useGetPrayerGoalFrame";
 import type { PrayerGoalFrameData } from "@/src/api/queries/useGetPrayerGoalFrame";
 import {
@@ -175,6 +177,72 @@ export default function SunnahRawatibLoggingFlow({
     setStartTimeInvalid(false);
   }, []);
 
+  const applyStartTimeParts = useCallback((parts: StartTimeParts) => {
+    setStartHour(parts.hour);
+    setStartMinute(parts.minute);
+    setStartPeriod(parts.period);
+  }, []);
+
+  const { data: dashboardForDate } = useGetDashboardDataForDate(
+    flowMode === "active" ? selectedDate : "",
+  );
+
+  const getSunnahPrayerTimelineKey = useCallback(
+    (prayer: SunnahPrayerId | null): string | null => {
+      switch (prayer) {
+        case "before_fajr":
+          return "fajr";
+        case "before_dhuhr":
+        case "after_dhuhr":
+          return "dhuhr";
+        case "before_asr":
+          return "asr";
+        case "after_maghrib":
+          return "maghrib";
+        case "after_isha":
+          return "isha";
+        default:
+          return null;
+      }
+    },
+    [],
+  );
+
+  const onTimePrayerWindow = useMemo(() => {
+    if (!selectedPrayer) return null;
+    const key = getSunnahPrayerTimelineKey(selectedPrayer);
+    if (!key) return null;
+    return getPrayerWindowFromTimeline(
+      dashboardForDate?.prayerTimesCard?.timeline,
+      key,
+    );
+  }, [dashboardForDate?.prayerTimesCard?.timeline, getSunnahPrayerTimelineKey, selectedPrayer]);
+
+  const applyOnTimeWindowStart = useCallback(
+    (prayer: SunnahPrayerId) => {
+      const key = getSunnahPrayerTimelineKey(prayer);
+      const window = key
+        ? getPrayerWindowFromTimeline(
+            dashboardForDate?.prayerTimesCard?.timeline,
+            key,
+          )
+        : null;
+      if (window) {
+        applyStartTimeParts(window.startParts);
+        setStartTimeInvalid(false);
+        return;
+      }
+      const now = getCurrentStartTimeParts();
+      applyStartTimeParts(now);
+    },
+    [applyStartTimeParts, dashboardForDate?.prayerTimesCard?.timeline, getSunnahPrayerTimelineKey],
+  );
+
+  useEffect(() => {
+    if (!selectedPrayer) return;
+    applyOnTimeWindowStart(selectedPrayer);
+  }, [applyOnTimeWindowStart, selectedPrayer]);
+
   const handleSetStartHour = useCallback(
     (h: string) => {
       clearStartTimeInvalid();
@@ -251,24 +319,10 @@ export default function SunnahRawatibLoggingFlow({
   );
 
   const goalLabelParts = useMemo(() => {
-    const rawLabel = formatPrayerGoalFlowCardLabel(frame?.goal.label ?? "");
-    const targetCount = frame?.goal.targetCount;
-    const match = rawLabel.match(
-      /^(.*?)\s*\((?:total\s+)?(\d+)\s+(prayers?)\)\s*$/i,
-    );
-
-    const totalSuffix =
-      match != null
-        ? `(${match[2]} ${match[3]})`
-        : targetCount != null
-          ? `(${targetCount} ${targetCount === 1 ? "prayer" : "prayers"})`
-          : null;
-
     return {
-      title: t("progressLogging.sunnahRawatibPrayers"),
-      totalSuffix,
+      title: frame?.goal.label ?? t("progressLogging.sunnahRawatibPrayers"),
     };
-  }, [frame?.goal.label, frame?.goal.targetCount, t]);
+  }, [frame?.goal.label, t]);
 
   const badgeStatus = useMemo(() => {
     if (!frame) {
@@ -948,27 +1002,6 @@ export default function SunnahRawatibLoggingFlow({
                     <Text style={localStyles.summaryTitle} numberOfLines={2}>
                       {goalLabelParts.title}
                     </Text>
-                    {goalLabelParts.totalSuffix ? (
-                      <Text
-                        style={localStyles.summaryTotalLine}
-                        numberOfLines={1}
-                      >
-                        {goalLabelParts.totalSuffix
-                          .split(/(\d+)/)
-                          .map((part, index) =>
-                            /^\d+$/.test(part) ? (
-                              <Text
-                                key={`${part}-${index}`}
-                                style={localStyles.summaryTotalCount}
-                              >
-                                {part}
-                              </Text>
-                            ) : (
-                              part
-                            ),
-                          )}
-                      </Text>
-                    ) : null}
                   </View>
                 </View>
               </View>

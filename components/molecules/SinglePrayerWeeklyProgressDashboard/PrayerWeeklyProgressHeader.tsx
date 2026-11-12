@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
@@ -27,11 +33,19 @@ export function PrayerWeeklyProgressHeader({
     <View style={styles.headerRow}>
       <View style={styles.headerLeft}>
         <DashBoardCalenderIcon size={24} color={Colors.light.graylightshade} />
-        <Text style={styles.weekFractionText} numberOfLines={1}>
-          {loading
-            ? "---"
-            : `${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
-        </Text>
+        {loading ? (
+          <View style={styles.loadingCircleWrap}>
+            <ActivityIndicator
+              size="small"
+              color={Colors.light.white}
+              style={styles.loadingCircle}
+            />
+          </View>
+        ) : (
+          <Text style={styles.weekFractionText} numberOfLines={1}>
+            {`${weekFraction} ${t("homeScreen.weeklyProgress_weeks")}`}
+          </Text>
+        )}
       </View>
 
       <View style={styles.headerNav}>
@@ -52,15 +66,25 @@ export function PrayerWeeklyProgressHeader({
           />
         </TouchableOpacity>
         <View style={styles.weekRangeTextWrap}>
-          <Text
-            style={styles.weekRangeText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
-          >
-            {loading ? "---" : weekRangeLabel}
-          </Text>
+          {loading ? (
+            <View style={styles.loadingRangeWrap}>
+              <ActivityIndicator
+                size="small"
+                color={Colors.light.white}
+                style={styles.loadingCircle}
+              />
+            </View>
+          ) : (
+            <Text
+              style={styles.weekRangeText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {weekRangeLabel}
+            </Text>
+          )}
         </View>
         <TouchableOpacity
           onPress={onNextWeek}
@@ -111,20 +135,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
-    flexShrink: 1,
+    flexShrink: 0,
     alignSelf: "flex-end",
-    // minWidth: 0,
-
-    // flexGrow: 1,
+    minWidth: 0,
   },
   navBtn: {
-    padding: 2,
+    width: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
   weekRangeTextWrap: {
-    flexShrink: 1,
+    flexShrink: 0,
     minWidth: 0,
-    // flexGrow: 1,
+    width: 92,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingCircleWrap: {
+    width: 26,
+    height: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.7,
+  },
+  loadingRangeWrap: {
+    width: 92,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.7,
+  },
+  loadingCircle: {
+    width: 18,
+    height: 18,
   },
   weekRangeText: {
     color: Colors.light.white,
