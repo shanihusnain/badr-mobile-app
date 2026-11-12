@@ -113,7 +113,7 @@ export function ProphetDawoodFastDayRing({
   isMenstruating = false,
 }: Props) {
   const visual = getRingVisual(state, isMenstruating);
-  const borderWidth = visual.borderWidth ?? 1.5;
+  const borderWidth = visual.borderWidth ?? 1;
   const wrapperStyle = [
     styles.wrapper,
     {
