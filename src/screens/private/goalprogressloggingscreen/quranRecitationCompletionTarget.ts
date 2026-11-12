@@ -111,7 +111,7 @@ export function parseJuzNumbersFromCompletionLabel(
     .trim();
 
   const tokens = cleaned
-    .split(/[,|\n]+/)
+    .split(/[,/|\n]+/)
     .map((part) =>
       part
         .trim()

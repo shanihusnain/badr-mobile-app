@@ -323,7 +323,7 @@ function parseCompletionDayCaptions(valueDisplay: string | null | undefined): {
     .trim();
 
   const juzParts = withoutAttempt
-    .split(/[,|\n]+/)
+    .split(/[,/|\n]+/)
     .map((part) => normalizeJuzCaption(part.trim()))
     .filter(Boolean);
 

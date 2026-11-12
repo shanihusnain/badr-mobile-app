@@ -81,8 +81,9 @@ function normalizeDayDate(value?: string): string | null {
 function mapRecitationDayToSinglePrayerDay(
   day: QuranRecitationDayProgress,
   formatNumber: (value: number) => string,
-  /** Weekly solid circles show a count; daily multi-arc rings do not. */
+  /** Show X/Y only for the single-surah Quran recitation dashboard. */
   showDayCount: boolean,
+  dailyTarget: number,
 ): SinglePrayerDayProgress {
   const dateKey = normalizeDayDate(day.date);
   const isToday = dateKey
@@ -90,6 +91,7 @@ function mapRecitationDayToSinglePrayerDay(
     : day.dayType === "today";
   const isFuture = day.dayType === "future";
   const logged = day.recitationsCompleted > 0;
+  const denominator = Math.max(1, Math.round(dailyTarget) || 1);
 
   return {
     day: day.day,
@@ -101,11 +103,9 @@ function mapRecitationDayToSinglePrayerDay(
     isToday,
     isFuture: isToday ? false : isFuture,
     canDelete: day.canDelete,
-    // Absolute count under solid weekly circles only (arcs already show progress).
-    // Use "" (not undefined) so SinglePrayerDashboard does not fall back to prayersLogged.
     durationLabel:
       showDayCount && day.recitationsCompleted > 0
-        ? formatNumber(day.recitationsCompleted)
+        ? `${formatNumber(day.recitationsCompleted)}/${formatNumber(denominator)}`
         : "",
   };
 }
@@ -150,12 +150,14 @@ function mapWeeklySurahDayToSinglePrayerDay(
   day: WeeklySurahDashboardItem["weekDays"][number],
   frameDay: QuranRecitationDayProgress | undefined,
   formatNumber: (value: number) => string,
+  targetCount: number,
 ): SinglePrayerDayProgress {
   const count = Math.max(
     0,
     frameDay?.recitationsCompleted ?? (day.status === "completed" ? 1 : 0),
   );
   const isLogged = day.status === "completed" || count > 0;
+  const denominator = Math.max(1, Math.round(targetCount) || 1);
 
   return {
     day: day.day,
@@ -166,7 +168,8 @@ function mapWeeklySurahDayToSinglePrayerDay(
     isFuture: day.status === "pending",
     isToday: frameDay?.dayType === "today",
     canDelete: frameDay?.canDelete,
-    durationLabel: count > 0 ? formatNumber(count) : undefined,
+    durationLabel:
+      count > 0 ? `${formatNumber(count)}/${formatNumber(denominator)}` : undefined,
   };
 }
 
@@ -195,6 +198,7 @@ export function QuranWeeklyRecitationProgressDashboard({
   onPrevWeek,
   onNextWeek,
   selectedSurahId,
+  surahContextLabel,
   loading = false,
   isGoalCompleted = false,
   quranGoalType = null,
@@ -254,10 +258,17 @@ export function QuranWeeklyRecitationProgressDashboard({
     weeklySurahItems,
   ]);
 
+  const isSingleSurahDashboard = Boolean(selectedSurahId || surahContextLabel);
+
   const mappedWeekDays = useMemo((): SinglePrayerDayProgress[] => {
     if (isWeeklySurahCarouselMode && activeWeeklySurah) {
       return activeWeeklySurah.weekDays.map((day, index) =>
-        mapWeeklySurahDayToSinglePrayerDay(day, weekDays[index], formatNumber),
+        mapWeeklySurahDayToSinglePrayerDay(
+          day,
+          weekDays[index],
+          formatNumber,
+          activeWeeklySurah.weeklyTarget || dailyTarget,
+        ),
       );
     }
     if (isCompletionStyleMode) {
@@ -266,16 +277,25 @@ export function QuranWeeklyRecitationProgressDashboard({
       );
     }
     return weekDays.map((day) =>
-      mapRecitationDayToSinglePrayerDay(day, formatNumber, isWeeklyMode),
+      mapRecitationDayToSinglePrayerDay(
+        day,
+        formatNumber,
+        isSingleSurahDashboard,
+        dailyTarget,
+      ),
     );
   }, [
     activeWeeklySurah,
     completionWeekDays,
+    dailyTarget,
     formatNumber,
     isCompletionStyleMode,
     isJuzMode,
+    isSingleSurahDashboard,
     isWeeklyMode,
     isWeeklySurahCarouselMode,
+    selectedSurahId,
+    surahContextLabel,
     weekDays,
   ]);
 

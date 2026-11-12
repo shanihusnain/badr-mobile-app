@@ -162,6 +162,9 @@ export function PrayerWeeklyProgressFooter({
                 : comparisonVariant === "fasts"
                   ? "homeScreen.weeklyProgress_fastsVsLastWeek"
                   : "homeScreen.weeklyProgress_prayersVsLastWeek";
+  const comparisonSuffix = t(comparisonSuffixKey, {
+    count: vsLastWeekMagnitude,
+  });
 
   const streakLabel = (
     <View style={styles.streakBadge}>
@@ -245,7 +248,7 @@ export function PrayerWeeklyProgressFooter({
                 <Text style={styles.comparisonCount}>
                   {comparisonCountLabel}
                 </Text>
-                {` ${t(comparisonSuffixKey)}`}
+                {` ${t(comparisonSuffixKey, { count: vsLastWeekMagnitude })}`}
               </>
             )}
           </Text>
