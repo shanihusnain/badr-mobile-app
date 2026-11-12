@@ -20,6 +20,7 @@ import {
   fivedailyprayerbottomsheetimage,
   duhaprayerdetailimage,
   istikharaprayerdetailimage,
+  tawbahprayerbackgroundimagenew,
   tawbahprayerdetailimage,
   tahiyyatwudhudetailimage,
   tahiyyatmasjiddetailimage,
@@ -278,27 +279,7 @@ const TextWithFloatingIcon = ({
   iconMarginTop?: number;
 }) => {
   const gap = 8;
-  const flatStyle = StyleSheet.flatten(textStyle) || {};
-  const lineHeight =
-    typeof flatStyle.lineHeight === "number" ? flatStyle.lineHeight : 20;
-  const linesBeside = Math.max(1, Math.ceil(iconSize / lineHeight));
-
-  const [rowWidth, setRowWidth] = useState(0);
-  const [splitAt, setSplitAt] = useState<number | null>(null);
-  const measureWidth = rowWidth > 0 ? Math.max(1, rowWidth - iconSize - gap) : 0;
   const isRtl = textAlign === "right";
-
-  useEffect(() => {
-    setSplitAt(null);
-  }, [content, measureWidth, linesBeside]);
-
-  const beside =
-    splitAt === null ? content : content.slice(0, splitAt).replace(/\s+$/, "");
-  const below =
-    splitAt !== null && splitAt < content.length
-      ? content.slice(splitAt).replace(/^\s+/, "")
-      : "";
-
   const floatTextStyle = [
     textStyle,
     {
@@ -309,80 +290,35 @@ const TextWithFloatingIcon = ({
 
   return (
     <View
-      style={[{ width: "100%" }, spacingStyle]}
-      onLayout={(e) => {
-        const next = e.nativeEvent.layout.width;
-        if (next > 0 && next !== rowWidth) setRowWidth(next);
-      }}
+      style={[
+        { width: "100%", flexDirection: isRtl ? "row-reverse" : "row" },
+        spacingStyle,
+      ]}
     >
-      {measureWidth > 0 && splitAt === null ? (
-        <Text
-          pointerEvents="none"
-          style={[
-            floatTextStyle,
-            {
-              position: "absolute",
-              opacity: 0,
-              width: measureWidth,
-            },
-          ]}
-          onTextLayout={(e) => {
-            const { lines } = e.nativeEvent;
-            if (!lines?.length) {
-              setSplitAt(content.length);
-              return;
-            }
-            if (lines.length <= linesBeside) {
-              setSplitAt(content.length);
-              return;
-            }
-            let count = 0;
-            for (let i = 0; i < linesBeside; i++) {
-              count += lines[i]?.text?.length ?? 0;
-            }
-            setSplitAt(Math.min(count, content.length));
-          }}
-        >
-          {content}
-        </Text>
-      ) : null}
-
       <View
         style={{
-          flexDirection: isRtl ? "row-reverse" : "row",
-          alignItems: "flex-start",
-          width: "100%",
+          marginTop: iconMarginTop,
+          marginRight: isRtl ? 0 : gap,
+          marginLeft: isRtl ? gap : 0,
+          alignSelf: "center",
         }}
       >
-        <View
-          style={{
-            marginTop: iconMarginTop,
-            marginRight: isRtl ? 0 : gap,
-            marginLeft: isRtl ? gap : 0,
-          }}
-        >
-          <IconComponent color={iconColor} size={iconSize} />
-        </View>
-        <Text
-          style={[
-            floatTextStyle,
-            {
-              flex: 1,
-              width: undefined,
-              alignSelf: undefined,
-              textAlign,
-            },
-          ]}
-        >
-          {renderParsedContent(beside)}
-        </Text>
+        <IconComponent color={iconColor} size={iconSize} />
       </View>
 
-      {below ? (
-        <Text style={[floatTextStyle, { textAlign, width: "100%" }]}>
-          {renderParsedContent(below)}
-        </Text>
-      ) : null}
+      <Text
+        style={[
+          floatTextStyle,
+          {
+            flex: 1,
+            minWidth: 0,
+            textAlign,
+            alignSelf: "center",
+          },
+        ]}
+      >
+        {renderParsedContent(content)}
+      </Text>
     </View>
   );
 };
@@ -868,7 +804,7 @@ export const GoalDescriptionDetails = ({
     if (goalUiId === "fiveDailyPrayers") return fivedailyprayerbottomsheetimage;
     if (goalUiId === "duhaPrayer") return duhaprayerdetailimage;
     if (goalUiId === "istikharah") return istikharaprayerdetailimage;
-    if (goalUiId === "tawbaPrayer") return tawbahprayerdetailimage;
+    if (goalUiId === "tawbaPrayer") return tawbahprayerbackgroundimagenew;
     if (goalUiId === "tahayyat-ul-wudhu") return tahiyyatwudhudetailimage;
     if (goalUiId === "thayyat-ul-masjid") return tahiyyatmasjiddetailimage;
     if (goalUiId === "sunnahRawatib") return sunnahrawatibdetailimage;

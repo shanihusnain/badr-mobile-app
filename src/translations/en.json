@@ -1147,26 +1147,31 @@
             {
               "type": "text",
               "style": "body",
+              "icon": "FajrFardPrayerIcon",
               "content": "Fajr, performed at dawn, starts the day with a reminder of Allah's greatness."
             },
             {
               "type": "text",
               "style": "body",
+              "icon": "DhuharFardPrayerIcon",
               "content": "Dhuhr, performed after midday, provides a break from worldly activities to refocus on our Creator."
             },
             {
               "type": "text",
               "style": "body",
+              "icon": "AsrFardPrayerIcon",
               "content": "Asr, in the afternoon, serves as a spiritual anchor to maintain our consciousness of Allah."
             },
             {
               "type": "text",
               "style": "body",
+              "icon": "MaghrebFardPrayerIcon",
               "content": "Maghrib, at sunset, allows us to reflect on the day's blessings."
             },
             {
               "type": "text",
               "style": "body",
+              "icon": "IshaFardPrayerIcon",
               "content": "Isha, in the evening, concludes the day with a peaceful connection to Allah, ensuring we end the day in His remembrance"
             }
           ]
