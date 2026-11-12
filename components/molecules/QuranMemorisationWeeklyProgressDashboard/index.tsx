@@ -57,13 +57,17 @@ function normalizeDayDate(value?: string): string | null {
 function mapMemorisationDayToSinglePrayerDay(
   day: MemorisationDayProgress,
   formatNumber: (value: number) => string,
+  useRangeLabelOnly = false,
 ): SinglePrayerDayProgress {
   const dateKey = normalizeDayDate(day.date);
   const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
 
-  // Prefer API ayah count under the circle; fall back to logged count.
-  const ayatLabel =
-    day.ayahsLogged > 0
+  // Surah memorisation dashboards should prefer the backend ayah range label
+  // (e.g. "1-4" / "5-15") over the plain total count when it is available.
+  const ayatLabel = useRangeLabelOnly
+    ? day.countLabel?.trim() ||
+      (day.ayahsLogged > 0 ? formatNumber(day.ayahsLogged) : undefined)
+    : day.ayahsLogged > 0
       ? formatNumber(day.ayahsLogged)
       : day.countLabel?.trim() || undefined;
 
@@ -124,9 +128,13 @@ export function QuranMemorisationWeeklyProgressDashboard({
   const mappedWeekDays = useMemo(
     () =>
       weekDays.map((day) =>
-        mapMemorisationDayToSinglePrayerDay(day, formatNumber),
+        mapMemorisationDayToSinglePrayerDay(
+          day,
+          formatNumber,
+          quranGoalType === "MEMORIZATION_SURAH",
+        ),
       ),
-    [weekDays, formatNumber],
+    [weekDays, formatNumber, quranGoalType],
   );
 
   const resolvedWeekFraction =

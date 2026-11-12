@@ -74,7 +74,6 @@ export function SinglePrayerWeeklyProgressDashboard({
   const isDeletingLog = isDeletingLogProp ?? isDeletingPrayerLog;
   const [selectForDeletion, setSelectForDeletion] = useState("");
   const displayWeekDays = weekDays;
-  console.log("displayWeekDays", JSON.stringify(displayWeekDays, null, 2));
   const [activeDayIndex, setActiveDayIndex] = useState(selectedDayIndex);
 
   useEffect(() => {
@@ -120,6 +119,10 @@ export function SinglePrayerWeeklyProgressDashboard({
                   !!day.date && selectForDeletion === day.date;
                 const isBestDayVisible =
                   !!day.isBestDay && !isInactiveOutline && !loading;
+                const isRatioCountLabel =
+                  comparisonVariant === "quranRecitations" &&
+                  typeof day.durationLabel === "string" &&
+                  day.durationLabel.includes("/");
                 // Best-day label is clipped/scaled to the column; deletion chrome
                 // stays on the inner wrapper for best day, column for other days.
                 const showColumnDeletion =
@@ -307,6 +310,12 @@ export function SinglePrayerWeeklyProgressDashboard({
                               fontWeight: isSelected ? "700" : "500",
                             },
                             styles.durationText,
+                            isRatioCountLabel && {
+                              fontSize: 9,
+                              lineHeight: 10,
+                              fontFamily: fonts.primary.semiBold,
+                              fontWeight: "600",
+                            },
                           ]}
                           numberOfLines={2}
                         >

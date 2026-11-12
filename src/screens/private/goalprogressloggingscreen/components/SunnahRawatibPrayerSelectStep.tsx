@@ -77,9 +77,9 @@ const SunnahPrayerItem = React.memo(
     }, [isFullyLogged, isLocked, onSelectPrayer, prayerId]);
 
     const isDisabled = isFullyLogged || isLocked;
-    // White box only for explicit selection — logged ticks must not look
-    // pre-selected (same as Five Daily).
-    const showSelectedBox = isSelected;
+    // Match the Five Daily flow: logged and selected slots keep the filled box
+    // style when the user returns to the picker.
+    const showSelectedBox = isSelected || isFullyLogged || isPartiallyLogged;
     const iconColor =
       isSelected || isFullyLogged || isPartiallyLogged
         ? categoryColor
