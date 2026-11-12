@@ -56,7 +56,7 @@ import {
   DuhaPrayerStar,
   ManPrayerIcon,
   FajrFardPrayerIcon,
-  DhuharFardPrayerIcon,
+  DuhrIconReadMore,
   AsrFardPrayerIcon,
   MaghrebFardPrayerIcon,
   IshaFardPrayerIcon,
@@ -151,7 +151,9 @@ const READ_MORE_ICON_MAP: Record<string, ComponentType<any>> = {
   HeartBreakIcon,
   StarSparkleIcon,
   FajrFardPrayerIcon,
-  DhuharFardPrayerIcon,
+  DuhrIconReadMore,
+  /** Legacy API/copy key — same Dhuhr read-more glyph. */
+  DhuharFardPrayerIcon: DuhrIconReadMore,
   AsrFardPrayerIcon,
   MaghrebFardPrayerIcon,
   IshaFardPrayerIcon,
@@ -331,11 +333,17 @@ const renderReadMoreItem = (
   isFirstInContainer: boolean,
   previousItem?: GoalReadMoreItem,
 ) => {
+  console.log(
+    "item.headingitem.headingitem.headingitem.headingitem.headingitem.heading",
+    item,
+  );
+
   if (item.type === "prayerSection") {
     let PrayerIcon: React.ComponentType<{
       color?: string;
       size?: number;
     }> | null = null;
+
     if (item.heading === "Fajr Prayer") PrayerIcon = FajarSunIcon;
     else if (item.heading === "Dhuhr Prayer") PrayerIcon = DuhrSunIcon;
     else if (item.heading === "Maghrib Prayer") PrayerIcon = MaghribSunIcon;
@@ -870,6 +878,11 @@ export const GoalDescriptionDetails = ({
     if (goalUiId === "sunnahRawatib") {
       return { top: "68%", left: "50%" } as const;
     }
+    // Slight upward bias in the asset so hero content sits a bit lower
+    // (cover crop — no empty space above the image).
+    if (goalUiId === "istikharah") {
+      return { top: "40%", left: "50%" } as const;
+    }
     return undefined;
   };
 
@@ -901,7 +914,12 @@ export const GoalDescriptionDetails = ({
       bounces={false}
     >
       {renderHeader()}
-      <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingTop: 20,
+        }}
+      >
         {renderReadMoreContainers(readMore, textAlign, readMoreStyles)}
       </View>
     </ScrollView>

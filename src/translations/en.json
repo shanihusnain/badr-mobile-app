@@ -1129,11 +1129,11 @@
       ]
     },
     "fiveDailyPrayers": {
-      "title": "The 5 DAilY FARD PRAYERS",
+      "title": "The 5 DAILY FARD PRAYERS",
       "summaryDescription": "The five obligatory prayers, most beloved to Allah, structure our day when prayed on time, instilling discipline and deepening our gratitude....",
       "description": "The obligatory five daily prayers provide frequent opportunities to express gratitude, seek forgiveness, and remind us of our faith and submission to Allah.",
       "heroTitle": "The Pinnacle of Divine Connection",
-      "navTitle": "The 5 DAilY FARD PRAYERS",
+      "navTitle": "The 5 DAILY FARD PRAYERS",
       "benefitsIntro": "The five daily prayers, Islam's second pillar, forge a profound connection with Allah, centering life on His remembrance. They anchor a Muslim's day, instilling discipline, devotion, and harmony through their timely observance:",
       "steps": [],
       "readMore": [
@@ -1153,7 +1153,7 @@
             {
               "type": "text",
               "style": "body",
-              "icon": "DhuharFardPrayerIcon",
+              "icon": "DuhrIconReadMore",
               "content": "Dhuhr, performed after midday, provides a break from worldly activities to refocus on our Creator."
             },
             {

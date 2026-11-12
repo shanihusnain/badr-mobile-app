@@ -102,6 +102,7 @@ import {
   quranlisteningbackgroundimage,
   qurantajweedbackgroundimage,
   quranmemorizationbottomsheetimage,
+  istikharaprayerdetailimage,
 } from "@/assets/images";
 import { InformationSheet } from "@/components/molecules/informationsheet";
 import { QuranHoursInformationSheet } from "@/components/molecules/QuranHoursInformationSheet";
@@ -140,7 +141,7 @@ function getLoggingBackgroundSource(
     case "tawbah-prayer":
       return tawbahprayerbackgroundimagenew;
     case "istikhara-prayer":
-      return istikharaprayerbackgroundimagenew;
+      return istikharaprayerdetailimage;
     case "shukr-prayer":
       return shukarprayerdetailimage;
     case "qiyam-al-layl":

@@ -1,10 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import {
-  ImageBackground,
-  ImageContentPosition,
-  ImageSource,
-} from "expo-image";
+import { ImageBackground, ImageContentPosition, ImageSource } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Header from "../Header";
@@ -36,7 +32,7 @@ export const HeaderWithImageAndDescription = ({
     <ImageBackground
       source={imageSource}
       style={[styles.imageBackground, { height: imageHeight }]}
-      contentFit="cover"
+      contentFit={"cover"}
       contentPosition={contentPosition}
     >
       {/* Dark gradient overlay: transparent top → blackBackground at bottom */}

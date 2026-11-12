@@ -153,6 +153,7 @@ import { MaghribSunIcon } from "./MaghribSunIcon";
 import { ManPrayerIcon } from "./ManPrayerIcon";
 import { FajrFardPrayerIcon } from "./FajrFardPrayerIcon";
 import { DhuharFardPrayerIcon } from "./DhuharFardParyerIcon";
+import { DuhrIconReadMore } from "./DuhrIconReadMore";
 import { AsrFardPrayerIcon } from "./AsrFardPrayerIcon";
 import { MaghrebFardPrayerIcon } from "./MaghrebFardParyerIcon";
 import { IshaFardPrayerIcon } from "./IshaFardPrayerIcon";
@@ -309,6 +310,7 @@ export {
   ManPrayerIcon,
   FajrFardPrayerIcon,
   DhuharFardPrayerIcon,
+  DuhrIconReadMore,
   AsrFardPrayerIcon,
   MaghrebFardPrayerIcon,
   IshaFardPrayerIcon,
