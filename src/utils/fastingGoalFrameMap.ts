@@ -565,9 +565,9 @@ function resolveMissedRamadanDayState(
     return "plannedToday";
   }
 
-  // #5 — upcoming planned
+  // #5 — upcoming planned (today → plannedToday so ring gets accent border)
   if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
-    return "planned";
+    return day.isToday ? "plannedToday" : "planned";
   }
 
   // #15 — blur days after goal is fully achieved (no per-day field)
@@ -614,7 +614,13 @@ export function mapMissedRamadanFrameDay(
     date: normalizeDate(day.date),
     state,
     isToday: Boolean(day.isToday),
-    isPlanned: Boolean(day.isPlanned) || isExcusedMenstruating,
+    isPlanned:
+      Boolean(day.isPlanned) ||
+      isExcusedMenstruating ||
+      state === "plannedToday" ||
+      state === "planned" ||
+      state === "plannedSkipped" ||
+      state === "completed",
     isMenstruating: isExcusedMenstruating,
     canDelete: Boolean(day.canDelete),
     bookedFor: booked.bookedFor,
@@ -674,6 +680,12 @@ export function mapMissedRamadanFrameWeekSummary(
   };
 }
 
+function isMondayOrThursdayDate(date: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const weekday = moment(date, "YYYY-MM-DD").isoWeekday(); // 1=Mon … 7=Sun
+  return weekday === 1 || weekday === 4;
+}
+
 function resolveMondayThursdayDayState(
   day: FastingGoalFrameDay,
   options?: { goalCompleted?: boolean },
@@ -687,6 +699,9 @@ function resolveMondayThursdayDayState(
   const isFuture = hasDate && date > today;
   const isPast = hasDate && date < today;
   const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
+  // Mon/Thu goal: calendar Mon/Thu counts as planned even if frame omits isPlanned.
+  const isPlannedMonThu =
+    Boolean(day.isPlanned) || isMondayOrThursdayDate(date);
 
   if (bookedForOtherGoal) {
     if (day.isToday) return "todayDisabled";
@@ -717,7 +732,7 @@ function resolveMondayThursdayDayState(
     return "plannedToday";
   }
 
-  if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
+  if ((state === "UPCOMING" || state === "PLANNED") && isPlannedMonThu) {
     return day.isToday ? "plannedToday" : "planned";
   }
 
@@ -725,16 +740,19 @@ function resolveMondayThursdayDayState(
     return "goalAchieved";
   }
 
-  if (state === "NOT_PLANNED" || !day.isPlanned) {
+  if (state === "NOT_PLANNED" && !isPlannedMonThu) {
     if (day.isToday) return "today";
     if (isFuture) return "future";
     if (isPast) return "pastNeutral";
   }
 
-  if (day.isPlanned) {
+  if (isPlannedMonThu) {
     if (day.isToday) return "plannedToday";
     if (isFuture) return "planned";
-    return "missed";
+    // Past planned Mon/Thu with no log — missed (unless NOT_PLANNED past).
+    if (isPast && state !== "NOT_PLANNED") return "missed";
+    if (isPast) return "pastNeutral";
+    return "planned";
   }
 
   if (day.isToday) return "today";
@@ -752,15 +770,24 @@ export function mapMondayThursdayFrameDay(
   const state = resolveMondayThursdayDayState(day, options);
   const isExcusedMenstruating =
     rawState === "EXCUSED" || rawState === "MENSTRUATING";
+  const date = normalizeDate(day.date);
+  const isSelected =
+    Boolean(day.isPlanned) ||
+    isExcusedMenstruating ||
+    state === "planned" ||
+    state === "plannedToday" ||
+    state === "missed" ||
+    state === "completed" ||
+    isMondayOrThursdayDate(date);
 
   const booked = getBookedOtherGoalFields(day);
 
   return {
     day: day.dayLabel,
-    date: normalizeDate(day.date),
+    date,
     state,
     isToday: Boolean(day.isToday),
-    isSelected: Boolean(day.isPlanned) || isExcusedMenstruating,
+    isSelected,
     isMenstruating: isExcusedMenstruating,
     canDelete: Boolean(day.canDelete),
     bookedFor: booked.bookedFor,

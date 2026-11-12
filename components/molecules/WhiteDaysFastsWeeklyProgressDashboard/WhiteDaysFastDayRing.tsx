@@ -84,14 +84,14 @@ function getRingVisual(
     case "planned":
       return { variant: "outline", color: Colors.light.white };
     case "plannedToday":
-      // Actual today uses the selected empty-day style; future dates stay as
-      // the standard outline ring used by the other goals.
+      // Future White Days stay as white outline; actual today is a grey disc
+      // with ring border white (planned) vs grey.
       return isFuture
         ? { variant: "outline", color: Colors.light.white }
         : {
             variant: "solidWithBorder",
             fillColor: Colors.light.greybuttonBackground,
-            borderColor: "rgba(255, 255, 255, 0.32)",
+            borderColor: isWhiteDay ? Colors.light.white : Colors.light.grey,
           };
     case "completed":
       // Today completed: white ring + slightly smaller white fill.

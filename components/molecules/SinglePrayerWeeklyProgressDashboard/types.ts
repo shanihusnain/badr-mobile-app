@@ -13,6 +13,8 @@ export type SinglePrayerDayProgress = {
   durationLabel?: string;
   /** When false, long-press delete is disabled for this day. */
   canDelete?: boolean;
+  /** Optional override for today’s chip border (rarely used; fasting uses ring border). */
+  todayChipBorderColor?: string;
 };
 
 export type SinglePrayerDayRingRenderArgs = {

@@ -11,7 +11,12 @@ const PRAYER_FUTURE_OUTLINE = {
 } as const;
 
 type RingVisual =
-  | { variant: "outline"; color: string; opacity?: number; borderWidth?: number }
+  | {
+      variant: "outline";
+      color: string;
+      opacity?: number;
+      borderWidth?: number;
+    }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
   /** Solid disc + border on the same view (booked for another goal). */
   | {
@@ -60,13 +65,21 @@ function getRingVisual(
         fillColor: Colors.light.greybuttonBackground,
         borderColor: "rgba(255, 255, 255, 0.32)",
       };
-    case "today":
     case "plannedToday":
-      // Same empty-today pattern as the White Days / prayer dashboards.
+      // Planned today — grey disc inside Ramadan accent ring border.
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(255, 255, 255, 0.32)",
+        borderColor: Colors.light.ringRamadan,
+      };
+    case "today":
+      // Plain today — grey disc; accent border only if frame marks planned.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: isPlanned
+          ? Colors.light.ringRamadan
+          : Colors.light.grey,
       };
     case "planned":
       // #5 — empty ringRamadan (#B7977E) outline
@@ -188,19 +201,33 @@ export function MissedRamadanFastDayRing({
   }
 
   if (visual.variant === "solidWithBorder") {
-    // One view — fill + border; outer diameter matches outline rings.
+    // Outer bordered ring + inner fill so accent borders stay crisp
+    // (same-view fill+border often washes out ringRamadan on dark fills).
+    const innerSize = Math.max(size - borderWidth * 2, size * 0.72);
     return (
       <View style={wrapperStyle}>
         <View
-          style={{
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: visual.fillColor,
-            borderWidth,
-            borderColor: visual.borderColor,
-          }}
-        />
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth,
+              borderColor: visual.borderColor,
+              backgroundColor: "transparent",
+            },
+          ]}
+        >
+          <View
+            style={{
+              width: innerSize,
+              height: innerSize,
+              borderRadius: innerSize / 2,
+              backgroundColor: visual.fillColor,
+            }}
+          />
+        </View>
       </View>
     );
   }

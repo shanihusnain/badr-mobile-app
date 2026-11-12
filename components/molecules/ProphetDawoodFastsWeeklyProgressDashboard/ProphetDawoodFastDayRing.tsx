@@ -42,10 +42,10 @@ function getRingVisual(
         borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
       };
     case "today":
-      // Empty today — same inner fill as Dashboard / prayer rings.
+      // Grey today disc; ring border grey when not a planned Dawood day.
       return {
         variant: "outline",
-        borderColor: "rgba(255, 255, 255, 0.32)",
+        borderColor: Colors.light.grey,
         backgroundColor: Colors.light.greybuttonBackground,
       };
     case "todayDisabled":
@@ -57,8 +57,14 @@ function getRingVisual(
         borderColor: Colors.light.selectcategory,
         backgroundColor: Colors.light.selectcategory,
       };
-    case "planned":
     case "plannedToday":
+      // Same grey today disc; ring border uses Dawood accent when planned.
+      return {
+        variant: "outline",
+        borderColor: Colors.light.ringDawood,
+        backgroundColor: Colors.light.greybuttonBackground,
+      };
+    case "planned":
       return {
         variant: "outline",
         borderColor: Colors.light.ringDawood,

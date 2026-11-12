@@ -45,7 +45,8 @@ function mapMissedRamadanDayToSinglePrayerDay(
     isFuture:
       day.state === "future" ||
       day.state === "planned" ||
-      day.state === "plannedToday",
+      // plannedToday is today — keep pressable; only future planned stays locked.
+      (day.state === "plannedToday" && !day.isToday),
     canDelete: day.canDelete,
   };
 }
@@ -95,7 +96,12 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
           size={args.size}
           state={missedDay.state}
           isMenstruating={Boolean(missedDay.isMenstruating)}
-          isPlanned={Boolean(missedDay.isPlanned)}
+          isPlanned={
+            Boolean(missedDay.isPlanned) ||
+            missedDay.state === "plannedToday" ||
+            missedDay.state === "planned" ||
+            missedDay.state === "plannedSkipped"
+          }
         />
       );
     },

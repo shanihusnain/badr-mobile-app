@@ -55,25 +55,29 @@ function getRingVisual(
         color: PRAYER_FUTURE_OUTLINE.color,
         borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
       };
-    case "today":
-      // #2 — solid dark disc + thin light border. Fill matches dashboard card.
+    case "todayDisabled":
+    case "disabledPast":
+    case "pastNeutral":
+      // Same as Missed Ramadan: grey disc + light border.
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
         borderColor: "rgba(255, 255, 255, 0.32)",
       };
-    case "todayDisabled":
-    case "disabledPast":
-    case "pastNeutral":
-      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
+    case "today":
+    case "plannedToday":
+      // Same solid today disc as Missed Ramadan; ring border carries
+      // planned accent (seagreen) vs grey — not the today chip box.
       return {
-        variant: "solid",
-        color: Colors.light.selectcategory,
-        scale: 0.92,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor:
+          state === "plannedToday" || isPlanned
+            ? Colors.light.seagreen
+            : Colors.light.grey,
       };
     case "planned":
-    case "plannedToday":
-      // #5 / #6 — empty seagreen ring (fills only after user logs → completed)
+      // Future planned Mon/Thu — empty seagreen ring (fills after log → completed)
       return { variant: "outline", color: Colors.light.seagreen };
     case "completed":
       // #7 / #8 — seagreen ring + solid mid fill

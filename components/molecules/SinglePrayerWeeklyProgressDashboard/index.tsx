@@ -217,6 +217,15 @@ export function SinglePrayerWeeklyProgressDashboard({
                           isSelected &&
                           !isMarkedForDeletion &&
                           styles.dayItemSelected,
+                        showTodayChip &&
+                          isSelected &&
+                          !isMarkedForDeletion &&
+                          day.todayChipBorderColor
+                          ? {
+                              borderWidth: 1.5,
+                              borderColor: day.todayChipBorderColor,
+                            }
+                          : null,
                         isBestDayVisible && styles.dayItemBestDay,
                         showWrapperDeletion && styles.deletingBestDay,
                       ]}
