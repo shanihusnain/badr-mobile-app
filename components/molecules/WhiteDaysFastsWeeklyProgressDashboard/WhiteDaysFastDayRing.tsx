@@ -24,6 +24,11 @@ type RingVisual =
       scale?: number;
     }
   | {
+      variant: "solidWithBorder";
+      fillColor: string;
+      borderColor: string;
+    }
+  | {
       /** Today completed: white ring + smaller white fill */
       variant: "completedToday";
     }
@@ -54,11 +59,12 @@ function getRingVisual(
 
   switch (state) {
     case "todayDisabled":
-      // Today, not a White Day — solid muted grey
+      // Match the other fasting dashboards: selected empty today uses a
+      // soft grey fill with a subtle white ring border.
       return {
-        variant: "solid",
-        color: Colors.light.selectcategory,
-        scale: 0.92,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: "rgba(255, 255, 255, 0.32)",
       };
     case "inactive":
       // Upcoming non–White Day — match prayer future outline.
@@ -76,8 +82,17 @@ function getRingVisual(
         scale: 0.92,
       };
     case "planned":
-    case "plannedToday":
       return { variant: "outline", color: Colors.light.white };
+    case "plannedToday":
+      // Actual today uses the selected empty-day style; future dates stay as
+      // the standard outline ring used by the other goals.
+      return isFuture
+        ? { variant: "outline", color: Colors.light.white }
+        : {
+            variant: "solidWithBorder",
+            fillColor: Colors.light.greybuttonBackground,
+            borderColor: "rgba(255, 255, 255, 0.32)",
+          };
     case "completed":
       // Today completed: white ring + slightly smaller white fill.
       // Past completed: solid white (slightly smaller).
@@ -141,6 +156,23 @@ export function WhiteDaysFastDayRing({
             height: fillSize,
             borderRadius: fillSize / 2,
             backgroundColor: visual.color,
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (visual.variant === "solidWithBorder") {
+    return (
+      <View style={wrapperStyle}>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: visual.fillColor,
+            borderWidth,
+            borderColor: visual.borderColor,
           }}
         />
       </View>

@@ -53,22 +53,23 @@ function getRingVisual(
     case "disabledPast":
     case "todayDisabled":
     case "pastNeutral":
-      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
-      return {
-        variant: "solid",
-        color: Colors.light.selectcategory,
-        scale: 0.92,
-      };
-    case "today":
-      // #2 — empty today: dashboard inner fill (same as prayer Dashboard)
+      // Match the other goal dashboards: selected empty today / disabled day is a
+      // grey disc with a light border, not a solid filled circle.
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(183, 151, 126, 0.67)",
+        borderColor: "rgba(255, 255, 255, 0.32)",
+      };
+    case "today":
+    case "plannedToday":
+      // Same empty-today pattern as the White Days / prayer dashboards.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: "rgba(255, 255, 255, 0.32)",
       };
     case "planned":
-    case "plannedToday":
-      // #5 / #6 — empty ringRamadan (#B7977E) outline
+      // #5 — empty ringRamadan (#B7977E) outline
       return { variant: "outline", color: Colors.light.ringRamadan };
     case "plannedSkipped":
       // #9

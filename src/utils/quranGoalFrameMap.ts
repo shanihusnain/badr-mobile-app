@@ -1290,7 +1290,8 @@ export function getQuranFrameRingGoalCountLabel(
   unitLabel: string,
 ): string {
   const count = getQuranFrameTargetHours(frame);
-  return `${count} ${unitLabel}`;
+  const label = count === 1 ? unitLabel.replace(/s$/, "") : unitLabel;
+  return `${count} ${label}`;
 }
 
 /**

@@ -742,5 +742,6 @@ export function getPrayerFrameRingGoalCountLabel(
   unitLabel: string,
 ): string {
   const count = frame.goal.targetCount ?? 0;
-  return `${count} ${unitLabel}`;
+  const label = count === 1 ? unitLabel.replace(/s$/, "") : unitLabel;
+  return `${count} ${label}`;
 }

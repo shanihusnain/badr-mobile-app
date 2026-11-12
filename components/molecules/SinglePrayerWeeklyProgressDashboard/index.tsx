@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   bestDayLabel: {
     color: Colors.light.green,
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     textAlign: "center",
