@@ -537,27 +537,6 @@ export default function MissedPrayersLoggingFlow({
                     >
                       {goalLabel}
                     </Text>
-                    <Text
-                      style={[
-                        localStyles.summarySubtitle,
-                        frameLoading && localStyles.loadingPlaceholderText,
-                      ]}
-                    >
-                      {totalPrayersRequired != null ? (
-                        <>
-                          <Text style={localStyles.summarySubtitle}>(</Text>
-                          <Text style={localStyles.subtitleBold}>
-                            {totalPrayersRequired}
-                          </Text>
-                          <Text style={localStyles.summarySubtitle}>
-                            {" "}
-                            Prayers)
-                          </Text>
-                        </>
-                      ) : (
-                        "---"
-                      )}
-                    </Text>
                   </View>
                 </View>
               </View>
