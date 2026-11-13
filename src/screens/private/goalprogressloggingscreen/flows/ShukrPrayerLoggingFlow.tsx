@@ -8,7 +8,12 @@ import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
 import { PrayerQuantityInputStep } from "../components/PrayerQuantityInputStep";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+  isDurationEntered,
+} from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
 import {
   styles as commonStyles,
@@ -66,7 +71,8 @@ export default function ShukrPrayerLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
-  const { mutateAsync: logShukr, isPending: isLogging } = useLogShukrPrayerGoal();
+  const { mutateAsync: logShukr, isPending: isLogging } =
+    useLogShukrPrayerGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -334,9 +340,7 @@ export default function ShukrPrayerLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <LoggingBackdrop />
-      )}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -521,7 +525,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 32,
   },
   summaryTitle: {
     color: Colors.light.white,

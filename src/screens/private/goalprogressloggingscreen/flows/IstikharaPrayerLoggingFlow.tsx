@@ -7,7 +7,12 @@ import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
 import { DateStep } from "../components/DateStep";
 import { formatProgressLoggingDateLabel } from "../progressLoggingConfig";
-import { StartTimeStep, DurationStep, getCurrentStartTimeParts, isDurationEntered } from "../components/TimePickerSteps";
+import {
+  StartTimeStep,
+  DurationStep,
+  getCurrentStartTimeParts,
+  isDurationEntered,
+} from "../components/TimePickerSteps";
 import { isValidStartTime } from "../quranRecitationTarget";
 import { FlowCard } from "../components/FlowCard";
 import {
@@ -58,7 +63,8 @@ export default function IstikharaPrayerLoggingFlow({
   onLogComplete,
 }: Props) {
   const { t } = useTranslation();
-  const { mutateAsync: logIstikhara, isPending: isLogging } = useLogIstikharaPrayerGoal();
+  const { mutateAsync: logIstikhara, isPending: isLogging } =
+    useLogIstikharaPrayerGoal();
 
   const [flowMode, setFlowMode] = useState<FlowMode>("collapsed");
   const [stepIndex, setStepIndex] = useState(0);
@@ -89,9 +95,7 @@ export default function IstikharaPrayerLoggingFlow({
       const hour = prefill.startHour?.trim() || now.hour;
       const minute = prefill.startMinute?.trim() || now.minute;
       const period = prefill.startPeriod || now.period;
-      setStartHour(
-        isValidStartTime(hour, minute, period) ? hour : now.hour,
-      );
+      setStartHour(isValidStartTime(hour, minute, period) ? hour : now.hour);
       setStartMinute(
         isValidStartTime(hour, minute, period) ? minute : now.minute,
       );
@@ -332,9 +336,7 @@ export default function IstikharaPrayerLoggingFlow({
 
   return (
     <>
-      {flowMode === "active" && (
-        <LoggingBackdrop />
-      )}
+      {flowMode === "active" && <LoggingBackdrop />}
       {flowMode === "active" && (
         <TouchableOpacity
           style={commonStyles.cancelButton}
@@ -521,7 +523,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 32,
   },
   /** Dua-hands artwork sits high in its viewBox — nudge down for optical center. */
   summaryIconGraphic: {
