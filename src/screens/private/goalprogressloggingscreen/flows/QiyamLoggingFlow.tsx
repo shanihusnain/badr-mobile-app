@@ -1036,7 +1036,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                       localStyles.badge,
                       badgeStatus.type === "completed"
                         ? localStyles.badgeCompleted
-                        : localStyles.badgeInProgress,
+                        : badgeStatus.type === "not-started"
+                          ? localStyles.badgeNotStarted
+                          : localStyles.badgeInProgress,
                       localStyles.badgeAlignedWithTitle,
                     ]}
                   >
@@ -1045,7 +1047,9 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
                         localStyles.badgeText,
                         badgeStatus.type === "completed"
                           ? localStyles.badgeTextCompleted
-                          : localStyles.badgeTextInProgress,
+                          : badgeStatus.type === "not-started"
+                            ? localStyles.badgeTextNotStarted
+                            : localStyles.badgeTextInProgress,
                       ]}
                     >
                       {badgeStatus.text}
@@ -1175,6 +1179,9 @@ const localStyles = StyleSheet.create({
   badgeCompleted: {
     backgroundColor: Colors.light.lightgreenbadgecolor,
   },
+  badgeNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   badgeText: {
     fontFamily: fonts.primary.medium,
     fontSize: 12,
@@ -1186,6 +1193,9 @@ const localStyles = StyleSheet.create({
   },
   badgeTextCompleted: {
     color: Colors.light.green,
+  },
+  badgeTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   summaryBody: {
     flexDirection: "row",

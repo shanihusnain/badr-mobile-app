@@ -28,6 +28,9 @@ export function PrayerWeeklyProgressHeader({
   onNextWeek,
 }: PrayerWeeklyProgressHeaderProps) {
   const { t } = useTranslation();
+  const twoMonthRangePattern =
+    /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d+\s*(?:-|–|—)\s*(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d+/i;
+  const isLongRangeLabel = twoMonthRangePattern.test(weekRangeLabel);
 
   return (
     <View style={styles.headerRow}>
@@ -40,7 +43,12 @@ export function PrayerWeeklyProgressHeader({
         ) : null}
       </View>
 
-      <View style={styles.headerNav}>
+      <View
+        style={[
+          styles.headerNav,
+          isLongRangeLabel && styles.headerNavLongRange,
+        ]}
+      >
         <TouchableOpacity
           onPress={onPrevWeek}
           disabled={!onPrevWeek || loading}
@@ -57,14 +65,17 @@ export function PrayerWeeklyProgressHeader({
             }
           />
         </TouchableOpacity>
-        <View style={styles.weekRangeTextWrap}>
+        <View
+          style={[
+            styles.weekRangeTextWrap,
+            isLongRangeLabel && styles.weekRangeTextWrapLongRange,
+          ]}
+        >
           {!loading ? (
             <Text
               style={styles.weekRangeText}
               numberOfLines={1}
               ellipsizeMode="tail"
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
             >
               {weekRangeLabel}
             </Text>
@@ -123,6 +134,9 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     minWidth: 0,
   },
+  headerNavLongRange: {
+    gap: 8,
+  },
   navBtn: {
     width: 20,
     height: 20,
@@ -136,6 +150,10 @@ const styles = StyleSheet.create({
     width: 92,
     justifyContent: "center",
     alignItems: "center",
+  },
+  weekRangeTextWrapLongRange: {
+    width: 132,
+    paddingHorizontal: 8,
   },
   loadingCircleWrap: {
     width: 26,
@@ -157,7 +175,7 @@ const styles = StyleSheet.create({
   },
   weekRangeText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     textAlign: "center",

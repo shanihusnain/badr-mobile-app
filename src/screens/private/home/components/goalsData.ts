@@ -119,7 +119,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-istikhara": {
     id: "prayer-istikhara",
     category: "PRAYER",
-    title: "Istikhara",
+    title: "Istikhara Prayer",
     count: "2",
     label: "/9 prayers",
     percentage: "22%",
@@ -131,7 +131,7 @@ export const GOALS_DATA: Record<GoalId, GoalData> = {
   "prayer-shukr": {
     id: "prayer-shukr",
     category: "PRAYER",
-    title: "Shukr",
+    title: "Shukr Prayer",
     count: "3",
     label: "/8 prayers",
     percentage: "37%",
