@@ -77,9 +77,7 @@ function getRingVisual(
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
-        borderColor: isPlanned
-          ? Colors.light.ringRamadan
-          : Colors.light.grey,
+        borderColor: isPlanned ? Colors.light.ringRamadan : Colors.light.grey,
       };
     case "planned":
       // #5 — empty ringRamadan (#B7977E) outline
@@ -119,7 +117,7 @@ export function MissedRamadanFastDayRing({
   isPlanned = false,
 }: Props) {
   const visual = getRingVisual(state, isMenstruating, isPlanned);
-  const borderWidth = 1.5;
+  const borderWidth = 1;
   const outlineBorderWidth =
     visual.variant === "outline" && visual.borderWidth != null
       ? visual.borderWidth

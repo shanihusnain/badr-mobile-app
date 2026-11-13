@@ -100,7 +100,7 @@ type Props = {
  */
 export function BookedOtherGoalDayRing({ size, bookedFor, status }: Props) {
   const visual = getRingVisual(bookedFor, status);
-  const borderWidth = 1.5;
+  const borderWidth = 1;
   const wrapperStyle = [styles.wrapper, { width: size + 4, height: size + 4 }];
 
   if (visual.variant === "todayDisabled") {

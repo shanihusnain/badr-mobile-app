@@ -11,20 +11,25 @@ const PRAYER_FUTURE_OUTLINE = {
 } as const;
 
 type RingVisual =
-  | { variant: "outline"; color: string; opacity?: number; borderWidth?: number }
+  | {
+      variant: "outline";
+      color: string;
+      opacity?: number;
+      borderWidth?: number;
+    }
   | { variant: "solid"; color: string; scale?: number; opacity?: number }
   | {
-    variant: "outlineWithFill";
-    borderColor: string;
-    fillColor: string;
-    fillScale: number;
-  }
+      variant: "outlineWithFill";
+      borderColor: string;
+      fillColor: string;
+      fillScale: number;
+    }
   /** Solid disc + border on the same view (today / today-disabled). */
   | {
-    variant: "solidWithBorder";
-    fillColor: string;
-    borderColor: string;
-  }
+      variant: "solidWithBorder";
+      fillColor: string;
+      borderColor: string;
+    }
   | { variant: "completed" }
   | { variant: "skippedWarning" }
   | { variant: "menstruatingPlanned" }
@@ -111,7 +116,7 @@ export function MondayThursdayFastDayRing({
   isToday = false,
 }: Props) {
   const visual = getRingVisual(state, isMenstruating, isPlanned, isToday);
-  const borderWidth = 1.5;
+  const borderWidth = 1;
   const outlineBorderWidth =
     visual.variant === "outline" && visual.borderWidth != null
       ? visual.borderWidth
@@ -211,8 +216,7 @@ export function MondayThursdayFastDayRing({
     const fillColor =
       visual.variant === "completed" ? Colors.light.seagreen : visual.fillColor;
     const innerSize = size - borderWidth * 2;
-    const fillScale =
-      visual.variant === "completed" ? 0.85 : visual.fillScale;
+    const fillScale = visual.variant === "completed" ? 0.85 : visual.fillScale;
     const fillSize = Math.max(innerSize * fillScale, 1);
 
     return (
