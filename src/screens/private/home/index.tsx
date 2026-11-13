@@ -648,8 +648,8 @@ export default function HomeScreen() {
 
       const timer = setTimeout(() => {
         if (yesterdayJournalPromptShownRef.current) return;
-        yesterdayJournalPromptShownRef.current = true;
-        yesterdayJournalSheetRef.current?.expand();
+        // yesterdayJournalPromptShownRef.current = true;
+        // yesterdayJournalSheetRef.current?.expand();
       }, 450);
 
       return () => clearTimeout(timer);
@@ -1519,19 +1519,19 @@ export default function HomeScreen() {
         />
       </BottomSheetWrapper>
 
-      <BottomSheetWrapper
+      {/* <BottomSheetWrapper
         ref={yesterdayJournalSheetRef}
         snapPoints={["92%"]}
         bgColor={Colors.light.blackBackground}
         borderRadius={30}
         handleTopInset={8}
         scrollable={false}
-        onChange={(index) =>
-          handleBottomSheetChange("yesterdayJournal", index)
-        }
+        onChange={(index) => handleBottomSheetChange("yesterdayJournal", index)}
       >
         {yesterdayJournalPrompt ? (
-          <View style={{ flex: 1, height: Dimensions.get("window").height * 0.88 }}>
+          <View
+            style={{ flex: 1, height: Dimensions.get("window").height * 0.88 }}
+          >
             <JournalFillingScreen
               presentation="sheet"
               initialDateKey={yesterdayJournalPrompt.date}
@@ -1540,7 +1540,7 @@ export default function HomeScreen() {
             />
           </View>
         ) : null}
-      </BottomSheetWrapper>
+      </BottomSheetWrapper> */}
 
       {!isAnyBottomSheetOpen ? (
         <HomeFabSpeedDial
