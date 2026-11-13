@@ -14,6 +14,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { HeaderWithImageAndDescription } from "@/components/atoms/HeaderWithImageAndDescription";
+import { HandHeartIconDetailTextIcon } from "@/assets/icons/HandHeartIconDetailTextIcon";
 import {
   Icon,
   qiyamallayldetailimage,
@@ -270,6 +271,7 @@ const TextWithFloatingIcon = ({
   iconColor,
   iconSize,
   iconMarginTop = 1,
+  iconVerticalAlign = "center",
 }: {
   content: string;
   textStyle: TextStyle | Array<TextStyle | undefined | null | false>;
@@ -279,6 +281,7 @@ const TextWithFloatingIcon = ({
   iconColor: string;
   iconSize: number;
   iconMarginTop?: number;
+  iconVerticalAlign?: "top" | "center";
 }) => {
   const gap = 8;
   const isRtl = textAlign === "right";
@@ -289,11 +292,16 @@ const TextWithFloatingIcon = ({
       marginBottom: 0,
     },
   ];
+  const iconAlignSelf = iconVerticalAlign === "top" ? "flex-start" : "center";
 
   return (
     <View
       style={[
-        { width: "100%", flexDirection: isRtl ? "row-reverse" : "row" },
+        {
+          width: "100%",
+          flexDirection: isRtl ? "row-reverse" : "row",
+          alignItems: iconVerticalAlign === "top" ? "flex-start" : "center",
+        },
         spacingStyle,
       ]}
     >
@@ -302,7 +310,7 @@ const TextWithFloatingIcon = ({
           marginTop: iconMarginTop,
           marginRight: isRtl ? 0 : gap,
           marginLeft: isRtl ? gap : 0,
-          alignSelf: "center",
+          alignSelf: iconAlignSelf,
         }}
       >
         <IconComponent color={iconColor} size={iconSize} />
@@ -315,7 +323,7 @@ const TextWithFloatingIcon = ({
             flex: 1,
             minWidth: 0,
             textAlign,
-            alignSelf: "center",
+            alignSelf: iconVerticalAlign === "top" ? "flex-start" : "center",
           },
         ]}
       >
@@ -684,6 +692,11 @@ const renderReadMoreItem = (
 
   let IconComponent =
     item.type === "text" ? resolveReadMoreIcon(item.icon) : null;
+
+  if (item.icon === "DashBoardHandHeartIcon") {
+    IconComponent = HandHeartIconDetailTextIcon;
+  }
+
   if (
     !IconComponent &&
     (item.style === "hadithQuoteLead" ||
@@ -715,7 +728,20 @@ const renderReadMoreItem = (
         IconComponent={IconComponent}
         iconColor={iconColor}
         iconSize={iconSize}
-        iconMarginTop={item.style === "bilalQuote" ? 6 : 1}
+        iconMarginTop={
+          item.style === "bilalQuote"
+            ? 6
+            : item.icon === "MissedRamadanFastsHandsIcon" ||
+                item.icon === "MissedRamadanFastsPlatesIcon"
+              ? 2
+              : 1
+        }
+        iconVerticalAlign={
+          item.icon === "MissedRamadanFastsHandsIcon" ||
+          item.icon === "MissedRamadanFastsPlatesIcon"
+            ? "top"
+            : "center"
+        }
       />
     );
   }

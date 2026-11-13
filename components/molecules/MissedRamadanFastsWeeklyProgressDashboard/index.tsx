@@ -84,6 +84,11 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
           weekSummary.previousWeekCompletedCount
         : null;
 
+  const totalFastsSuffix =
+    weekSummary.completedFastsThisWeek === 1
+      ? t("progressLogging.missedRamadanWeeklyTotalFastsSuffix_one")
+      : t("progressLogging.missedRamadanWeeklyTotalFastsSuffix_other");
+
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
       const missedDay = weekSummary.weekDays[args.index];
@@ -145,10 +150,8 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
               {loading ? "---" : weekSummary.completedFastsThisWeek}
-            </Text>{" "}
-            {loading
-              ? ""
-              : t("progressLogging.missedRamadanWeeklyTotalFasts")}
+            </Text>
+            {loading ? "" : totalFastsSuffix}
           </Text>
         </View>
       }

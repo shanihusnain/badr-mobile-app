@@ -91,6 +91,7 @@ const PrayerItem = React.memo(
     const showTick = tickOnlyWhenLogged ? isLogged : isSelected;
     const isJumuahSlot = showJumuahForDhuhr && prayer === "dhuhr";
     const Icon = isJumuahSlot ? JummaIcon : PRAYER_ICON_COMPONENTS[prayer];
+    const isAsrPrayer = prayer === "asr";
     const label = isJumuahSlot
       ? t("prayerGoals.jumuahShort")
       : t(`prayerGoals.${prayer}`);
@@ -130,7 +131,13 @@ const PrayerItem = React.memo(
             },
           ]}
         >
-          <Icon color={iconColor} size={14} />
+          <View
+            style={
+              isAsrPrayer ? { transform: [{ translateY: -1 }] } : undefined
+            }
+          >
+            <Icon color={iconColor} size={14} />
+          </View>
         </View>
         {showTick ? (
           <View style={styles.prayerCheckBadge}>

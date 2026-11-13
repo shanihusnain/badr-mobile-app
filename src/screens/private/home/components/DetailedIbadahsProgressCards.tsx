@@ -77,7 +77,9 @@ export function getDetailedIbadahIcon(
     case "prayer-istikhara":
       return <IstikharaPrayerDetailedIcon color={color} size={size + 2} />;
     case "prayer-shukr":
-      return <ShukrPrayerDetailedIbadhasIcon color={color} size={size} />;
+      return (
+        <ShukrPrayerDetailedIbadhasIcon color={color} size={Math.round(size * 1.25)} />
+      );
     case "prayer-qiyam":
       return <QiyamAlLaylDetailedIbadhasIcon color={color} size={size} />;
     case "quran-listening":
