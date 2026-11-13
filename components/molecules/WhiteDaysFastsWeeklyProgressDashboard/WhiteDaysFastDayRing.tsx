@@ -46,7 +46,6 @@ function getRingVisual(
   state: WhiteDaysFastDayState,
   isMenstruating: boolean,
   isWhiteDay: boolean,
-  isToday: boolean,
   isFuture: boolean,
 ): RingVisual {
   if (isMenstruating && state !== "completed") {
@@ -58,12 +57,11 @@ function getRingVisual(
 
   switch (state) {
     case "todayDisabled":
-      // Match the other fasting dashboards: selected empty today uses a
-      // soft grey fill with a subtle white ring border.
+      // Booked for another goal — solid grey (same as Missed / Mon-Thu).
       return {
-        variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(255, 255, 255, 0.32)",
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
       };
     case "inactive":
       // Upcoming non–White Day — match prayer future outline.
@@ -93,12 +91,9 @@ function getRingVisual(
             borderColor: isWhiteDay ? Colors.light.white : Colors.light.grey,
           };
     case "completed":
-      // Today completed: white ring + slightly smaller white fill.
-      // Past completed: solid white (slightly smaller).
-      if (isToday) {
-        return { variant: "completedToday" };
-      }
-      return { variant: "solid", color: Colors.light.white, scale: 0.82 };
+      // Past + today: white ring + fill (same structure as Mon/Thu completed,
+      // White Days accent = white).
+      return { variant: "completedToday" };
     case "missed":
       return {
         variant: "outline",
@@ -128,16 +123,10 @@ export function WhiteDaysFastDayRing({
   state,
   isMenstruating = false,
   isWhiteDay = false,
-  isToday = false,
+  isToday: _isToday = false,
   isFuture = false,
 }: Props) {
-  const visual = getRingVisual(
-    state,
-    isMenstruating,
-    isWhiteDay,
-    isToday,
-    isFuture,
-  );
+  const visual = getRingVisual(state, isMenstruating, isWhiteDay, isFuture);
   const borderWidth = 1;
   const outlineBorderWidth =
     visual.variant === "outline" && visual.borderWidth != null

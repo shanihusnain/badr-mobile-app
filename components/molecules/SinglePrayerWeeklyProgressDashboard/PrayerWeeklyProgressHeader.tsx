@@ -68,7 +68,7 @@ export function PrayerWeeklyProgressHeader({
         <View
           style={[
             styles.weekRangeTextWrap,
-            isLongRangeLabel && styles.weekRangeTextWrapLongRange,
+            loading && styles.weekRangeTextWrapLongRange,
           ]}
         >
           {!loading ? (
@@ -147,12 +147,12 @@ const styles = StyleSheet.create({
   weekRangeTextWrap: {
     flexShrink: 0,
     minWidth: 0,
-    width: 92,
+    // width: 92,
     justifyContent: "center",
     alignItems: "center",
   },
   weekRangeTextWrapLongRange: {
-    width: 132,
+    width: 80,
     paddingHorizontal: 8,
   },
   loadingCircleWrap: {

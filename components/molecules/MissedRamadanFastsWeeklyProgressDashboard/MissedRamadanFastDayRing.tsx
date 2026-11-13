@@ -55,15 +55,14 @@ function getRingVisual(
         color: PRAYER_FUTURE_OUTLINE.color,
         borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
       };
+    case "pastNeutral":
     case "disabledPast":
     case "todayDisabled":
-    case "pastNeutral":
-      // Match the other goal dashboards: selected empty today / disabled day is a
-      // grey disc with a light border, not a solid filled circle.
+      // NOT_PLANNED past or booked for another goal — solid grey disc.
       return {
-        variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(255, 255, 255, 0.32)",
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
       };
     case "plannedToday":
       // Planned today — grey disc inside Ramadan accent ring border.

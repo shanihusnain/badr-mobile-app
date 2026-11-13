@@ -44,7 +44,11 @@ type ViewType = "main" | "categories" | "detail";
 type Props = {
   onClose?: () => void;
   /** Re-open on select-goal after returning from the logging screen. */
-  resumeTarget?: { view: "detail"; category: string } | null;
+  resumeTarget?: {
+    view: "detail";
+    category: string;
+    goalId?: string;
+  } | null;
   onResumeConsumed?: () => void;
 };
 
@@ -119,7 +123,7 @@ export const DailyProgressBottomSheet = ({
     if (!resumeTarget?.category || resumeTarget.view !== "detail") return;
     setSelectedCategory(resumeTarget.category);
     setSelectedCard(resumeTarget.category);
-    setSelectedDetailCard(null);
+    setSelectedDetailCard(resumeTarget.goalId ?? null);
     setCurrentView("detail");
     onResumeConsumed?.();
   }, [resumeTarget, onResumeConsumed]);
@@ -275,6 +279,9 @@ export const DailyProgressBottomSheet = ({
   };
 
   const handleGoalPress = (goalId: GoalId) => {
+    // Keep selection + sheet open under the push so the green border stays
+    // and home does not flash. Back restores via fromDailyProgress return.
+    setSelectedDetailCard(goalId);
     router.push({
       pathname: "/goalprogressloggingscreen/[goalId]" as any,
       params: {
@@ -285,7 +292,6 @@ export const DailyProgressBottomSheet = ({
           : {}),
       },
     });
-    onClose?.();
   };
 
   const getTitle = (): string => {

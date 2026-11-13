@@ -1047,6 +1047,7 @@ export const GoalProgressLoggingScreen = ({
       setDailyProgressSheetReturn({
         view: "detail",
         category: dailyProgressCategory,
+        goalId: typeof goalId === "string" ? goalId : undefined,
       });
     }
     navigation.goBack();
@@ -1063,12 +1064,13 @@ export const GoalProgressLoggingScreen = ({
       setDailyProgressSheetReturn({
         view: "detail",
         category: dailyProgressCategory,
+        goalId: typeof goalId === "string" ? goalId : undefined,
       });
     });
     return () => {
       queueMicrotask(unsubscribe);
     };
-  }, [navigation, fromDailyProgress, dailyProgressCategory]);
+  }, [navigation, fromDailyProgress, dailyProgressCategory, goalId]);
 
   if (!goalId) {
     return (

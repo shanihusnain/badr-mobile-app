@@ -60,14 +60,14 @@ function getRingVisual(
         color: PRAYER_FUTURE_OUTLINE.color,
         borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
       };
+    case "pastNeutral":
     case "todayDisabled":
     case "disabledPast":
-    case "pastNeutral":
-      // Same as Missed Ramadan: grey disc + light border.
+      // NOT_PLANNED past or booked for another goal — solid grey disc.
       return {
-        variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: "rgba(255, 255, 255, 0.32)",
+        variant: "solid",
+        color: Colors.light.selectcategory,
+        scale: 0.92,
       };
     case "today":
     case "plannedToday":

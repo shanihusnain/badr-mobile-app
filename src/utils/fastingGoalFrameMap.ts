@@ -144,12 +144,13 @@ function getBookedOtherGoalFields(day: FastingGoalFrameDay): {
   bookedFor: string | null;
   bookedStatus: string | null;
 } {
-  if (!day.bookedForOtherGoal) {
-    return { bookedFor: null, bookedStatus: null };
-  }
   const bookedFor = String(day.bookedFor ?? "")
     .trim()
     .toUpperCase();
+  // Some frames set `bookedFor` without `bookedForOtherGoal`.
+  if (!day.bookedForOtherGoal && !bookedFor) {
+    return { bookedFor: null, bookedStatus: null };
+  }
   const bookedStatus = String(day.status ?? "")
     .trim()
     .toUpperCase();
@@ -157,6 +158,13 @@ function getBookedOtherGoalFields(day: FastingGoalFrameDay): {
     bookedFor: bookedFor || null,
     bookedStatus: bookedStatus || null,
   };
+}
+
+function isBookedForOtherGoal(day: FastingGoalFrameDay): boolean {
+  return (
+    Boolean(day.bookedForOtherGoal) ||
+    Boolean(String(day.bookedFor ?? "").trim())
+  );
 }
 
 function getDayOfMonth(date: string): number {

@@ -91,7 +91,7 @@ export const toastConfig = {
         },
       ]}
     >
-      <View
+      {/* <View
         style={{
           height: 20,
           width: 20,
@@ -102,7 +102,7 @@ export const toastConfig = {
         }}
       >
         <AntDesign name="close" size={15} color={Colors.light.white} />
-      </View>
+      </View> */}
       <Text style={[styles.toastText]}>{props.text1}</Text>
     </View>
   ),

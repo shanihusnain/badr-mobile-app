@@ -347,6 +347,7 @@ export default function HomeScreen() {
   const [dailyProgressResume, setDailyProgressResume] = useState<{
     view: "detail";
     category: string;
+    goalId?: string;
   } | null>(null);
   const openBottomSheetsRef = useRef(new Set<string>());
   const scrollY = useRef(new Animated.Value(0)).current;
