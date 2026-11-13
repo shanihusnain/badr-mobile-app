@@ -12,15 +12,17 @@ import {
  * Backend can drive these via white-day plan dates, logs, and menstruation days.
  */
 export type WhiteDaysFastDayState =
-  /** Today, not a White Day — filled muted grey + today chip */
+  /** Today, not a White Day — today disc (grey fill + grey border) */
+  | "today"
+  /** Today booked for another goal — solid grey + today chip */
   | "todayDisabled"
-  /** Non–White Day (past/future) — faint grey outline */
+  /** Non–White Day (past/future) — faint grey outline / solid past */
   | "inactive"
   /** Future planned White Day — white outline */
   | "planned"
-  /** Today's planned White Day, not yet logged — white outline + today chip */
+  /** Today's planned White Day, not yet logged — today disc + white border */
   | "plannedToday"
-  /** Logged completed White Day fast — solid white (today chip if today) */
+  /** Logged completed White Day fast — white ring + fill */
   | "completed"
   /** Past planned White Day skipped — white outline + warning */
   | "missed";
@@ -177,7 +179,7 @@ function resolveDayState(date: string, today: string): WhiteDaysFastDayState {
   }
 
   if (normalized === normalizedToday) {
-    return "todayDisabled";
+    return "today";
   }
 
   return "inactive";

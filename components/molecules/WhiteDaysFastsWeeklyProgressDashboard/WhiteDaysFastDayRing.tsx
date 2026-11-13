@@ -56,6 +56,13 @@ function getRingVisual(
   }
 
   switch (state) {
+    case "today":
+      // Plain today (not a White Day) — same disc as other fasting goals.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: Colors.light.grey,
+      };
     case "todayDisabled":
       // Booked for another goal — solid grey (same as Missed / Mon-Thu).
       return {
@@ -82,13 +89,13 @@ function getRingVisual(
       return { variant: "outline", color: Colors.light.white };
     case "plannedToday":
       // Future White Days stay as white outline; actual today is a grey disc
-      // with ring border white (planned) vs grey.
+      // with white accent border.
       return isFuture
         ? { variant: "outline", color: Colors.light.white }
         : {
             variant: "solidWithBorder",
             fillColor: Colors.light.greybuttonBackground,
-            borderColor: isWhiteDay ? Colors.light.white : Colors.light.grey,
+            borderColor: Colors.light.white,
           };
     case "completed":
       // Past + today: white ring + fill (same structure as Mon/Thu completed,

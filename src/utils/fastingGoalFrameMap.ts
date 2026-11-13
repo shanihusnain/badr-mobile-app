@@ -188,6 +188,12 @@ function resolveWhiteDaysDayState(
     .trim()
     .toUpperCase();
   const isWhiteDay = Boolean(day.isPlanned) || isPlannedState(state);
+  const booked = isBookedForOtherGoal(day);
+
+  // Booked for another goal — solid grey (today chip if today).
+  if (booked) {
+    return day.isToday ? "todayDisabled" : "inactive";
+  }
 
   if (
     state === "COMPLETED" ||
@@ -232,7 +238,8 @@ function resolveWhiteDaysDayState(
     return "planned";
   }
 
-  if (day.isToday) return "todayDisabled";
+  // Non–White Day today — shared today disc (not solid booked grey).
+  if (day.isToday) return "today";
   return "inactive";
 }
 
