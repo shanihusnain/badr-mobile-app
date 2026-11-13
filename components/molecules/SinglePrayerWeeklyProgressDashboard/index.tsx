@@ -364,7 +364,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                       {loading
                         ? ""
                         : totalPrayersThisWeek === 1
-                          ? " prayer this week"
+                          ? " total prayer this week"
                           : " total prayers this week"}
                     </Text>
                   </View>

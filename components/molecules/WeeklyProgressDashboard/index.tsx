@@ -292,7 +292,9 @@ export const WeeklyProgressDashboard: React.FC<
                   <PrayerMatIcon />
                   <Text style={styles.statsText} numberOfLines={1}>
                     <Text style={styles.statsCount}>{onTimePrayersCount}</Text>
-                    {` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
+                    {onTimePrayersCount === 1
+                      ? ` ${t("homeScreen.weeklyProgress_onTimePrayers_one")}`
+                      : ` ${t("homeScreen.weeklyProgress_onTimePrayers")}`}
                   </Text>
                 </View>
               }

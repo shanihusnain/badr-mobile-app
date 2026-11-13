@@ -129,6 +129,11 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
     [loading, t, weekSummary.streakWeeks],
   );
 
+  const totalFastsSuffix =
+    weekSummary.completedFastsThisWeek === 1
+      ? t("progressLogging.mondayThursdayWeeklyTotalFastsSuffix_one")
+      : t("progressLogging.mondayThursdayWeeklyTotalFastsSuffix_other");
+
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
       const mondayThursdayDay = weekSummary.weekDays[args.index];
@@ -185,10 +190,8 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
           <Text style={styles.statsText} numberOfLines={1}>
             <Text style={styles.statsCount}>
               {loading ? "---" : weekSummary.completedFastsThisWeek}
-            </Text>{" "}
-            {loading
-              ? ""
-              : t("progressLogging.mondayThursdayWeeklyTotalFasts")}
+            </Text>
+            {loading ? "" : totalFastsSuffix}
           </Text>
         </View>
       }

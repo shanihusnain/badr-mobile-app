@@ -879,13 +879,7 @@ export default function QiyamLoggingFlow({ goalData, onLogComplete }: Props) {
         };
       case "prayers-quantity":
         return {
-          icon: (
-            <MaterialCommunityIcons
-              name="star-crescent"
-              size={26}
-              color={Colors.light.white}
-            />
-          ),
+          icon: <WhitePrayerMatIcon size={26} />,
           label: "How many 2-rak'ah prayers did you pray?",
         };
       case "start-time":

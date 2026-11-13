@@ -133,7 +133,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   dateDisabled: {
-    opacity: 0.45,
+    opacity: 0.5,
   },
   // Slightly slimmer than active — not as faint as dullWhiteOpacity (10%).
   chevronDisabled: {
