@@ -988,12 +988,12 @@ export const GoalProgressLoggingScreen = ({
           label: "QURAN RECITATION BY SURAH",
         },
         {
-          value: "quran-recitationByCompletion",
-          label: "QURAN RECITATION BY COMPLETION",
-        },
-        {
           value: "quran-recitationByJuz",
           label: "QURAN RECITATION BY JUZ",
+        },
+        {
+          value: "quran-recitationByCompletion",
+          label: "QURAN RECITATION BY COMPLETION",
         },
       ]
     : undefined;

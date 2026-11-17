@@ -64,12 +64,9 @@ function mapMemorisationDayToSinglePrayerDay(
 
   // Surah memorisation dashboards should prefer the backend ayah range label
   // (e.g. "1-4" / "5-15") over the plain total count when it is available.
-  const ayatLabel = useRangeLabelOnly
-    ? day.countLabel?.trim() ||
-      (day.ayahsLogged > 0 ? formatNumber(day.ayahsLogged) : undefined)
-    : day.ayahsLogged > 0
-      ? formatNumber(day.ayahsLogged)
-      : day.countLabel?.trim() || undefined;
+  const ayatLabel =
+    day.countLabel?.trim() ||
+    (day.ayahsLogged > 0 ? formatNumber(day.ayahsLogged) : undefined);
 
   return {
     day: day.day,

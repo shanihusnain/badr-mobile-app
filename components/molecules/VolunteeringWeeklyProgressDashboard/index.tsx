@@ -80,6 +80,26 @@ function formatTotalTime(totalMinutes: number): string {
   return `${m}m`;
 }
 
+function ensureSingleBestDay(
+  days: VolunteeringDayProgress[],
+): VolunteeringDayProgress[] {
+  const flaggedIndexes = days
+    .map((day, index) =>
+      day.minutesLogged > 0 && day.category !== null && day.isBestDay
+        ? index
+        : -1,
+    )
+    .filter((index) => index >= 0);
+
+  if (flaggedIndexes.length <= 1) return days;
+
+  const winner = flaggedIndexes[flaggedIndexes.length - 1];
+  return days.map((day, index) => ({
+    ...day,
+    isBestDay: index === winner,
+  }));
+}
+
 function mapVolunteeringDayToSinglePrayerDay(
   day: VolunteeringDayProgress,
 ): SinglePrayerDayProgress {
@@ -122,14 +142,19 @@ export function VolunteeringWeeklyProgressDashboard({
   const { mutateAsync: deleteSadaqahLog, isPending: isDeletingLog } =
     useDeleteSadaqahLog();
 
-  const mappedWeekDays = useMemo(
-    () => weekDays.map(mapVolunteeringDayToSinglePrayerDay),
+  const normalizedWeekDays = useMemo(
+    () => ensureSingleBestDay(weekDays),
     [weekDays],
   );
 
+  const mappedWeekDays = useMemo(
+    () => normalizedWeekDays.map(mapVolunteeringDayToSinglePrayerDay),
+    [normalizedWeekDays],
+  );
+
   const isGoalCompleted = useMemo(
-    () => weekDays.some((day) => day.isBlurDay),
-    [weekDays],
+    () => normalizedWeekDays.some((day) => day.isBlurDay),
+    [normalizedWeekDays],
   );
 
   const handleDeleteLog = useCallback(
@@ -142,7 +167,7 @@ export function VolunteeringWeeklyProgressDashboard({
 
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
-      const volunteeringDay = weekDays[args.index];
+      const volunteeringDay = normalizedWeekDays[args.index];
       if (!volunteeringDay) return null;
 
       const hasLog =
@@ -162,7 +187,7 @@ export function VolunteeringWeeklyProgressDashboard({
         />
       );
     },
-    [weekDays],
+    [normalizedWeekDays],
   );
 
   return (

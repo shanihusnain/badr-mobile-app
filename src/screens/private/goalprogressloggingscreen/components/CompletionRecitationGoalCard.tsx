@@ -117,15 +117,6 @@ export function CompletionRecitationGoalCard({
                         target: targetLabel,
                       })}
                   </Text>
-                  {!frameTitle || !/\(\s*total\b/i.test(frameTitle) ? (
-                    <Text style={surahGoalStyles.metaRegular}>
-                      {`(`}
-                      <Text style={surahGoalStyles.metaBold}>
-                        {targetLabel}
-                      </Text>
-                      {` ${t("progressLogging.unitCompletions")})`}
-                    </Text>
-                  ) : null}
                 </View>
               </View>
             </View>

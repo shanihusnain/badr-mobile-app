@@ -26,11 +26,21 @@ import {
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { PrayerWeeklyDashboardBody } from "@/components/molecules/PrayerWeeklyDashboardBody";
 
-/** "139-150" → "139-\n150" so narrow day columns show the full range (design). */
+/** Keep short ayah ranges inline; only split long ranges for narrow day columns. */
 function formatDayDurationLabel(label: string): string {
   const match = label.trim().match(/^(\d+)\s*[-–—]\s*(\d+)$/);
-  if (match) return `${match[1]}-\n${match[2]}`;
-  return label;
+  if (!match) return label;
+
+  const start = Number(match[1]);
+  const end = Number(match[2]);
+  const rangeText = `${start}-${end}`;
+  const inlineThreshold = match[1].length + match[2].length;
+
+  if (inlineThreshold > 4) {
+    return `${start}-\n${end}`;
+  }
+
+  return rangeText;
 }
 
 export type {

@@ -123,7 +123,7 @@ export function VolunteeringCategoryStep({
                     {isChecked ? <View style={styles.radioDot} /> : null}
                   </View>
                   <View style={styles.catIconCirclePlain}>
-                    <CategoryIcon id={cat.id} size={14} />
+                    <CategoryIcon id={cat.id} size={18} />
                   </View>
                   <Text style={styles.radioLabel} numberOfLines={1}>
                     {cat.label}

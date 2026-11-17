@@ -72,6 +72,24 @@ function formatDayAmount(value: number, currencyCode: string): string {
   return `${currency} ${value}`;
 }
 
+function ensureSingleBestDay(
+  days: SadaqahJariyahDayProgress[],
+): SadaqahJariyahDayProgress[] {
+  const flaggedIndexes = days
+    .map((day, index) =>
+      day.amount > 0 && day.category !== null && day.isBestDay ? index : -1,
+    )
+    .filter((index) => index >= 0);
+
+  if (flaggedIndexes.length <= 1) return days;
+
+  const winner = flaggedIndexes[flaggedIndexes.length - 1];
+  return days.map((day, index) => ({
+    ...day,
+    isBestDay: index === winner,
+  }));
+}
+
 function mapJariyahDayToSinglePrayerDay(
   day: SadaqahJariyahDayProgress,
   currencyCode: string,
@@ -122,14 +140,22 @@ export function SadaqahJariyahWeeklyProgressDashboard({
     .trim()
     .toUpperCase();
 
+  const normalizedWeekDays = useMemo(
+    () => ensureSingleBestDay(weekDays),
+    [weekDays],
+  );
+
   const mappedWeekDays = useMemo(
-    () => weekDays.map((day) => mapJariyahDayToSinglePrayerDay(day, currency)),
-    [weekDays, currency],
+    () =>
+      normalizedWeekDays.map((day) =>
+        mapJariyahDayToSinglePrayerDay(day, currency),
+      ),
+    [normalizedWeekDays, currency],
   );
 
   const isGoalCompleted = useMemo(
-    () => weekDays.some((day) => day.isBlurDay),
-    [weekDays],
+    () => normalizedWeekDays.some((day) => day.isBlurDay),
+    [normalizedWeekDays],
   );
 
   const handleDeleteLog = useCallback(
@@ -142,7 +168,7 @@ export function SadaqahJariyahWeeklyProgressDashboard({
 
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
-      const jariyahDay = weekDays[args.index];
+      const jariyahDay = normalizedWeekDays[args.index];
       if (!jariyahDay) return null;
 
       const hasLog = jariyahDay.amount > 0 && jariyahDay.category !== null;
@@ -160,7 +186,7 @@ export function SadaqahJariyahWeeklyProgressDashboard({
         />
       );
     },
-    [weekDays],
+    [normalizedWeekDays],
   );
 
   return (

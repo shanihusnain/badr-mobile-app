@@ -34,7 +34,8 @@ export function resolveQuranGoalCardStatusLabel(options: {
   const showPercent = (pct >= 100 || options.cycleEnded) && isItemComplete;
 
   if (!showPercent) {
-    if (options.status === "not-started") {
+    const hasAnyProgress = pct > 0 || options.completed === true;
+    if (options.status === "not-started" && !hasAnyProgress) {
       return {
         label: options.t("progressLogging.surahStatusNotStarted"),
         showPercent: false,
