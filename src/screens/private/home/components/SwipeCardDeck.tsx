@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   useWindowDimensions,
@@ -8,7 +8,6 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { AllDoneCheckIcon } from "@/assets/icons/AllDoneCheckIcon";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -20,6 +19,7 @@ import Animated, {
   runOnJS,
   interpolate,
   Extrapolation,
+  type SharedValue,
 } from "react-native-reanimated";
 import { ContainerCard, type ContainerCardData } from "./ContainerCard";
 
@@ -29,6 +29,8 @@ const SWIPE_THRESHOLD = 100;
 const STACK_OFFSET_Y = 8;
 const STACK_SCALE = 0.04;
 const MAX_ROTATION = 5;
+const EMPTY_AUTO_COLLAPSE_MS = 1500;
+const COLLAPSE_DURATION_MS = 320;
 
 type SwipeCardDeckProps = {
   data: ContainerCardData[];
@@ -48,6 +50,9 @@ type DeckSwipeCardProps = {
   cardWidth: number;
   stackIndex: number;
   total: number;
+  /** True when this is the only remaining content card. */
+  isLastCard: boolean;
+  dragX: SharedValue<number>;
   renderTextWithHighlight: SwipeCardDeckProps["renderTextWithHighlight"];
   onSwiped: () => void;
 };
@@ -57,36 +62,47 @@ const DeckSwipeCard = ({
   cardWidth,
   stackIndex,
   total,
+  isLastCard,
+  dragX,
   renderTextWithHighlight,
   onSwiped,
 }: DeckSwipeCardProps) => {
   const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
     .enabled(stackIndex === 0)
+    .activeOffsetX([-12, 12])
+    .failOffsetY([-10, 10])
     .onUpdate((e) => {
       translateX.value = e.translationX;
-      translateY.value = e.translationY;
+      dragX.value = e.translationX;
     })
     .onEnd((e) => {
-      const shouldDismiss =
+      const wentFarEnough =
         Math.abs(e.translationX) > SWIPE_THRESHOLD ||
         Math.abs(e.velocityX) > 800;
+      const direction =
+        e.translationX !== 0
+          ? Math.sign(e.translationX)
+          : Math.sign(e.velocityX);
+      // Last card: only dismiss left (WHOOP video). Intermediate: either side.
+      const shouldDismiss =
+        wentFarEnough && (!isLastCard || direction < 0);
 
       if (shouldDismiss) {
-        const direction = e.translationX > 0 ? 1 : -1;
         translateX.value = withTiming(
           direction * (cardWidth + 150),
           { duration: 280 },
           (finished) => {
-            if (finished) runOnJS(onSwiped)();
+            if (finished) {
+              dragX.value = 0;
+              runOnJS(onSwiped)();
+            }
           },
         );
-        translateY.value = withTiming(e.translationY - 120, { duration: 280 });
       } else {
         translateX.value = withSpring(0, { damping: 18, stiffness: 200 });
-        translateY.value = withSpring(0, { damping: 18, stiffness: 200 });
+        dragX.value = withSpring(0, { damping: 18, stiffness: 200 });
       }
     });
 
@@ -108,17 +124,33 @@ const DeckSwipeCard = ({
       return {
         transform: [
           { translateX: translateX.value + pivotOffsetX },
-          { translateY: translateY.value - pivotOffsetY },
+          { translateY: -pivotOffsetY },
           { rotate: `${rotateDeg}deg` },
         ],
         zIndex: total,
       };
     }
 
+    // Under-cards rise toward the front as the top card is dragged.
+    const progress = interpolate(
+      Math.abs(dragX.value),
+      [0, SWIPE_THRESHOLD],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    const baseOffset = STACK_OFFSET_Y * stackIndex;
+    const baseScale = 1 - STACK_SCALE * stackIndex;
+    const nextOffset = STACK_OFFSET_Y * (stackIndex - 1);
+    const nextScale = 1 - STACK_SCALE * (stackIndex - 1);
+
     return {
       transform: [
-        { translateY: STACK_OFFSET_Y * stackIndex },
-        { scale: 1 - STACK_SCALE * stackIndex },
+        {
+          translateY: interpolate(progress, [0, 1], [baseOffset, nextOffset]),
+        },
+        {
+          scale: interpolate(progress, [0, 1], [baseScale, nextScale]),
+        },
       ],
       zIndex: total - stackIndex,
     };
@@ -156,6 +188,66 @@ export const SwipeCardDeck = ({
   const cardWidth = windowWidth - SCREEN_H_PADDING * 2;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
+  const collapsingRef = useRef(false);
+  const autoCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const dragX = useSharedValue(0);
+  const deckHeight = useSharedValue(
+    CARD_HEIGHT + STACK_OFFSET_Y * Math.min(Math.max(data.length - 1, 0), 2),
+  );
+  const deckOpacity = useSharedValue(1);
+
+  const remainingCards = data.slice(activeIndex);
+  const contentRemaining = remainingCards.length;
+  const targetContentHeight =
+    contentRemaining === 0
+      ? CARD_HEIGHT
+      : CARD_HEIGHT +
+        STACK_OFFSET_Y * Math.min(Math.max(contentRemaining - 1, 0), 2);
+
+  useEffect(() => {
+    if (!showEmptyState && !collapsingRef.current) {
+      deckHeight.value = withTiming(targetContentHeight, { duration: 180 });
+    }
+  }, [targetContentHeight, showEmptyState, deckHeight]);
+
+  const finishUnmount = useCallback(() => {
+    setIsDismissed(true);
+  }, []);
+
+  const collapseDeck = useCallback(() => {
+    if (collapsingRef.current) return;
+    collapsingRef.current = true;
+    if (autoCollapseTimerRef.current) {
+      clearTimeout(autoCollapseTimerRef.current);
+      autoCollapseTimerRef.current = null;
+    }
+    deckOpacity.value = withTiming(0, { duration: COLLAPSE_DURATION_MS });
+    deckHeight.value = withTiming(
+      0,
+      { duration: COLLAPSE_DURATION_MS },
+      (finished) => {
+        if (finished) runOnJS(finishUnmount)();
+      },
+    );
+  }, [deckHeight, deckOpacity, finishUnmount]);
+
+  // Auto-collapse ~1.5s after "You're all set" (FAB can dismiss early).
+  useEffect(() => {
+    if (!showEmptyState || collapsingRef.current) return;
+    autoCollapseTimerRef.current = setTimeout(() => {
+      collapseDeck();
+    }, EMPTY_AUTO_COLLAPSE_MS);
+    return () => {
+      if (autoCollapseTimerRef.current) {
+        clearTimeout(autoCollapseTimerRef.current);
+        autoCollapseTimerRef.current = null;
+      }
+    };
+  }, [showEmptyState, collapseDeck]);
 
   const handleCardSwiped = useCallback(() => {
     const swipedIndex = activeIndex;
@@ -163,24 +255,25 @@ export const SwipeCardDeck = ({
     setActiveIndex(next);
     onCardSwiped?.(swipedIndex);
     if (next >= data.length) {
+      setShowEmptyState(true);
       onAllCardsSwiped?.();
     }
   }, [activeIndex, data.length, onAllCardsSwiped, onCardSwiped]);
+
+  const deckAnimatedStyle = useAnimatedStyle(() => ({
+    height: deckHeight.value,
+    opacity: deckOpacity.value,
+    overflow: "hidden" as const,
+  }));
 
   if (isDismissed) {
     return null;
   }
 
-  const remainingCards = data.slice(activeIndex);
-  const deckHeight =
-    CARD_HEIGHT + STACK_OFFSET_Y * Math.min(remainingCards.length - 1, 2);
-
   return (
-    <View>
-      <View
-        style={[styles.deckContainer, { height: deckHeight, width: cardWidth }]}
-      >
-        {remainingCards.length === 0 ? (
+    <Animated.View style={deckAnimatedStyle}>
+      <View style={[styles.deckContainer, { width: cardWidth, height: "100%" }]}>
+        {showEmptyState || contentRemaining === 0 ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCenter}>
               <AllDoneCheckIcon size={48} color={Colors.light.white} />
@@ -189,7 +282,7 @@ export const SwipeCardDeck = ({
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.emptyStateDoneBtn}
-              onPress={() => setIsDismissed(true)}
+              onPress={collapseDeck}
             >
               <AntDesign name="check" size={22} color={Colors.light.white} />
             </TouchableOpacity>
@@ -207,6 +300,8 @@ export const SwipeCardDeck = ({
                   cardWidth={cardWidth}
                   stackIndex={stackIndex}
                   total={remainingCards.length - stackIndex}
+                  isLastCard={remainingCards.length === 1}
+                  dragX={dragX}
                   renderTextWithHighlight={renderTextWithHighlight}
                   onSwiped={stackIndex === 0 ? handleCardSwiped : () => {}}
                 />
@@ -215,7 +310,7 @@ export const SwipeCardDeck = ({
         )}
       </View>
 
-      {showPagination && remainingCards.length > 0 && (
+      {showPagination && contentRemaining > 0 && !showEmptyState && (
         <View style={styles.dotRow}>
           {data.map((_, index) => (
             <View
@@ -228,7 +323,7 @@ export const SwipeCardDeck = ({
           ))}
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -292,11 +387,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     position: "relative",
+    minHeight: CARD_HEIGHT,
   },
   emptyStateCenter: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 46, // Moved down slightly per request
+    marginTop: 46,
   },
   emptyStateText: {
     color: Colors.light.white,
@@ -306,8 +402,8 @@ const styles = StyleSheet.create({
   },
   emptyStateDoneBtn: {
     position: "absolute",
-    top: 10, // Moved down (was -24)
-    right: 6, // Moved left (was -16)
+    top: 10,
+    right: 6,
     width: 40,
     height: 40,
     borderRadius: 8,

@@ -42,7 +42,6 @@ import { DaysTrackerContainer } from "@/components/molecules/DaysTrackerContaine
 import { NamazGoalBottomSheet } from "@/components/molecules/NamazGoalBottomSheet";
 
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { DashboardCustomizeBottomSheet } from "./components/DashboardCustomizeBottomSheet";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,6 +81,7 @@ import { TimeSpentBottomSheet } from "./components/TimeSpentBottomSheet";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { HomeFabSpeedDial } from "./components/HomeFabSpeedDial";
 import { JournalingHistoryWeekDashboard } from "./components/JournalingHistoryWeekDashboard";
+import { ObligatoryPrayersHomeSection } from "./components/ObligatoryPrayersHomeSection";
 import { type JournalingDayProgress } from "./journalingHistory";
 import { resolveYesterdayJournalPrompt } from "./yesterdayJournalPrompt";
 import { JournalFillingScreen } from "@/src/screens/private/journalfilling";
@@ -1141,11 +1141,7 @@ export default function HomeScreen() {
         {/* Plain View only around Rive — press targets live inside DaysTracker
             on the text rows, never wrapping the moon itself. */}
         <Pressable
-          style={{
-            width: SCREEN_CARD_WIDTH,
-            alignSelf: "center",
-            marginTop: hp(2),
-          }}
+          style={styles.moonSection}
           collapsable={false}
           onPress={openNamazSheet}
         >
@@ -1198,6 +1194,13 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
+
+        {/* My Obligatory Prayers — home API `obligatoryPrayers` */}
+        {dashboardData?.obligatoryPrayers != null ? (
+          <ObligatoryPrayersHomeSection
+            obligatoryPrayers={dashboardData.obligatoryPrayers}
+          />
+        ) : null}
 
         {/* Log menstruation */}
         <TouchableOpacity
@@ -1365,14 +1368,16 @@ export default function HomeScreen() {
         ) : null}
         {/* Journal week card — only when home API sends journalCard */}
         {journalCard != null ? (
-          <JournalingHistoryWeekDashboard
-            weekDays={journalingWeekDays}
-            title={journalCardTitle}
-            buttonLabel={journalCardButton}
-            onDayPress={handleJournalDayPress}
-            onPressHeader={handleJournalCardButtonPress}
-            onBehaviorInsightsPress={handleJournalCardButtonPress}
-          />
+          <View style={styles.journalWeekSection}>
+            <JournalingHistoryWeekDashboard
+              weekDays={journalingWeekDays}
+              title={journalCardTitle}
+              buttonLabel={journalCardButton}
+              onDayPress={handleJournalDayPress}
+              onPressHeader={handleJournalCardButtonPress}
+              onBehaviorInsightsPress={handleJournalCardButtonPress}
+            />
+          </View>
         ) : null}
         {/* My Dashboard */}
         <View style={styles.dashboardSection}>
@@ -1473,7 +1478,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
         <FastingOverviewCalendarSection date={todayDateKey} />
-        <TopSpace top={16} />
         <TimeSpentOverview
           onExpandPress={() => timeSpentSheetRef.current?.expand()}
           selectedDate={todayDateKey}

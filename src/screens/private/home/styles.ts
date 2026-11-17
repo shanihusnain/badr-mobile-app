@@ -10,6 +10,9 @@ import { getFigmaForcedSmallCapsTextStyle } from "@/src/utils/figmaTypography";
 const CARD_WIDTH = Dimensions.get("window").width - 32;
 const FASTING_LEGEND_TEXT_WIDTH = (Dimensions.get("window").width - 120) / 2;
 
+/** Consistent vertical gap between major home ScrollView sections. */
+export const HOME_SECTION_GAP = 16;
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -29,7 +32,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp(3),
+    marginBottom: HOME_SECTION_GAP,
     paddingHorizontal: wp(2),
   },
   deltaBadgePlaceholder: {
@@ -126,14 +129,13 @@ export const styles = StyleSheet.create({
   },
   badrLogoContainer: {
     alignItems: "center",
-    marginBottom: hp(3),
-    marginTop: hp(1),
+    marginBottom: HOME_SECTION_GAP,
   },
 
   // Prayer Card Wrapper
   prayerCardWrapper: {
     position: "relative",
-    marginBottom: hp(3),
+    marginBottom: HOME_SECTION_GAP,
   },
 
   // Close Button
@@ -262,7 +264,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: wp(2),
-    marginBottom: hp(2),
+    marginBottom: HOME_SECTION_GAP,
   },
 
   categoryItemWrapper: {
@@ -326,10 +328,20 @@ export const styles = StyleSheet.create({
 
   // Containers Section
   containersSection: {
-    marginBottom: hp(2),
+    marginBottom: HOME_SECTION_GAP,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
+  },
+
+  moonSection: {
+    width: CARD_WIDTH,
+    alignSelf: "center",
+    marginBottom: HOME_SECTION_GAP,
+  },
+
+  journalWeekSection: {
+    marginBottom: HOME_SECTION_GAP,
   },
 
   horizontalScrollContainer: {
@@ -463,8 +475,7 @@ export const styles = StyleSheet.create({
   // ── Inspiration Cards Section ──────────────────────────────────────────────
 
   inspirationSection: {
-    marginTop: hp(3),
-    marginBottom: 16,
+    marginBottom: HOME_SECTION_GAP,
     //width: "100%",
     alignItems: "center",
     justifyContent: "center",
@@ -550,8 +561,7 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: HOME_SECTION_GAP,
     paddingVertical: 8,
     paddingHorizontal: 16,
     flexDirection: "row",
@@ -589,8 +599,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignSelf: "center",
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: HOME_SECTION_GAP,
     gap: 10,
   },
   journalTitle: {
@@ -631,8 +640,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     width: CARD_WIDTH,
     alignSelf: "center",
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: HOME_SECTION_GAP,
   },
   dashboardText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
@@ -641,6 +649,59 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0,
     color: Colors.light.white,
+  },
+  obligatoryPrayersSection: {
+    width: "100%",
+    marginBottom: HOME_SECTION_GAP,
+  },
+  obligatoryPrayersHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: CARD_WIDTH,
+    alignSelf: "center",
+    marginBottom: HOME_SECTION_GAP,
+  },
+  obligatoryPrayersAddBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.light.lightgreen,
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  obligatoryPrayersAddIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.light.green,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  obligatoryPrayersAddText: {
+    fontFamily: fonts.primary.semiBold,
+    fontWeight: "600",
+    fontSize: 13,
+    lineHeight: 16,
+    color: Colors.light.green,
+    textTransform: "uppercase",
+  },
+  obligatoryPrayersEmpty: {
+    width: CARD_WIDTH,
+    alignSelf: "center",
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderRadius: 14,
+    padding: 16,
+    minHeight: 80,
+    justifyContent: "center",
+  },
+  obligatoryPrayersEmptyText: {
+    fontFamily: fonts.primary.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.light.subtext,
+    textAlign: "center",
   },
   customizeContainer: {
     backgroundColor: Colors.light.lightgreen, // Green color with 0.1 opacity (10%)
@@ -779,7 +840,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 13,
     paddingVertical: 20,
-    marginBottom: 20,
+    marginBottom: HOME_SECTION_GAP,
   },
   todayGoalsProgressTitle: {
     fontFamily: fonts.primary.semiBold,
@@ -810,7 +871,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.light.greybuttonBackground,
     borderRadius: 10,
-    marginTop: 16,
+    marginBottom: HOME_SECTION_GAP,
     paddingVertical: 17,
     paddingHorizontal: 12,
   },
@@ -1086,8 +1147,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: HOME_SECTION_GAP,
   },
   showMoreText: {
     fontFamily: fonts.primary.semiBold,

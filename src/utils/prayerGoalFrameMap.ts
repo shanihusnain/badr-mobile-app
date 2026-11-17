@@ -294,7 +294,7 @@ function mapFiveDailyStatusesFromCounts(
 }
 
 /**
- * Five Daily frame week: always 5 arcs from FAJR→ISHA slots.
+ * Map one Five Daily frame/home day → weekly ring progress.
  * Colors (Figma):
  * - menstruation → red (only when `slot.isMenstruationSlot` is true)
  * - qadha → orange (missed)
@@ -302,63 +302,75 @@ function mapFiveDailyStatusesFromCounts(
  * - on-time → white today / green past (ring chooses via isToday)
  * - empty → dim arc
  */
-export function mapFiveDailyFrameWeekDays(
-  frame: PrayerGoalFrameData,
-): DayProgress[] {
-  return frame.week.days.map((day) => {
-    const isFuture = resolveIsFutureDay(day);
-    const isToday = Boolean(day.isToday);
+export function mapFiveDailyFrameDayProgress(
+  day: PrayerGoalFrameDay,
+): DayProgress {
+  const isFuture = resolveIsFutureDay(day);
+  const isToday = Boolean(day.isToday);
 
-    if (day.slots) {
-      const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
-        mapFiveDailySlotToStatus(day.slots?.[key]),
-      );
-      const hasUserLog = FIVE_DAILY_SLOT_ORDER.some(
-        (key) => day.slots?.[key]?.logged === true,
-      );
-      const hasMenstruationArc = statuses.some((s) => s === "menstruation");
-
-      return {
-        day: day.dayLabel,
-        date: day.date,
-        // Per-slot statuses only — never paint all 5 red from day.isMenstruationDay.
-        statuses,
-        hasUserLog,
-        isToday,
-        isFuture,
-        isMenstruating: hasMenstruationArc,
-      };
-    }
-
-    if (isFuture) {
-      return {
-        day: day.dayLabel,
-        date: day.date,
-        statuses: ["none", "none", "none", "none", "none"],
-        hasUserLog: false,
-        isToday: false,
-        isFuture: true,
-        isMenstruating: false,
-      };
-    }
-
-    const onTime = clampSlotCount(day.slotsOnTime);
-    const autoQadha = clampSlotCount(day.slotsAutoQadha);
-    const qadha = clampSlotCount(day.slotsQadha);
-    // User-logged qadha is typically slotsQadha beyond auto-qadha.
-    const hasUserLog =
-      Boolean(day.allFiveOnTime) || onTime > 0 || qadha > autoQadha;
+  if (day.slots) {
+    const statuses = FIVE_DAILY_SLOT_ORDER.map((key) =>
+      mapFiveDailySlotToStatus(day.slots?.[key]),
+    );
+    const hasUserLog = FIVE_DAILY_SLOT_ORDER.some(
+      (key) => day.slots?.[key]?.logged === true,
+    );
+    const hasMenstruationArc = statuses.some((s) => s === "menstruation");
 
     return {
       day: day.dayLabel,
       date: day.date,
-      statuses: mapFiveDailyStatusesFromCounts(day),
+      // Per-slot statuses only — never paint all 5 red from day.isMenstruationDay.
+      statuses,
       hasUserLog,
       isToday,
-      isFuture: false,
+      isFuture,
+      isMenstruating: hasMenstruationArc,
+    };
+  }
+
+  if (isFuture) {
+    return {
+      day: day.dayLabel,
+      date: day.date,
+      statuses: ["none", "none", "none", "none", "none"],
+      hasUserLog: false,
+      isToday: false,
+      isFuture: true,
       isMenstruating: false,
     };
-  });
+  }
+
+  const onTime = clampSlotCount(day.slotsOnTime);
+  const autoQadha = clampSlotCount(day.slotsAutoQadha);
+  const qadha = clampSlotCount(day.slotsQadha);
+  // User-logged qadha is typically slotsQadha beyond auto-qadha.
+  const hasUserLog =
+    Boolean(day.allFiveOnTime) || onTime > 0 || qadha > autoQadha;
+
+  return {
+    day: day.dayLabel,
+    date: day.date,
+    statuses: mapFiveDailyStatusesFromCounts(day),
+    hasUserLog,
+    isToday,
+    isFuture: false,
+    isMenstruating: false,
+  };
+}
+
+/** Five Daily frame week: always 5 arcs from FAJR→ISHA slots. */
+export function mapFiveDailyFrameWeekDays(
+  frame: PrayerGoalFrameData,
+): DayProgress[] {
+  return frame.week.days.map(mapFiveDailyFrameDayProgress);
+}
+
+/** Home `obligatoryPrayers.card.days` — same shape as prayer frame days. */
+export function mapFiveDailyDaysToWeekProgress(
+  days: PrayerGoalFrameDay[],
+): DayProgress[] {
+  return days.map(mapFiveDailyFrameDayProgress);
 }
 
 function sunnahPrayersPerDayToWeight(prayersPerDay: number): 1 | 2 {
