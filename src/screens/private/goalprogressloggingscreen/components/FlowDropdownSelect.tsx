@@ -139,8 +139,6 @@ export function FlowDropdownSelect<T extends string>({
   return (
     <View
       style={[styles.flowDropdownWrapper, isOpen && { zIndex: 30 }]}
-      onStartShouldSetResponder={() => isOpen}
-      onMoveShouldSetResponder={() => isOpen}
     >
       {/*
         Selector + overlay menu share one relative box so `top: 100%` is
@@ -175,10 +173,7 @@ export function FlowDropdownSelect<T extends string>({
         </TouchableOpacity>
 
         {isOpen && !isInline ? (
-          <View
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}
-          >
+          <View>
             <ScrollView
               style={[styles.flowDropdownMenu, menuStyle]}
               nestedScrollEnabled

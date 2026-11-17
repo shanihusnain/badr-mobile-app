@@ -46,17 +46,25 @@ function isLoggedState(state: string): boolean {
 
 /**
  * At most one best day per week.
- * Prefer the backend `isBestDay` flag; if none, fall back to the first
- * day that matches the week's max amount (avoids marking every tied day).
+ * Prefer the latest backend `isBestDay` flag; if none, fall back to the
+ * latest day that matches the week's max amount so ties resolve to the newest log.
  */
 function resolveSingleBestDayIndex(days: SadaqahGoalFrameDay[]): number {
-  const fromBackend = days.findIndex((d) => Boolean(d.isBestDay));
-  if (fromBackend >= 0) return fromBackend;
+  const backendBestIndexes = days
+    .map((day, index) => (Boolean(day.isBestDay) ? index : -1))
+    .filter((index) => index >= 0);
+  if (backendBestIndexes.length > 0) {
+    return backendBestIndexes[backendBestIndexes.length - 1];
+  }
 
   const amounts = days.map(dayAmount);
   const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
   if (bestAmount <= 0) return -1;
-  return amounts.findIndex((n) => n === bestAmount);
+
+  const maxIndexes = amounts
+    .map((amount, index) => (amount === bestAmount ? index : -1))
+    .filter((index) => index >= 0);
+  return maxIndexes.length > 0 ? maxIndexes[maxIndexes.length - 1] : -1;
 }
 
 export function formatSadaqahFrameWeekRange(
@@ -443,7 +451,7 @@ function resolveKaffarahDayCategory(
 
 export function mapKaffarahFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestAmount?: number },
+  options?: { isBestDay?: boolean },
 ): KaffarahDayProgress {
   const count = dayAmount(day);
   const state = String(day.state ?? "")
@@ -454,12 +462,9 @@ export function mapKaffarahFrameDay(
   const category = isFuture ? null : resolveKaffarahDayCategory(day);
   const isLogged = count > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestAmount === "number" &&
-      options.bestAmount > 0 &&
-      count === options.bestAmount);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -481,9 +486,12 @@ export function mapKaffarahFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): KaffarahDayProgress[] {
   const days = frame.week?.days ?? [];
-  const amounts = days.map(dayAmount);
-  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapKaffarahFrameDay(day, { bestAmount }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapKaffarahFrameDay(day, {
+      isBestDay: index === bestIndex && bestIndex >= 0,
+    }),
+  );
 }
 
 export type KaffarahFrameWeekSummary = {
@@ -559,7 +567,7 @@ export function getKaffarahFrameFlowCardTitle(
 
 export function mapMissedZakatFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestAmount?: number },
+  options?: { isBestDay?: boolean },
 ): MissedZakatDayProgress {
   const amount = dayAmount(day);
   const state = String(day.state ?? "")
@@ -568,12 +576,9 @@ export function mapMissedZakatFrameDay(
   const isFuture = resolveIsFutureDay(day);
   const isLogged = amount > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestAmount === "number" &&
-      options.bestAmount > 0 &&
-      amount === options.bestAmount);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -593,9 +598,12 @@ export function mapMissedZakatFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): MissedZakatDayProgress[] {
   const days = frame.week?.days ?? [];
-  const amounts = days.map(dayAmount);
-  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapMissedZakatFrameDay(day, { bestAmount }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapMissedZakatFrameDay(day, {
+      isBestDay: index === bestIndex && bestIndex >= 0,
+    }),
+  );
 }
 
 export type MissedZakatFrameWeekSummary = {
@@ -644,7 +652,7 @@ export const MISSED_ZAKAT_LOADING_WEEK_SUMMARY: MissedZakatFrameWeekSummary = {
 
 export function mapFidyaFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestAmount?: number },
+  options?: { isBestDay?: boolean },
 ): FidyaDayProgress {
   const count = dayAmount(day);
   const state = String(day.state ?? "")
@@ -653,12 +661,9 @@ export function mapFidyaFrameDay(
   const isFuture = state === "FUTURE" || resolveIsFutureDay(day);
   const isLogged = count > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestAmount === "number" &&
-      options.bestAmount > 0 &&
-      count === options.bestAmount);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -678,9 +683,12 @@ export function mapFidyaFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): FidyaDayProgress[] {
   const days = frame.week?.days ?? [];
-  const amounts = days.map(dayAmount);
-  const bestAmount = amounts.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapFidyaFrameDay(day, { bestAmount }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapFidyaFrameDay(day, {
+      isBestDay: index === bestIndex && bestIndex >= 0,
+    }),
+  );
 }
 
 export type FidyaFrameWeekSummary = {
@@ -1017,7 +1025,7 @@ export const SADAQAH_JARIYAH_LOADING_WEEK_SUMMARY: SadaqahJariyahFrameWeekSummar
 
 export function mapVolunteeringFrameDay(
   day: SadaqahGoalFrameDay,
-  options?: { bestMinutes?: number },
+  options?: { isBestDay?: boolean },
 ): VolunteeringDayProgress {
   const minutesLogged = dayMinutes(day);
   const state = String(day.state ?? "")
@@ -1027,12 +1035,9 @@ export function mapVolunteeringFrameDay(
   const category = isFuture ? null : resolveVolunteeringCategory(day);
   const isLogged = minutesLogged > 0 || isLoggedState(state);
   const isBestDay =
-    Boolean(day.isBestDay) ||
-    (isLogged &&
-      !isFuture &&
-      typeof options?.bestMinutes === "number" &&
-      options.bestMinutes > 0 &&
-      minutesLogged === options.bestMinutes);
+    options?.isBestDay !== undefined
+      ? options.isBestDay
+      : Boolean(day.isBestDay);
 
   return {
     day:
@@ -1053,9 +1058,12 @@ export function mapVolunteeringFrameWeekDays(
   frame: SadaqahGoalFrameData,
 ): VolunteeringDayProgress[] {
   const days = frame.week?.days ?? [];
-  const minutes = days.map(dayMinutes);
-  const bestMinutes = minutes.reduce((max, n) => Math.max(max, n), 0);
-  return days.map((day) => mapVolunteeringFrameDay(day, { bestMinutes }));
+  const bestIndex = resolveSingleBestDayIndex(days);
+  return days.map((day, index) =>
+    mapVolunteeringFrameDay(day, {
+      isBestDay: index === bestIndex && bestIndex >= 0,
+    }),
+  );
 }
 
 export type VolunteeringFrameWeekSummary = {

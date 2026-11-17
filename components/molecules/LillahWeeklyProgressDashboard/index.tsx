@@ -72,6 +72,22 @@ function formatDayAmount(value: number, currencyCode: string): string {
   return `${currency} ${value}`;
 }
 
+function ensureSingleBestDay(days: LillahDayProgress[]): LillahDayProgress[] {
+  const flaggedIndexes = days
+    .map((day, index) =>
+      day.amount > 0 && day.category !== null && day.isBestDay ? index : -1,
+    )
+    .filter((index) => index >= 0);
+
+  if (flaggedIndexes.length <= 1) return days;
+
+  const winner = flaggedIndexes[flaggedIndexes.length - 1];
+  return days.map((day, index) => ({
+    ...day,
+    isBestDay: index === winner,
+  }));
+}
+
 function mapLillahDayToSinglePrayerDay(
   day: LillahDayProgress,
   currencyCode: string,
@@ -122,14 +138,22 @@ export function LillahWeeklyProgressDashboard({
     .trim()
     .toUpperCase();
 
+  const normalizedWeekDays = useMemo(
+    () => ensureSingleBestDay(weekDays),
+    [weekDays],
+  );
+
   const mappedWeekDays = useMemo(
-    () => weekDays.map((day) => mapLillahDayToSinglePrayerDay(day, currency)),
-    [weekDays, currency],
+    () =>
+      normalizedWeekDays.map((day) =>
+        mapLillahDayToSinglePrayerDay(day, currency),
+      ),
+    [normalizedWeekDays, currency],
   );
 
   const isGoalCompleted = useMemo(
-    () => weekDays.some((day) => day.isBlurDay),
-    [weekDays],
+    () => normalizedWeekDays.some((day) => day.isBlurDay),
+    [normalizedWeekDays],
   );
 
   const handleDeleteLog = useCallback(
@@ -142,7 +166,7 @@ export function LillahWeeklyProgressDashboard({
 
   const renderDayRing = useCallback(
     (args: SinglePrayerDayRingRenderArgs) => {
-      const lillahDay = weekDays[args.index];
+      const lillahDay = normalizedWeekDays[args.index];
       if (!lillahDay) return null;
 
       const hasLog = lillahDay.amount > 0 && lillahDay.category !== null;
@@ -160,7 +184,7 @@ export function LillahWeeklyProgressDashboard({
         />
       );
     },
-    [weekDays],
+    [normalizedWeekDays],
   );
 
   return (

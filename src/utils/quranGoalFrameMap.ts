@@ -1231,7 +1231,13 @@ export function getQuranFrameVsLastWeekDisplay(
   const raw = frame.week.vsLastWeek;
   if (raw == null || typeof raw === "number") return null;
   const display = raw.display?.trim();
-  if (display) return display;
+  if (display) {
+    const numericDisplay = Number(display);
+    if (Number.isFinite(numericDisplay)) {
+      return String(Number(numericDisplay.toFixed(2)));
+    }
+    return display;
+  }
   const value = toFiniteNumber(raw.value);
   if (value == null || value <= 0) return null;
   const hours = Math.floor(value / 60);

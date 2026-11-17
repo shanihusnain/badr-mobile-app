@@ -1,18 +1,16 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/theme";
-import { HouseWithHeartIcon } from "@/assets/icons/HouseWithHeartIcon";
-import { BulbIcon } from "@/assets/icons/BulbIcon";
-import {
-  SadaqahJariyahCloathIcon,
-  SadaqahJariyahMedicalAidIcon,
-  SadaqahJariyahMosqueIcon,
-  SadaqahJariyahReligiousIcon,
-  SadaqahJariyahSponsoringOrphanIcon,
-  SadaqahJariyahSpirtualIcon,
-  SadaqahJariyahTreePlantIcon,
-  SadaqahJariyahWaterWellIcon,
-} from "@/assets/icons";
+import { SvgComponent as HonoringParentsWhiteIcon } from "@/assets/icons/HonoringParentsWhiteIcon";
+import { SponsringOrphanWhiteIcon } from "@/assets/icons/SponsringOrphanWhiteIcon";
+import { BuildingWellsWhiteIcon } from "@/assets/icons/BuildingWellsWhiteIcon";
+import { SustainingMosqueWhiteIcon } from "@/assets/icons/SustainingMosqueWhiteIcon";
+import { SvgComponent as QuranWhiteIcon } from "@/assets/icons/QuranWhiteIcon";
+import { SvgComponent as SheltringLivesWhiteIcon } from "@/assets/icons/SheltringLivesWhiteIcon";
+import HealthCarewhiteIcon from "@/assets/icons/HealthCarewhiteIcon";
+import { SvgComponent as ProvidingKnowledgeWhiteIcon } from "@/assets/icons/ProvidingKnowledgeWhiteIcon";
+import { SvgComponent as CloathingWhiteIcon } from "@/assets/icons/CloathingWhiteIcon";
+import { SvgComponent as PlantingTreesWhiteIcon } from "@/assets/icons/PlantingTreesWhiteIcon";
 import type { SadaqahJariyahCategoryId } from "@/src/screens/private/goalprogressloggingscreen/sadaqahJariyahCategories";
 
 export type SadaqahJariyahRingCategory = SadaqahJariyahCategoryId | null;
@@ -42,27 +40,27 @@ function CategoryIcon({
 }) {
   switch (category) {
     case "honoring-parents":
-      return <SadaqahJariyahSpirtualIcon size={size} color={color} />;
+      return <HonoringParentsWhiteIcon size={size} color={color} />;
     case "sponsoring-orphans":
-      return <SadaqahJariyahSponsoringOrphanIcon size={size} color={color} />;
+      return <SponsringOrphanWhiteIcon size={size} color={color} />;
     case "building-wells":
-      return <SadaqahJariyahWaterWellIcon size={size} color={color} />;
+      return <BuildingWellsWhiteIcon size={size} color={color} />;
     case "sustaining-mosques":
-      return <SadaqahJariyahMosqueIcon size={size} color={color} />;
+      return <SustainingMosqueWhiteIcon size={size} color={color} />;
     case "teaching-quran":
-      return <SadaqahJariyahReligiousIcon size={size} color={color} />;
+      return <QuranWhiteIcon size={size} color={color} />;
     case "sheltering-lives":
-      return <HouseWithHeartIcon size={size} color={color} />;
+      return <SheltringLivesWhiteIcon size={size} color={color} />;
     case "providing-healthcare":
-      return <SadaqahJariyahMedicalAidIcon size={size} color={color} />;
+      return <HealthCarewhiteIcon size={size} color={color} />;
     case "spreading-knowledge":
-      return <BulbIcon size={size} color={color} />;
+      return <ProvidingKnowledgeWhiteIcon size={size} color={color} />;
     case "providing-clothing":
-      return <SadaqahJariyahCloathIcon size={size} color={color} />;
+      return <CloathingWhiteIcon size={size} color={color} />;
     case "planting-trees":
-      return <SadaqahJariyahTreePlantIcon size={size} color={color} />;
+      return <PlantingTreesWhiteIcon size={size} color={color} />;
     default:
-      return <SadaqahJariyahSpirtualIcon size={size} color={color} />;
+      return <HonoringParentsWhiteIcon size={size} color={color} />;
   }
 }
 
@@ -85,7 +83,9 @@ export function SadaqahJariyahDayRing({
   const showBestBoost = isBestDay && hasLog && !isFuture && !showEmptyOutline;
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
   // Keep glyphs inside the green ring (no overflow).
-  const iconSize = Math.round(circleSize * 0.55);
+  const iconSize = showBestBoost
+    ? Math.round(circleSize * 0.55)
+    : Math.round(circleSize * 0.62);
   const iconColor = isBestDay
     ? Colors.light.qiyamIconGold
     : Colors.light.white;
