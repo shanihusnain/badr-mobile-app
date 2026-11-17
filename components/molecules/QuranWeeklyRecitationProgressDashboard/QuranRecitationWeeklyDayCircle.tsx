@@ -41,9 +41,15 @@ export function QuranRecitationWeeklyDayCircle({
             borderRadius: size / 2,
           },
           isCompleted
-            ? [styles.ringInnerLogged, isSelected && styles.ringInnerLoggedToday]
+            ? [
+                styles.ringInnerLogged,
+                isSelected && styles.ringInnerLoggedToday,
+              ]
             : isPending
-              ? styles.ringInnerFuture
+              ? // Today (selected) pending → solid dark like SinglePrayerDayRing
+                isSelected
+                ? styles.ringInnerSelectedEmpty
+                : styles.ringInnerFuture
               : isNotLogged
                 ? isSelected
                   ? styles.ringInnerSelectedEmpty
@@ -82,6 +88,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderColor: "rgba(255, 255, 255, 0.28)",
   },
+  // Match Missed Ramadan / prayer `ringInnerFuture` outline.
   ringInnerFuture: {
     backgroundColor: "transparent",
     borderWidth: 1,

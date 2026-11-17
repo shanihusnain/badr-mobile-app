@@ -61,18 +61,23 @@ function mapMemorisationDayToSinglePrayerDay(
 ): SinglePrayerDayProgress {
   const dateKey = normalizeDayDate(day.date);
   const isToday = dateKey ? dateKey === getLocalTodayString() : !!day.isToday;
+  // Same as single-prayer: today with no progress → solid dark ring
+  // (`ringInnerSelectedEmpty`), not green and not a future outline.
+  const hasProgress = !!day.isLogged && day.ayahsLogged > 0;
 
   // Surah memorisation dashboards should prefer the backend ayah range label
   // (e.g. "1-4" / "5-15") over the plain total count when it is available.
-  const ayatLabel =
-    day.countLabel?.trim() ||
-    (day.ayahsLogged > 0 ? formatNumber(day.ayahsLogged) : undefined);
+  // Skip captions like "0/1" when nothing was logged (matches single prayer).
+  const ayatLabel = hasProgress
+    ? day.countLabel?.trim() ||
+      (useRangeLabelOnly ? undefined : formatNumber(day.ayahsLogged))
+    : undefined;
 
   return {
     day: day.day,
     date: dateKey ?? day.date,
-    prayersLogged: day.ayahsLogged,
-    isLogged: !!day.isLogged || day.ayahsLogged > 0,
+    prayersLogged: hasProgress ? day.ayahsLogged : 0,
+    isLogged: hasProgress,
     // Memorisation never surfaces BEST DAY — ignore backend flag.
     isBestDay: false,
     isToday,

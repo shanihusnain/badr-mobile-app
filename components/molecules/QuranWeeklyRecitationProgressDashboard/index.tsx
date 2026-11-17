@@ -89,7 +89,6 @@ function mapRecitationDayToSinglePrayerDay(
   const isToday = dateKey
     ? dateKey === getLocalTodayString()
     : day.dayType === "today";
-  const isFuture = day.dayType === "future";
   const logged = day.recitationsCompleted > 0;
   const denominator = Math.max(1, Math.round(dailyTarget) || 1);
 
@@ -101,7 +100,9 @@ function mapRecitationDayToSinglePrayerDay(
     // Recitation never surfaces BEST DAY — ignore backend flag.
     isBestDay: false,
     isToday,
-    isFuture: isToday ? false : isFuture,
+    // Today is never future — SinglePrayerDayRing + recitation ring both
+    // need this for solid dark today-empty (not future outline).
+    isFuture: isToday ? false : day.dayType === "future",
     canDelete: day.canDelete,
     durationLabel:
       showDayCount && day.recitationsCompleted > 0
@@ -159,14 +160,19 @@ function mapWeeklySurahDayToSinglePrayerDay(
   const isLogged = day.status === "completed" || count > 0;
   const denominator = Math.max(1, Math.round(targetCount) || 1);
 
+  const dateKey = normalizeDayDate(frameDay?.date);
+  const isToday = dateKey
+    ? dateKey === getLocalTodayString()
+    : frameDay?.dayType === "today";
+
   return {
     day: day.day,
     date: frameDay?.date,
     prayersLogged: count,
     isLogged,
     isBestDay: false,
-    isFuture: day.status === "pending",
-    isToday: frameDay?.dayType === "today",
+    isToday,
+    isFuture: isToday ? false : day.status === "pending",
     canDelete: frameDay?.canDelete,
     durationLabel:
       count > 0 ? `${formatNumber(count)}/${formatNumber(denominator)}` : undefined,

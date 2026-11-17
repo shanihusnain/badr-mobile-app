@@ -164,8 +164,10 @@ export function getSolidRecitationFillColor(
 ): string {
   const target = clampDailyRecitationTarget(dailyTarget);
 
+  // Future solid rings are drawn as transparent + grey border in the ring
+  // component (not a filled disc).
   if (dayType === "future") {
-    return Colors.light.calendarBg;
+    return "transparent";
   }
 
   if (completed >= target) {
@@ -174,6 +176,12 @@ export function getSolidRecitationFillColor(
 
   if (dayType === "past" && completed === 0) {
     return Colors.light.yellow;
+  }
+
+  // Today with no (or partial) progress — match SinglePrayerDayRing
+  // `ringInnerSelectedEmpty` solid dark fill.
+  if (dayType === "today") {
+    return Colors.light.greybuttonBackground;
   }
 
   return Colors.light.calendarBg;

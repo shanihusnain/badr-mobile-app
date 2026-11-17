@@ -54,30 +54,43 @@ function normalizeFrameDate(value?: string | null): string | null {
   return parsed.isValid() ? parsed.format("YYYY-MM-DD") : null;
 }
 
+function getLocalTodayDateKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function resolveIsToday(day: QuranGoalFrameDay): boolean {
   const dateKey = normalizeFrameDate(day.date);
-  if (dateKey) return dateKey === moment().format("YYYY-MM-DD");
+  // Prefer device-local calendar day (avoid moment-hijri format quirks).
+  if (dateKey) return dateKey === getLocalTodayDateKey();
   return Boolean(day.isToday);
 }
 
 function hasQuranFrameDayActivity(day: QuranGoalFrameDay): boolean {
   const state = String(day.state ?? "").toUpperCase();
+  const fulfilment = String(day.fulfilment ?? "").toUpperCase();
   // MISSED / UPCOMING / EMPTY / NONE are not logged activity — do not paint green.
+  // Also honour fulfilment when state is missing/ambiguous (e.g. valueDisplay "0/1").
   if (
     state === "MISSED" ||
     state === "UPCOMING" ||
     state === "EMPTY" ||
-    state === "NONE"
+    state === "NONE" ||
+    fulfilment === "MISSED" ||
+    fulfilment === "UPCOMING" ||
+    fulfilment === "EMPTY" ||
+    fulfilment === "NONE"
   ) {
     return false;
   }
+  const value = getQuranFrameDayMinutes(day);
+  if (value > 0) return true;
+  // valueDisplay like "0/1" is a target caption, not progress — never treat as logged.
   return (
-    getQuranFrameDayMinutes(day) > 0 ||
     state === "LOGGED" ||
     state === "COMPLETE" ||
     state === "BEST_DAY" ||
-    state === "PARTIAL" ||
-    Boolean(day.valueDisplay?.trim())
+    state === "PARTIAL"
   );
 }
 
@@ -135,16 +148,22 @@ export function mapQuranMemorisationFrameWeekDays(
   return frame.week.days.map((day) => {
     const ayahsLogged = getQuranFrameDayMinutes(day);
     const isToday = resolveIsToday(day);
-    const isFuture = resolveIsFutureDay(day);
+    // Today is never "future" — keeps SinglePrayerDayRing on solid dark
+    // today-empty (`greybuttonBackground`) for UPCOMING / 0 progress.
+    const isFuture = isToday ? false : resolveIsFutureDay(day);
     const state = String(day.state ?? "").toUpperCase();
     const isMissed = state === "MISSED";
-    const isLogged = !isFuture && !isMissed && hasQuranFrameDayActivity(day);
-    const countLabel = day.valueDisplay?.trim() || undefined;
+    const isLogged =
+      !isFuture && !isMissed && ayahsLogged > 0 && hasQuranFrameDayActivity(day);
+    const countLabel =
+      isLogged && day.valueDisplay?.trim()
+        ? day.valueDisplay.trim()
+        : undefined;
 
     return {
       day: day.dayLabel,
       date: normalizeFrameDate(day.date) ?? day.date,
-      ayahsLogged,
+      ayahsLogged: isLogged ? ayahsLogged : 0,
       isLogged,
       isBestDay: false,
       isToday,
@@ -161,12 +180,15 @@ export function mapQuranRecitationFrameWeekDays(
   frame: QuranGoalFrameData,
 ): QuranRecitationDayProgress[] {
   return frame.week.days.map((day) => {
-    const recitationsCompleted = getQuranFrameDayMinutes(day);
+    const value = getQuranFrameDayMinutes(day);
     const isToday = resolveIsToday(day);
-    const isFuture = resolveIsFutureDay(day);
+    // Today is never future — keeps today-empty on solid dark ring styling.
+    const isFuture = isToday ? false : resolveIsFutureDay(day);
     const state = String(day.state ?? "").toUpperCase();
     const isMissed = state === "MISSED";
-    const isLogged = !isFuture && !isMissed && hasQuranFrameDayActivity(day);
+    const isLogged =
+      !isFuture && !isMissed && value > 0 && hasQuranFrameDayActivity(day);
+    const recitationsCompleted = isLogged ? value : 0;
 
     return {
       day: day.dayLabel,

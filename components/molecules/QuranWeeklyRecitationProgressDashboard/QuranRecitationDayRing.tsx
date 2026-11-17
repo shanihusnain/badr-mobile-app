@@ -28,30 +28,45 @@ export function QuranRecitationDayRing({
   isSelected,
 }: Props) {
   const target = clampDailyRecitationTarget(dailyTarget);
-  const isFuture = day.dayType === "future";
-  const fadeAnim = useRef(new Animated.Value(isFuture ? 0.38 : 1)).current;
+  // Chip selection is the source of truth for "today" — never fade/outline
+  // today's empty ring as a future day (UPCOMING backend days).
+  const effectiveDayType =
+    isSelected && day.dayType === "future" ? "today" : day.dayType;
+  const isFuture = effectiveDayType === "future";
+  const isTodayEmpty =
+    effectiveDayType === "today" && day.recitationsCompleted < target;
+  // Multi-arc future segments keep a soft fade; solid (target=1) future is a
+  // bordered outline at full opacity (same as SinglePrayerDayRing).
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const showBestDayStar = false;
 
   useEffect(() => {
+    const nextOpacity = isFuture && target > 1 ? 0.38 : 1;
     Animated.timing(fadeAnim, {
-      toValue: isFuture ? 0.38 : 1,
+      toValue: nextOpacity,
       duration: 220,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim, isFuture]);
+  }, [fadeAnim, isFuture, target]);
 
   const segmentStates = useMemo(
     () =>
-      getRecitationSegmentStates(day.recitationsCompleted, target, day.dayType),
-    [day.dayType, day.recitationsCompleted, target],
+      getRecitationSegmentStates(
+        day.recitationsCompleted,
+        target,
+        effectiveDayType,
+      ),
+    [day.recitationsCompleted, effectiveDayType, target],
   );
 
   if (target === 1) {
-    const fillColor = getSolidRecitationFillColor(
-      day.recitationsCompleted,
-      target,
-      day.dayType,
-    );
+    const fillColor = isFuture
+      ? "transparent"
+      : getSolidRecitationFillColor(
+          day.recitationsCompleted,
+          target,
+          effectiveDayType,
+        );
     const circleSize = showBestDayStar ? size + BEST_DAY_SIZE_BOOST : size;
     const starSize = Math.max(10, Math.round(circleSize * 0.62));
 
@@ -65,7 +80,6 @@ export function QuranRecitationDayRing({
             borderRadius: (size + BEST_DAY_SIZE_BOOST + 5) / 2,
             opacity: fadeAnim,
           },
-          isSelected && styles.ringOuterSelected,
         ]}
       >
         <View
@@ -77,6 +91,10 @@ export function QuranRecitationDayRing({
               borderRadius: circleSize / 2,
               backgroundColor: fillColor,
             },
+            // Match SinglePrayerDayRing `ringInnerSelectedEmpty`.
+            isTodayEmpty && styles.solidInnerTodayEmpty,
+            // Future = grey bordered ring, not solid fill.
+            isFuture && styles.solidInnerFuture,
           ]}
         >
           {showBestDayStar ? (
@@ -159,6 +177,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "visible",
+  },
+  solidInnerTodayEmpty: {
+    backgroundColor: Colors.light.greybuttonBackground,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.32)",
+  },
+  // Match Missed Ramadan / prayer `ringInnerFuture` outline.
+  solidInnerFuture: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.32)",
   },
   starWrap: {
     alignItems: "center",

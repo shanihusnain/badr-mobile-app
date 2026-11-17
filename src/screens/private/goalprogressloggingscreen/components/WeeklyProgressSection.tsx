@@ -554,7 +554,7 @@ export function WeeklyProgressSection({
       setWeekNumber: setBrowseWeekNumber,
     };
   }, [screenQuranFrame, browse, setBrowseWeekNumber]);
-
+  console.log("quran frame is loading", quranFrame);
   const fastingFrame = useMemo(() => {
     if (!screenFastingFrame) return null;
     const browseActive = browse?.kind === "fasting";
@@ -1012,35 +1012,35 @@ export function WeeklyProgressSection({
     }
 
     if (juzMemorisationWeek) {
-    return (
-      <QuranMemorisationWeeklyProgressDashboard
-        weekDays={juzMemorisationWeek.weekDays}
-        weekRangeLabel={juzMemorisationWeek.weekRangeLabel}
+      return (
+        <QuranMemorisationWeeklyProgressDashboard
+          weekDays={juzMemorisationWeek.weekDays}
+          weekRangeLabel={juzMemorisationWeek.weekRangeLabel}
           weekFraction={juzMemorisationWeek.weekFraction}
-        surahName={juzMemorisationWeek.juzName}
-        totalAyahsThisWeek={juzMemorisationWeek.totalAyahsThisWeek}
-        memorizedAyahs={juzMemorisationWeek.memorizedAyahs}
-        totalAyahs={juzMemorisationWeek.totalAyahs}
-        remainingAyahs={juzMemorisationWeek.remainingAyahs}
-        progressPercent={juzMemorisationWeek.progressPercent}
-        completed={juzMemorisationWeek.completed}
-        streakDays={juzMemorisationWeek.streakDays}
-        motivationalQuote={t(juzMemorisationWeek.motivationalQuoteKey)}
-        currentWeek={juzMemorisationWeek.currentWeek}
+          surahName={juzMemorisationWeek.juzName}
+          totalAyahsThisWeek={juzMemorisationWeek.totalAyahsThisWeek}
+          memorizedAyahs={juzMemorisationWeek.memorizedAyahs}
+          totalAyahs={juzMemorisationWeek.totalAyahs}
+          remainingAyahs={juzMemorisationWeek.remainingAyahs}
+          progressPercent={juzMemorisationWeek.progressPercent}
+          completed={juzMemorisationWeek.completed}
+          streakDays={juzMemorisationWeek.streakDays}
+          motivationalQuote={t(juzMemorisationWeek.motivationalQuoteKey)}
+          currentWeek={juzMemorisationWeek.currentWeek}
           loading={quranFrame ? frameLoading || !quranFrame.isError : false}
           quranGoalType="MEMORIZATION_JUZ"
           itemNumber={quranFrame?.itemNumber ?? null}
           itemType="JUZ"
-        onPrevWeek={
-          canNavigateJuzMemorisationWeek(weekIndex, "prev")
-            ? handleJuzMemorisationPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateJuzMemorisationWeek(weekIndex, "next")
-            ? handleJuzMemorisationNextWeek
-            : undefined
-        }
+          onPrevWeek={
+            canNavigateJuzMemorisationWeek(weekIndex, "prev")
+              ? handleJuzMemorisationPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateJuzMemorisationWeek(weekIndex, "next")
+              ? handleJuzMemorisationNextWeek
+              : undefined
+          }
         />
       );
     }
@@ -1076,8 +1076,8 @@ export function WeeklyProgressSection({
       const progress = getQuranFrameMemorisationProgress(frame);
       const weekFraction = getQuranFrameWeekFraction(frame);
 
-    return (
-      <QuranMemorisationWeeklyProgressDashboard
+      return (
+        <QuranMemorisationWeeklyProgressDashboard
           key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? frame.items?.[0]?.itemNumber ?? "all"}`}
           weekDays={mapQuranMemorisationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
@@ -1099,16 +1099,16 @@ export function WeeklyProgressSection({
           quranGoalType={frame.quranGoalType || "MEMORIZATION_HIZB"}
           itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
           itemType={getQuranFrameActiveItemType(frame) ?? "HIZB"}
-        onPrevWeek={
+          onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
-            : undefined
-        }
-        onNextWeek={
+              : undefined
+          }
+          onNextWeek={
             canNext
               ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
-            : undefined
-        }
+              : undefined
+          }
         />
       );
     }
@@ -1143,8 +1143,8 @@ export function WeeklyProgressSection({
       const progress = getQuranFrameMemorisationProgress(frame);
       const weekFraction = getQuranFrameWeekFraction(frame);
 
-    return (
-      <QuranMemorisationWeeklyProgressDashboard
+      return (
+        <QuranMemorisationWeeklyProgressDashboard
           key={`${frame.week.weekNumber}-${quranFrame.itemNumber ?? frame.items?.[0]?.itemNumber ?? "all"}`}
           weekDays={mapQuranMemorisationFrameWeekDays(frame)}
           weekRangeLabel={getQuranFrameWeekRangeLabel(frame)}
@@ -1166,19 +1166,19 @@ export function WeeklyProgressSection({
           quranGoalType={frame.quranGoalType || "MEMORIZATION_SURAH"}
           itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
           itemType={getQuranFrameActiveItemType(frame) ?? "SURAH"}
-        onPrevWeek={
+          onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
-            : undefined
-        }
-        onNextWeek={
+              : undefined
+          }
+          onNextWeek={
             canNext
               ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
-            : undefined
-        }
-      />
-    );
-  }
+              : undefined
+          }
+        />
+      );
+    }
 
     return (
       <QuranMemorisationWeeklyProgressDashboard
@@ -1257,18 +1257,18 @@ export function WeeklyProgressSection({
     }
 
     if (quranWeek) {
-    return (
-      <QuranHoursWeeklyProgressDashboard
-        weekDays={quranWeek.weekDays}
-        weekRangeLabel={quranWeek.weekRangeLabel}
-        weekFraction={quranWeek.weekFraction}
-        totalMinutesThisWeek={quranWeek.totalMinutesThisWeek}
-        streakDays={quranWeek.streakDays}
-        motivationalQuote={t(quranWeek.motivationalQuoteKey)}
-        statsIcon={statsIcon}
-      />
-    );
-  }
+      return (
+        <QuranHoursWeeklyProgressDashboard
+          weekDays={quranWeek.weekDays}
+          weekRangeLabel={quranWeek.weekRangeLabel}
+          weekFraction={quranWeek.weekFraction}
+          totalMinutesThisWeek={quranWeek.totalMinutesThisWeek}
+          streakDays={quranWeek.streakDays}
+          motivationalQuote={t(quranWeek.motivationalQuoteKey)}
+          statsIcon={statsIcon}
+        />
+      );
+    }
 
     return null;
   }
@@ -1331,19 +1331,19 @@ export function WeeklyProgressSection({
         hasFullCompletion: false,
       }));
 
-    return (
-      <QuranWeeklyRecitationProgressDashboard
-        weekDays={[]}
-        weekRangeLabel={quranJuzWeek.weekRangeLabel}
-        weekFraction={quranJuzWeek.weekFraction}
-        visualizationMode="juz"
+      return (
+        <QuranWeeklyRecitationProgressDashboard
+          weekDays={[]}
+          weekRangeLabel={quranJuzWeek.weekRangeLabel}
+          weekFraction={quranJuzWeek.weekFraction}
+          visualizationMode="juz"
           completionWeekDays={emptyDays}
-        completionTarget={quranJuzWeek.targetCompletions}
+          completionTarget={quranJuzWeek.targetCompletions}
           completionsLoggedThisWeek={0}
           juzCompletedThisWeek={0}
           streakDays={0}
           vsLastWeek={null}
-        motivationalQuote={t(quranJuzWeek.motivationalQuoteKey)}
+          motivationalQuote={t(quranJuzWeek.motivationalQuoteKey)}
           loading={Boolean(quranFrame) && !quranFrame?.isError}
           quranGoalType="RECITATION_JUZ"
         />
@@ -1403,19 +1403,19 @@ export function WeeklyProgressSection({
           loading={frameLoading}
           isGoalCompleted={completionProgress.achievementPct >= 100}
           quranGoalType={frame.quranGoalType || "RECITATION_COMPLETION"}
-        onPrevWeek={
+          onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
               : undefined
-        }
-        onNextWeek={
+          }
+          onNextWeek={
             canNext
               ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
               : undefined
-        }
-      />
-    );
-  }
+          }
+        />
+      );
+    }
 
     // No frame yet — empty week strip (never navigate into future mock weeks).
     if (quranCompletionWeek && completionCycle) {
@@ -1432,17 +1432,17 @@ export function WeeklyProgressSection({
         hasFullCompletion: false,
       }));
 
-    return (
-      <QuranWeeklyRecitationProgressDashboard
-        weekDays={[]}
-        weekRangeLabel={quranCompletionWeek.weekRangeLabel}
-        weekFraction={quranCompletionWeek.weekFraction}
-        visualizationMode="completion"
+      return (
+        <QuranWeeklyRecitationProgressDashboard
+          weekDays={[]}
+          weekRangeLabel={quranCompletionWeek.weekRangeLabel}
+          weekFraction={quranCompletionWeek.weekFraction}
+          visualizationMode="completion"
           completionWeekDays={emptyDays}
-        completionTarget={quranCompletionWeek.targetCompletions}
+          completionTarget={quranCompletionWeek.targetCompletions}
           completionsLoggedThisWeek={0}
           streakDays={0}
-        motivationalQuote={t(quranCompletionWeek.motivationalQuoteKey)}
+          motivationalQuote={t(quranCompletionWeek.motivationalQuoteKey)}
           loading={Boolean(quranFrame) && !quranFrame?.isError}
           quranGoalType="RECITATION_COMPLETION"
         />
@@ -1491,16 +1491,16 @@ export function WeeklyProgressSection({
           quranGoalType={frame.quranGoalType || "RECITATION_SURAH"}
           itemNumber={getQuranFrameActiveItemNumber(quranFrame, frame)}
           itemType={getQuranFrameActiveItemType(frame) ?? "SURAH"}
-        onPrevWeek={
+          onPrevWeek={
             canPrev
               ? () => shiftQuranFrameWeek(quranFrame, frame, -1)
-            : undefined
-        }
-        onNextWeek={
+              : undefined
+          }
+          onNextWeek={
             canNext
               ? () => shiftQuranFrameWeek(quranFrame, frame, 1)
-            : undefined
-        }
+              : undefined
+          }
         />
       );
     }
@@ -1636,27 +1636,27 @@ export function WeeklyProgressSection({
     }
 
     if (missedRamadanWeek) {
-    const missedRamadanTodayIndex = getMissedRamadanFastTodayIndexInWeek(
-      missedRamadanWeek.weekDays,
-    );
+      const missedRamadanTodayIndex = getMissedRamadanFastTodayIndexInWeek(
+        missedRamadanWeek.weekDays,
+      );
 
-    return (
-      <MissedRamadanFastsWeeklyProgressDashboard
-        weekSummary={missedRamadanWeek}
-        selectedDayIndex={missedRamadanTodayIndex}
+      return (
+        <MissedRamadanFastsWeeklyProgressDashboard
+          weekSummary={missedRamadanWeek}
+          selectedDayIndex={missedRamadanTodayIndex}
           onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateMissedRamadanFastWeek(weekIndex, "prev")
-            ? handleMissedRamadanPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateMissedRamadanFastWeek(weekIndex, "next")
-            ? handleMissedRamadanNextWeek
-            : undefined
-        }
-      />
-    );
+          onPrevWeek={
+            canNavigateMissedRamadanFastWeek(weekIndex, "prev")
+              ? handleMissedRamadanPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateMissedRamadanFastWeek(weekIndex, "next")
+              ? handleMissedRamadanNextWeek
+              : undefined
+          }
+        />
+      );
     }
   }
 
@@ -1705,27 +1705,27 @@ export function WeeklyProgressSection({
     }
 
     if (mondayThursdayWeek) {
-    const mondayThursdayTodayIndex = getMondayThursdayFastTodayIndexInWeek(
-      mondayThursdayWeek.weekDays,
-    );
+      const mondayThursdayTodayIndex = getMondayThursdayFastTodayIndexInWeek(
+        mondayThursdayWeek.weekDays,
+      );
 
-    return (
-      <MondayThursdayFastsWeeklyProgressDashboard
-        weekSummary={mondayThursdayWeek}
-        selectedDayIndex={mondayThursdayTodayIndex}
+      return (
+        <MondayThursdayFastsWeeklyProgressDashboard
+          weekSummary={mondayThursdayWeek}
+          selectedDayIndex={mondayThursdayTodayIndex}
           onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateMondayThursdayFastWeek(weekIndex, "prev")
-            ? handleMondayThursdayPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateMondayThursdayFastWeek(weekIndex, "next")
-            ? handleMondayThursdayNextWeek
-            : undefined
-        }
-      />
-    );
+          onPrevWeek={
+            canNavigateMondayThursdayFastWeek(weekIndex, "prev")
+              ? handleMondayThursdayPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateMondayThursdayFastWeek(weekIndex, "next")
+              ? handleMondayThursdayNextWeek
+              : undefined
+          }
+        />
+      );
     }
   }
 
@@ -1773,27 +1773,27 @@ export function WeeklyProgressSection({
     }
 
     if (whiteDaysWeek) {
-    const whiteDaysTodayIndex = getWhiteDaysFastTodayIndexInWeek(
-      whiteDaysWeek.weekDays,
-    );
+      const whiteDaysTodayIndex = getWhiteDaysFastTodayIndexInWeek(
+        whiteDaysWeek.weekDays,
+      );
 
-    return (
-      <WhiteDaysFastsWeeklyProgressDashboard
-        weekSummary={whiteDaysWeek}
-        selectedDayIndex={whiteDaysTodayIndex}
+      return (
+        <WhiteDaysFastsWeeklyProgressDashboard
+          weekSummary={whiteDaysWeek}
+          selectedDayIndex={whiteDaysTodayIndex}
           onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateWhiteDaysFastWeek(weekIndex, "prev")
-            ? handleWhiteDaysPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateWhiteDaysFastWeek(weekIndex, "next")
-            ? handleWhiteDaysNextWeek
-            : undefined
-        }
-      />
-    );
+          onPrevWeek={
+            canNavigateWhiteDaysFastWeek(weekIndex, "prev")
+              ? handleWhiteDaysPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateWhiteDaysFastWeek(weekIndex, "next")
+              ? handleWhiteDaysNextWeek
+              : undefined
+          }
+        />
+      );
     }
   }
 
@@ -1842,27 +1842,27 @@ export function WeeklyProgressSection({
     }
 
     if (prophetDawoodWeek) {
-    const prophetDawoodTodayIndex = getProphetDawoodFastTodayIndexInWeek(
-      prophetDawoodWeek.weekDays,
-    );
+      const prophetDawoodTodayIndex = getProphetDawoodFastTodayIndexInWeek(
+        prophetDawoodWeek.weekDays,
+      );
 
-    return (
-      <ProphetDawoodFastsWeeklyProgressDashboard
-        weekSummary={prophetDawoodWeek}
-        selectedDayIndex={prophetDawoodTodayIndex}
+      return (
+        <ProphetDawoodFastsWeeklyProgressDashboard
+          weekSummary={prophetDawoodWeek}
+          selectedDayIndex={prophetDawoodTodayIndex}
           onDeleted={onDeleted}
-        onPrevWeek={
-          canNavigateProphetDawoodFastWeek(weekIndex, "prev")
-            ? handleProphetDawoodPrevWeek
-            : undefined
-        }
-        onNextWeek={
-          canNavigateProphetDawoodFastWeek(weekIndex, "next")
-            ? handleProphetDawoodNextWeek
-            : undefined
-        }
-      />
-    );
+          onPrevWeek={
+            canNavigateProphetDawoodFastWeek(weekIndex, "prev")
+              ? handleProphetDawoodPrevWeek
+              : undefined
+          }
+          onNextWeek={
+            canNavigateProphetDawoodFastWeek(weekIndex, "next")
+              ? handleProphetDawoodNextWeek
+              : undefined
+          }
+        />
+      );
     }
   }
 
@@ -2118,8 +2118,8 @@ export function WeeklyProgressSection({
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
-    return (
-      <DuhaPrayerWeeklyProgressDashboard
+      return (
+        <DuhaPrayerWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2171,8 +2171,8 @@ export function WeeklyProgressSection({
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
-    return (
-      <TawbahPrayerWeeklyProgressDashboard
+      return (
+        <TawbahPrayerWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2224,8 +2224,8 @@ export function WeeklyProgressSection({
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
-    return (
-      <IstikharaPrayerWeeklyProgressDashboard
+      return (
+        <IstikharaPrayerWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2277,8 +2277,8 @@ export function WeeklyProgressSection({
         ? () => shiftPrayerFrameWeek(prayerFrame, frame, 1)
         : undefined;
 
-    return (
-      <ShukrPrayerWeeklyProgressDashboard
+      return (
+        <ShukrPrayerWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapPrayerFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2324,8 +2324,8 @@ export function WeeklyProgressSection({
       const canPrev = activeWeek > 1;
       const canNext = canNavigatePrayerFrameWeekNext(frame);
 
-    return (
-      <QiyamWeeklyProgressDashboard
+      return (
+        <QiyamWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapQiyamFrameWeekDays(frame, { gender: qiyamGender })}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2393,8 +2393,8 @@ export function WeeklyProgressSection({
       const canPrev = activeWeek > 1;
       const canNext = canNavigatePrayerFrameWeekNext(frame);
 
-    return (
-      <SunnahRawatibWeeklyProgressDashboard
+      return (
+        <SunnahRawatibWeeklyProgressDashboard
           key={frame.cycle.weekNumber}
           weekDays={mapSunnahFrameWeekDays(frame)}
           weekRangeLabel={formatPrayerFrameWeekRange(
@@ -2625,8 +2625,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-    return (
-      <KaffarahWeeklyProgressDashboard
+        return (
+          <KaffarahWeeklyProgressDashboard
             weekDays={kaffarahWeekFromFrame.weekDays}
             weekRangeLabel={kaffarahWeekFromFrame.weekRangeLabel}
             weekFraction={kaffarahWeekFromFrame.weekFraction}
@@ -2702,8 +2702,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-    return (
-      <FidyaWeeklyProgressDashboard
+        return (
+          <FidyaWeeklyProgressDashboard
             weekDays={fidyaWeekFromFrame.weekDays}
             weekRangeLabel={fidyaWeekFromFrame.weekRangeLabel}
             weekFraction={fidyaWeekFromFrame.weekFraction}
@@ -2778,8 +2778,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-    return (
-      <LillahWeeklyProgressDashboard
+        return (
+          <LillahWeeklyProgressDashboard
             weekDays={lillahWeekFromFrame.weekDays}
             weekRangeLabel={lillahWeekFromFrame.weekRangeLabel}
             weekFraction={lillahWeekFromFrame.weekFraction}
@@ -2855,8 +2855,8 @@ export function WeeklyProgressSection({
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-    return (
-      <SadaqahJariyahWeeklyProgressDashboard
+        return (
+          <SadaqahJariyahWeeklyProgressDashboard
             weekDays={jariyahWeekFromFrame.weekDays}
             weekRangeLabel={jariyahWeekFromFrame.weekRangeLabel}
             weekFraction={jariyahWeekFromFrame.weekFraction}
@@ -2926,18 +2926,21 @@ export function WeeklyProgressSection({
       const frameLoading = isSadaqahFrameDashboardLoading(sadaqahFrame, frame);
 
       if (frame) {
-        const volunteeringWeekFromFrame = mapVolunteeringFrameWeekSummary(frame);
+        const volunteeringWeekFromFrame =
+          mapVolunteeringFrameWeekSummary(frame);
         const canPrev =
           frame.week.hasPrevious ??
           getSadaqahFrameActiveWeek(sadaqahFrame, frame) > 1;
         const canNext = canNavigateSadaqahFrameWeekNext(frame);
 
-    return (
-      <VolunteeringWeeklyProgressDashboard
+        return (
+          <VolunteeringWeeklyProgressDashboard
             weekDays={volunteeringWeekFromFrame.weekDays}
             weekRangeLabel={volunteeringWeekFromFrame.weekRangeLabel}
             weekFraction={volunteeringWeekFromFrame.weekFraction}
-            totalMinutesThisWeek={volunteeringWeekFromFrame.totalMinutesThisWeek}
+            totalMinutesThisWeek={
+              volunteeringWeekFromFrame.totalMinutesThisWeek
+            }
             streakDays={volunteeringWeekFromFrame.streakDays}
             vsLastWeek={volunteeringWeekFromFrame.vsLastWeek}
             vsLastWeekDisplay={volunteeringWeekFromFrame.vsLastWeekDisplay}
