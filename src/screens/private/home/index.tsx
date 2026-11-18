@@ -1426,41 +1426,35 @@ export default function HomeScreen() {
           })}
         </ScrollView>
 
-        {visibleDashboardSubGoals.length > 0 ? (
-          <View style={styles.dashboardCardsList}>
-            {visibleDashboardSubGoals.map((goal) => {
-              const iconColor = Colors.light.white;
-              const icon = goal.goalId ? (
-                getDetailedIbadahIcon(goal.goalId, iconColor)
-              ) : (
-                <FontAwesome6
-                  name="person-praying"
-                  size={19}
-                  color={
-                    HOME_DASHBOARD_CATEGORY_COLOR[goal.uiCategory] ??
-                    Colors.light.ringPrayer
-                  }
-                />
-              );
-              return (
-                <DetailedIbadahsProgressCard
-                  key={goal.id}
-                  category={goal.uiCategory}
-                  title={goal.title}
-                  subtitleCount={goal.subtitleCount}
-                  subtitleLabel={goal.subtitleLabel}
-                  icon={icon}
-                  iconBgColor={Colors.light.ibadahIconCircleBg}
-                  percentage={goal.percentage}
-                  progressColor={goal.progressColor}
-                  centerIconOnMultiLine={
-                    goal.goalId?.startsWith("quran-") ?? false
-                  }
-                />
-              );
-            })}
-          </View>
-        ) : null}
+        {visibleDashboardSubGoals.map((goal) => {
+          const iconColor = Colors.light.white;
+          const icon = goal.goalId ? (
+            getDetailedIbadahIcon(goal.goalId, iconColor)
+          ) : (
+            <FontAwesome6
+              name="person-praying"
+              size={19}
+              color={
+                HOME_DASHBOARD_CATEGORY_COLOR[goal.uiCategory] ??
+                Colors.light.ringPrayer
+              }
+            />
+          );
+          return (
+            <DetailedIbadahsProgressCard
+              key={goal.id}
+              category={goal.uiCategory}
+              title={goal.title}
+              subtitleCount={goal.subtitleCount}
+              subtitleLabel={goal.subtitleLabel}
+              icon={icon}
+              iconBgColor={Colors.light.ibadahIconCircleBg}
+              percentage={goal.percentage}
+              progressColor={goal.progressColor}
+              centerIconOnMultiLine={goal.goalId?.startsWith("quran-") ?? false}
+            />
+          );
+        })}
 
         {canExpandDashboard ? (
           <TouchableOpacity

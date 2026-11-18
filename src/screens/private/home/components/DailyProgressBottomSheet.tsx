@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
       color: Colors.light.white,
     }),
   },
-  listContainer: { gap: 16, paddingBottom: 20 },
+  listContainer: { paddingBottom: 20 },
   loadingContainer: {
     width: "100%",
     alignItems: "center",

@@ -1,13 +1,11 @@
 import { TopSpace } from "@/components/atoms/TopSpace";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
-import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import {
-  buildCategoryBreakdown,
-  buildCycleWeeklyChartData,
-  buildWeeklyChartData,
   formatTotalTime,
   getPeriodRangeLabel,
   transformBackendChartData,
@@ -46,11 +44,17 @@ export function TimeSpentOverview({
     setCurrentEndDate(selectedDate);
   }, [selectedDate]);
 
-  const { data: timeSpentData } = useGetHomeScreenTimeSpent({
+  const {
+    data: timeSpentData,
+    isLoading,
+    isFetching,
+  } = useGetHomeScreenTimeSpent({
     period: selectedPeriod === "week" ? "W" : "M",
     category: "ALL",
     endDate: currentEndDate || selectedDate,
   });
+
+  const isChartLoading = isLoading || (isFetching && !timeSpentData);
 
   const showDeltaChip = Boolean(timeSpentData?.badge?.label);
   const deltaIsPositive = timeSpentData?.badge?.direction === "UP";
@@ -59,10 +63,8 @@ export function TimeSpentOverview({
     () =>
       timeSpentData?.bars && timeSpentData.bars.length > 0
         ? transformBackendChartData(timeSpentData.bars, selectedPeriod)
-        : selectedPeriod === "week"
-          ? buildWeeklyChartData(weekOffset, "All")
-          : buildCycleWeeklyChartData(cycleOffset, "All"),
-    [timeSpentData?.bars, selectedPeriod, weekOffset, cycleOffset],
+        : [],
+    [timeSpentData?.bars, selectedPeriod],
   );
 
   const handleBarPress = useCallback((index: number) => {
@@ -94,20 +96,18 @@ export function TimeSpentOverview({
         selectedBarIndex !== null ? displayHours : null,
       );
     }
-    return buildCategoryBreakdown(
-      "All",
-      displayHours,
-      selectedBarIndex,
-      selectedPeriod,
-    );
-  }, [timeSpentData?.rows, displayHours, selectedBarIndex, selectedPeriod]);
+    return [];
+  }, [timeSpentData?.rows, displayHours, selectedBarIndex]);
 
   const periodRangeLabel = useMemo(
     () => getPeriodRangeLabel(selectedPeriod, weekOffset, cycleOffset),
     [selectedPeriod, weekOffset, cycleOffset],
   );
 
-  const maxBarHours = Math.max(...chartData.map((item) => item.hours), 0);
+  const maxBarHours =
+    chartData.length > 0
+      ? Math.max(...chartData.map((item) => item.hours), 0)
+      : 0;
   const yMax = Math.max(15, Math.ceil(maxBarHours / 5) * 5);
   const yTicks = [0, Math.round(yMax / 3), Math.round((yMax * 2) / 3), yMax];
 
@@ -290,15 +290,21 @@ export function TimeSpentOverview({
         </View>
       </View>
 
-      <TimeSpentChartBlock
-        chartData={chartData}
-        selectedPeriod={selectedPeriod}
-        selectedBarIndex={selectedBarIndex}
-        onBarPress={handleBarPress}
-        chartKey={`dashboard-${selectedPeriod}-${currentEndDate}-${selectedBarIndex}`}
-        yMax={yMax}
-        yTicks={yTicks}
-      />
+      {isChartLoading ? (
+        <View style={styles.timeSpentChartLoading}>
+          <LoadingComponent size="medium" />
+        </View>
+      ) : (
+        <TimeSpentChartBlock
+          chartData={chartData}
+          selectedPeriod={selectedPeriod}
+          selectedBarIndex={selectedBarIndex}
+          onBarPress={handleBarPress}
+          chartKey={`dashboard-${selectedPeriod}-${currentEndDate}-${selectedBarIndex}`}
+          yMax={yMax}
+          yTicks={yTicks}
+        />
+      )}
 
       <View style={styles.timeSpentDisclaimerRow}>
         <AntDesign
@@ -312,17 +318,19 @@ export function TimeSpentOverview({
         </Text>
       </View>
       <TopSpace top={24} />
-      <View style={styles.timeSpentCategoryList}>
-        {categoryRows.map((category) => (
-          <TimeSpentCategoryRow
-            key={category.label}
-            label={category.label}
-            percent={category.percent}
-            timeLabel={category.timeLabel}
-            progressPercent={category.progressPercent}
-          />
-        ))}
-      </View>
+      {isChartLoading ? null : (
+        <View style={styles.timeSpentCategoryList}>
+          {categoryRows.map((category) => (
+            <TimeSpentCategoryRow
+              key={category.label}
+              label={category.label}
+              percent={category.percent}
+              timeLabel={category.timeLabel}
+              progressPercent={category.progressPercent}
+            />
+          ))}
+        </View>
+      )}
       <TopSpace top={16} />
     </View>
   );

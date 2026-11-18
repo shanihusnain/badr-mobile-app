@@ -1,4 +1,3 @@
-import { TopSpace } from "@/components/atoms/TopSpace";
 import { Text, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
@@ -47,8 +46,7 @@ export function FastingCalendarTrack({
     : undefined;
 
   return (
-    <>
-      <TopSpace top={16} />
+    <View style={styles.fastingCalendarTrack}>
       {variant === "progress" ? (
         <FastingGoalTotalCard
           label={completedLabel}
@@ -57,14 +55,12 @@ export function FastingCalendarTrack({
           variant="completed"
         />
       ) : null}
-      {variant === "progress" ? <TopSpace top={16} /> : null}
       <FastingCycleDates
         startDate={windowStartDate}
         endDate={windowEndDate}
         rangeLabel={rangeLabel}
         hijriRangeLabel={hijriRangeLabel}
       />
-      <TopSpace top={24} />
       {showLegendCard ? (
         <FastingLegendCard
           variant={variant}
@@ -73,26 +69,20 @@ export function FastingCalendarTrack({
         />
       ) : null}
       {hasCalendar && windowStartDate && windowEndDate ? (
-        <>
-          <TopSpace top={16} />
-          <View style={styles.fastingCalendarWrapper}>
-            <CalendarGrid
-              mode="planned_progress"
-              currentDate={currentDate ?? windowStartDate}
-              windowStartDate={windowStartDate}
-              windowEndDate={windowEndDate}
-              plannedFastMarkers={markers}
-              bgColor={Colors.light.greybuttonBackground}
-            />
-          </View>
-        </>
+        <View style={styles.fastingCalendarWrapper}>
+          <CalendarGrid
+            mode="planned_progress"
+            currentDate={currentDate ?? windowStartDate}
+            windowStartDate={windowStartDate}
+            windowEndDate={windowEndDate}
+            plannedFastMarkers={markers}
+            bgColor={Colors.light.greybuttonBackground}
+          />
+        </View>
       ) : null}
       {footnote?.trim() ? (
-        <>
-          <TopSpace top={16} />
-          <Text style={styles.fastingInfoBannerText}>{footnote.trim()}</Text>
-        </>
+        <Text style={styles.fastingInfoBannerText}>{footnote.trim()}</Text>
       ) : null}
-    </>
+    </View>
   );
 }

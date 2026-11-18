@@ -282,7 +282,6 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
   },
   goalsList: {
-    gap: 16,
     paddingBottom: 8,
   },
 });

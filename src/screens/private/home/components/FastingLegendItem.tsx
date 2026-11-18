@@ -9,43 +9,40 @@ type FastingLegendItemProps = {
   completed?: boolean;
 };
 
+/** Two lines when Figma wraps; single string when Figma keeps one line. */
+type LegendLabel = string | [string, string];
+
 /**
- * Figma copy + wrap (line1 / line2):
- *   PLANNED MISSED      / RAMADAN FAST
- *   COMPLETED MISSED    / RAMADAN FAST
- *   PLANNED MON &       / THU
- *   COMPLETED MON &     / THU
- *   PLANNED WHITE       / DAYS
- *   COMPLETED WHITE     / DAYS
- *
- * Dot is vertically centered on the full 2-line block.
- * Line 2 is left-aligned under line 1 (same text column).
+ * Figma:
+ *   PLANNED/COMPLETED MISSED  → RAMADAN FAST  (2 lines)
+ *   PLANNED/COMPLETED MON & THU               (1 line)
+ *   PLANNED/COMPLETED WHITE DAYS              (1 line)
  */
-const FIGMA_LINES: Record<
+const FIGMA_LABELS: Record<
   string,
-  { planned: [string, string]; completed: [string, string] }
+  { planned: LegendLabel; completed: LegendLabel }
 > = {
   "missed-ramadan": {
     planned: ["PLANNED MISSED", "RAMADAN FAST"],
     completed: ["COMPLETED MISSED", "RAMADAN FAST"],
   },
   "mon-thu": {
-    planned: ["PLANNED MON &", "THU"],
-    completed: ["COMPLETED MON &", "THU"],
+    planned: "PLANNED MON & THU",
+    completed: "COMPLETED MON & THU",
   },
   "white-days": {
-    planned: ["PLANNED WHITE", "DAYS"],
-    completed: ["COMPLETED WHITE", "DAYS"],
+    planned: "PLANNED WHITE DAYS",
+    completed: "COMPLETED WHITE DAYS",
   },
   dawood: {
-    planned: ["PLANNED DAWOOD", "FAST"],
-    completed: ["COMPLETED DAWOOD", "FAST"],
+    planned: "PLANNED DAWOOD FAST",
+    completed: "COMPLETED DAWOOD FAST",
   },
 };
 
-const LINE_I18N_KEYS: Record<
+const LABEL_I18N_KEYS: Record<
   string,
-  { planned: [string, string]; completed: [string, string] }
+  { planned: string | [string, string]; completed: string | [string, string] }
 > = {
   "missed-ramadan": {
     planned: [
@@ -58,45 +55,38 @@ const LINE_I18N_KEYS: Record<
     ],
   },
   "mon-thu": {
-    planned: [
-      "homeScreen.fastingLegend_plannedMonThu_l1",
-      "homeScreen.fastingLegend_plannedMonThu_l2",
-    ],
-    completed: [
-      "homeScreen.fastingLegend_completedMonThu_l1",
-      "homeScreen.fastingLegend_completedMonThu_l2",
-    ],
+    planned: "homeScreen.fastingLegend_plannedMonThu",
+    completed: "homeScreen.fastingLegend_completedMonThu",
   },
   "white-days": {
-    planned: [
-      "homeScreen.fastingLegend_plannedWhite_l1",
-      "homeScreen.fastingLegend_plannedWhite_l2",
-    ],
-    completed: [
-      "homeScreen.fastingLegend_completedWhite_l1",
-      "homeScreen.fastingLegend_completedWhite_l2",
-    ],
+    planned: "homeScreen.fastingLegend_plannedWhiteDays",
+    completed: "homeScreen.fastingLegend_completedWhiteDays",
   },
   dawood: {
-    planned: [
-      "homeScreen.fastingLegend_plannedDawood_l1",
-      "homeScreen.fastingLegend_plannedDawood_l2",
-    ],
-    completed: [
-      "homeScreen.fastingLegend_completedDawood_l1",
-      "homeScreen.fastingLegend_completedDawood_l2",
-    ],
+    planned: "homeScreen.fastingLegend_plannedDawood",
+    completed: "homeScreen.fastingLegend_completedDawood",
   },
 };
 
-function resolveLine(
-  key: string | undefined,
-  fallback: string | undefined,
+function resolveLabel(
+  key: string | [string, string] | undefined,
+  fallback: LegendLabel | undefined,
   t: (k: any) => string,
-): string {
-  if (!key) return fallback ?? "";
-  const translated = t(key as any);
-  return translated === key ? (fallback ?? "") : translated;
+): string[] {
+  if (Array.isArray(key)) {
+    const fb = Array.isArray(fallback) ? fallback : [fallback ?? "", ""];
+    return key.map((k, i) => {
+      const translated = t(k as any);
+      return translated === k ? (fb[i] ?? "") : translated;
+    });
+  }
+  if (typeof key === "string") {
+    const translated = t(key as any);
+    const fb = typeof fallback === "string" ? fallback : (fallback?.[0] ?? "");
+    return [translated === key ? fb : translated];
+  }
+  if (Array.isArray(fallback)) return [...fallback];
+  return fallback ? [fallback] : [];
 }
 
 export function FastingLegendItem({
@@ -105,11 +95,11 @@ export function FastingLegendItem({
 }: FastingLegendItemProps) {
   const { t } = useTypedTranslation();
   const side = completed ? "completed" : "planned";
-  const fallback = FIGMA_LINES[entry.id]?.[side];
-  const keys = LINE_I18N_KEYS[entry.id]?.[side];
-
-  const line1 = resolveLine(keys?.[0], fallback?.[0], t);
-  const line2 = resolveLine(keys?.[1], fallback?.[1], t);
+  const lines = resolveLabel(
+    LABEL_I18N_KEYS[entry.id]?.[side],
+    FIGMA_LABELS[entry.id]?.[side],
+    t,
+  ).filter(Boolean);
 
   return (
     <View style={styles.fastingLegendItem}>
@@ -117,14 +107,11 @@ export function FastingLegendItem({
         <FastingLegendRing color={entry.color} completed={completed} />
       </View>
       <View style={styles.fastingLegendTextCol}>
-        <Text style={styles.fastingLegendText} numberOfLines={1}>
-          {line1}
-        </Text>
-        {line2 ? (
-          <Text style={styles.fastingLegendText} numberOfLines={1}>
-            {line2}
+        {lines.map((line) => (
+          <Text key={line} style={styles.fastingLegendText} numberOfLines={1}>
+            {line}
           </Text>
-        ) : null}
+        ))}
       </View>
     </View>
   );

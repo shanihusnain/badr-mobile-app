@@ -3,7 +3,6 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "@/components/atoms/Tabs";
-import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
 import { useGetHomeFastingCalendar } from "@/src/api/queries/useGetHomeFastingCalendar";
 import {
@@ -12,7 +11,6 @@ import {
 } from "@/src/screens/private/journalfilling/journalFillingDateUtils";
 import {
   mapHomeFastingDaysToMarkers,
-  normalizeFastingTabKey,
   normalizeFastingViewKey,
   resolveHomeFastingCalendarLabels,
   resolveHomeFastingTabs,
@@ -71,7 +69,6 @@ export function FastingOverviewCalendarSection({
   const [selectedView, setSelectedView] = useState<"PLANNED" | "PROGRESS">(
     "PROGRESS",
   );
-  console.log("selectedTab", selectedTab);
   const [showLegendCard, setShowLegendCard] = useState(true);
   const [showInfoBannerVisible, setShowInfoBannerVisible] =
     useState(showInfoBanner);
@@ -81,7 +78,6 @@ export function FastingOverviewCalendarSection({
     selectedView,
     queryDate,
   );
-  console.log("fasting calendar data coming from back end", fastingCalendar);
   const tabs = useMemo(
     () => resolveHomeFastingTabs(fastingCalendar?.tabs),
     [fastingCalendar?.tabs],
@@ -113,9 +109,6 @@ export function FastingOverviewCalendarSection({
 
   const resolvedTitle = title ?? labels.title;
   const trackVariant = viewKeyToTrackVariant(selectedView);
-  const selectedTabLabel =
-    tabs.find((tab) => tab.key === selectedTab?.key)?.label ??
-    selectedTab?.label;
   const selectedViewLabel =
     views.find((view) => view.key === selectedView)?.label ?? selectedView;
 
@@ -131,7 +124,6 @@ export function FastingOverviewCalendarSection({
 
   useEffect(() => {
     if (!tabs.some((tab) => tab.key === selectedTab?.key) && tabs[0]) {
-      // console.log("useEffect ran again");
       // setSelectedTab(tabs[0]);
     }
   }, [tabs, selectedTab]);
@@ -144,11 +136,10 @@ export function FastingOverviewCalendarSection({
 
   return (
     <View style={styles.fastingCalendarSection}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <View style={styles.fastingCalendarSectionHeader}>
         <FastingCalenderDashboardIcon size={32} />
         <Text style={styles.dashboardText}>{resolvedTitle}</Text>
       </View>
-      <TopSpace top={16} />
       {showInfoBannerVisible ? (
         <View style={styles.fastingInfoBanner}>
           <Text style={styles.fastingInfoBannerText}>
@@ -182,13 +173,11 @@ export function FastingOverviewCalendarSection({
           />
         ))}
       </ScrollView>
-      <TopSpace top={16} />
       <FastingGoalTotalCard
         label={labels.goalLabel}
         count={labels.goalValue}
         unit={labels.goalUnit}
       />
-      <TopSpace top={16} />
       <ScrollView
         horizontal
         style={styles.fastingCalendarTabsScroll}

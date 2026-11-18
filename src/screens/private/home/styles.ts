@@ -727,10 +727,6 @@ export const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: HOME_SECTION_GAP,
   },
-  dashboardCardsList: {
-    gap: HOME_SECTION_GAP,
-    marginBottom: HOME_SECTION_GAP,
-  },
   categoryFilterContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -877,6 +873,16 @@ export const styles = StyleSheet.create({
     marginBottom: HOME_SECTION_GAP,
     paddingVertical: 17,
     paddingHorizontal: 12,
+    gap: HOME_SECTION_GAP,
+  },
+  fastingCalendarSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  fastingCalendarTrack: {
+    width: "100%",
+    gap: HOME_SECTION_GAP,
   },
   fastingInfoBanner: {
     flexDirection: "row",
@@ -901,7 +907,7 @@ export const styles = StyleSheet.create({
     paddingTop: 1,
   },
   fastingCalendarTabsScroll: {
-    marginTop: 16,
+    marginTop: 0,
     marginBottom: 0,
   },
   fastingGoalTotalCard: {
@@ -1370,6 +1376,12 @@ export const styles = StyleSheet.create({
   },
   timeSpentChartSection: {
     marginTop: 6,
+  },
+  timeSpentChartLoading: {
+    height: 220,
+    marginTop: 6,
+    alignItems: "center",
+    justifyContent: "center",
   },
   timeSpentChartHint: {
     flex: 1,
