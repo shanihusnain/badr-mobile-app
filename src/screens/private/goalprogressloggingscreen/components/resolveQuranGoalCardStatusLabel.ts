@@ -10,6 +10,7 @@ export type QuranGoalCardStatusChip = {
   label: string;
   /** True when the chip shows a percentage (green theme). */
   showPercent: boolean;
+  isNotStarted: boolean;
 };
 
 /**
@@ -39,16 +40,18 @@ export function resolveQuranGoalCardStatusLabel(options: {
       return {
         label: options.t("progressLogging.surahStatusNotStarted"),
         showPercent: false,
+        isNotStarted: true,
       };
     }
     return {
       label: options.t("progressLogging.surahStatusInProgress"),
       showPercent: false,
+      isNotStarted: false,
     };
   }
 
   const pill = options.pillLabel?.trim();
-  if (pill) return { label: pill, showPercent: true };
+  if (pill) return { label: pill, showPercent: true, isNotStarted: false };
 
   if (options.formatNumber) {
     return {
@@ -56,6 +59,7 @@ export function resolveQuranGoalCardStatusLabel(options: {
         percent: options.formatNumber(Math.min(100, pct)),
       }),
       showPercent: true,
+      isNotStarted: false,
     };
   }
 
@@ -63,11 +67,13 @@ export function resolveQuranGoalCardStatusLabel(options: {
     return {
       label: options.t("progressLogging.surahStatusCompleted"),
       showPercent: true,
+      isNotStarted: false,
     };
   }
 
   return {
     label: options.t("progressLogging.surahStatusInProgress"),
     showPercent: false,
+    isNotStarted: false,
   };
 }

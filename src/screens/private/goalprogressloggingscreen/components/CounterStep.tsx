@@ -8,6 +8,7 @@ interface CounterStepProps {
   unit: string;
   value: string;
   onChangeText: (val: string) => void;
+  inputColor?: string;
 }
 
 function digitsOnly(text: string): string {
@@ -25,6 +26,7 @@ export function CounterStep({
   unit,
   value,
   onChangeText,
+  inputColor,
 }: CounterStepProps) {
   const [focused, setFocused] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -63,7 +65,7 @@ export function CounterStep({
     <View style={styles.container}>
       <View style={styles.inputWrapper}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputColor ? { color: inputColor } : undefined]}
           value={focused ? draft : value}
           onChangeText={handleChangeText}
           onFocus={handleFocus}

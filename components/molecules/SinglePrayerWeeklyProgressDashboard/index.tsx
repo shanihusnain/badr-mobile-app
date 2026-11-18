@@ -74,6 +74,7 @@ export function SinglePrayerWeeklyProgressDashboard({
   comparisonVariant = "prayers",
   greenActivityCaptions = false,
   activityCaptionsMatchDayLabel = false,
+  recitationCountFontSize = 9,
   compactWeekOneQuote = false,
   showTodayChip = true,
 }: SinglePrayerWeeklyProgressDashboardProps) {
@@ -330,8 +331,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                             },
                             styles.durationText,
                             isRatioCountLabel && {
-                              fontSize: 9,
-                              lineHeight: 10,
+                              fontSize: recitationCountFontSize,
+                              lineHeight: recitationCountFontSize + 1,
                               fontFamily: fonts.primary.semiBold,
                               fontWeight: "600",
                             },

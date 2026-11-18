@@ -63,6 +63,10 @@ export function CompletionRecitationGoalCard({
     String(frame?.goal?.status ?? "").toUpperCase() === "COMPLETED" ||
     isCompletionGoalComplete(progress);
 
+  const isNotStarted =
+    !isComplete &&
+    progress.completedCompletions <= 0 &&
+    progress.achievementPct <= 0;
   const statusLabel = isComplete
     ? t("progressLogging.completionStatusComplete")
     : progress.completedCompletions > 0 || progress.achievementPct > 0
@@ -97,12 +101,14 @@ export function CompletionRecitationGoalCard({
                 <View
                   style={[
                     surahGoalStyles.statusChip,
+                    isNotStarted && surahGoalStyles.statusChipNotStarted,
                     isComplete && surahGoalStyles.statusChipAchieved,
                   ]}
                 >
                   <Text
                     style={[
                       surahGoalStyles.statusChipText,
+                      isNotStarted && surahGoalStyles.statusChipTextNotStarted,
                       isComplete && surahGoalStyles.statusChipTextAchieved,
                     ]}
                   >

@@ -84,6 +84,9 @@ export const surahGoalStyles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 3,
   },
+  statusChipNotStarted: {
+    backgroundColor: Colors.light.paginationInactiveDot,
+  },
   statusChipText: {
     color: Colors.light.darkblue,
     fontFamily: fonts.primary.medium,
@@ -97,6 +100,9 @@ export const surahGoalStyles = StyleSheet.create({
     fontWeight: "500",
     fontSize: 12,
     lineHeight: 12.5,
+  },
+  statusChipTextNotStarted: {
+    color: Colors.light.notStartedTextColor,
   },
   textLines: {
     gap: 2,

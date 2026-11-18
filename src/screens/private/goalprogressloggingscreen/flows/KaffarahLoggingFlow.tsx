@@ -22,6 +22,7 @@ import {
   FLOW_CARD_HEIGHT,
 } from "../components/DailyProgressLogging.styles";
 import { fonts } from "@/assets/fonts";
+import { KaffarahTransparentHandIcon } from "@/assets/icons/KaffarahTransparentHandIcon";
 import {
   AddLoggingFlowIcon,
   CalendarFlippingIcon,
@@ -474,7 +475,7 @@ export default function KaffarahLoggingFlow({
         };
       case "reason":
         return {
-          icon: <FlowCardHandHeartIcon size={19} color={Colors.light.white} />,
+          icon: <KaffarahTransparentHandIcon size={20} />,
           label: t("progressLogging.kaffarahSelectReason"),
         };
       case "sadaqah-type":
@@ -539,6 +540,7 @@ export default function KaffarahLoggingFlow({
             }
             value={count}
             onChangeText={setCount}
+            inputColor={isClothesCount ? undefined : Colors.light.white}
           />
         );
       case "start-time":

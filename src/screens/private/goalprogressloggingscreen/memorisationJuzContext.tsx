@@ -190,32 +190,14 @@ export function MemorisationJuzProvider({
     const frame = quranFrame?.frame;
     const items = frame?.items ?? [];
     if (!frame || items.length === 0) return null;
-    const cycleFrames = quranFrame?.memorisationCycleFrames;
     return items
       .map((item) => {
         const itemNumber = Number(item.itemNumber);
         if (!Number.isFinite(itemNumber) || itemNumber <= 0) return null;
-        const progress = getQuranFrameMemorisationProgressFromCycle(
-          frame,
-          cycleFrames,
-          itemNumber,
-        );
-        const mapped = mapFrameItemToGoal(item);
-        return {
-          ...mapped,
-          memorizedAyahs: progress.memorizedAyahs,
-          totalAyahs: progress.totalAyahs || mapped.totalAyahs,
-          progressPercentage: progress.progressPercent,
-          completed: progress.completed,
-          status: deriveStatus(
-            progress.memorizedAyahs,
-            progress.totalAyahs || mapped.totalAyahs,
-            progress.completed,
-          ),
-        };
+        return mapFrameItemToGoal(item);
       })
       .filter((goal): goal is JuzMemorisationGoal => goal != null);
-  }, [quranFrame?.frame, quranFrame?.memorisationCycleFrames]);
+  }, [quranFrame?.frame]);
 
   const detailGoals = useMemo(() => {
     const items = detail?.items ?? [];
@@ -226,11 +208,19 @@ export function MemorisationJuzProvider({
   }, [detail]);
 
   const frameActiveGoal = useMemo((): JuzMemorisationGoal | null => {
+    if (quranFrame?.isPlaceholderData) return null;
     const frame = quranFrame?.frame;
     const itemNumber = quranFrame?.itemNumber;
     if (!frame || itemNumber == null || itemNumber <= 0) return null;
 
     const item = getQuranFrameMemorisationItem(frame, itemNumber);
+    if (
+      item == null ||
+      (Number(item.itemNumber) > 0 &&
+        Number(item.itemNumber) !== Number(itemNumber))
+    ) {
+      return null;
+    }
     const progress = getQuranFrameMemorisationProgressFromCycle(
       frame,
       quranFrame?.memorisationCycleFrames,
@@ -276,6 +266,7 @@ export function MemorisationJuzProvider({
     };
   }, [
     quranFrame?.frame,
+    quranFrame?.isPlaceholderData,
     quranFrame?.itemNumber,
     quranFrame?.memorisationCycleFrames,
   ]);
