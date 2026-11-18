@@ -648,8 +648,8 @@ export default function HomeScreen() {
 
       const timer = setTimeout(() => {
         if (yesterdayJournalPromptShownRef.current) return;
-        // yesterdayJournalPromptShownRef.current = true;
-        // yesterdayJournalSheetRef.current?.expand();
+        yesterdayJournalPromptShownRef.current = true;
+        yesterdayJournalSheetRef.current?.expand();
       }, 450);
 
       return () => clearTimeout(timer);
@@ -1308,8 +1308,6 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
 
-            <TopSpace top={16} />
-
             <View style={styles.todayGoalsProgressSection}>
               <Text style={styles.todayGoalsProgressTitle}>
                 {myDayDetails?.sectionTitle?.trim() ||
@@ -1428,35 +1426,41 @@ export default function HomeScreen() {
           })}
         </ScrollView>
 
-        {visibleDashboardSubGoals.map((goal) => {
-          const iconColor = Colors.light.white;
-          const icon = goal.goalId ? (
-            getDetailedIbadahIcon(goal.goalId, iconColor)
-          ) : (
-            <FontAwesome6
-              name="person-praying"
-              size={19}
-              color={
-                HOME_DASHBOARD_CATEGORY_COLOR[goal.uiCategory] ??
-                Colors.light.ringPrayer
-              }
-            />
-          );
-          return (
-            <DetailedIbadahsProgressCard
-              key={goal.id}
-              category={goal.uiCategory}
-              title={goal.title}
-              subtitleCount={goal.subtitleCount}
-              subtitleLabel={goal.subtitleLabel}
-              icon={icon}
-              iconBgColor={Colors.light.ibadahIconCircleBg}
-              percentage={goal.percentage}
-              progressColor={goal.progressColor}
-              centerIconOnMultiLine={goal.goalId?.startsWith("quran-") ?? false}
-            />
-          );
-        })}
+        {visibleDashboardSubGoals.length > 0 ? (
+          <View style={styles.dashboardCardsList}>
+            {visibleDashboardSubGoals.map((goal) => {
+              const iconColor = Colors.light.white;
+              const icon = goal.goalId ? (
+                getDetailedIbadahIcon(goal.goalId, iconColor)
+              ) : (
+                <FontAwesome6
+                  name="person-praying"
+                  size={19}
+                  color={
+                    HOME_DASHBOARD_CATEGORY_COLOR[goal.uiCategory] ??
+                    Colors.light.ringPrayer
+                  }
+                />
+              );
+              return (
+                <DetailedIbadahsProgressCard
+                  key={goal.id}
+                  category={goal.uiCategory}
+                  title={goal.title}
+                  subtitleCount={goal.subtitleCount}
+                  subtitleLabel={goal.subtitleLabel}
+                  icon={icon}
+                  iconBgColor={Colors.light.ibadahIconCircleBg}
+                  percentage={goal.percentage}
+                  progressColor={goal.progressColor}
+                  centerIconOnMultiLine={
+                    goal.goalId?.startsWith("quran-") ?? false
+                  }
+                />
+              );
+            })}
+          </View>
+        ) : null}
 
         {canExpandDashboard ? (
           <TouchableOpacity
@@ -1523,7 +1527,7 @@ export default function HomeScreen() {
         />
       </BottomSheetWrapper>
 
-      {/* <BottomSheetWrapper
+      <BottomSheetWrapper
         ref={yesterdayJournalSheetRef}
         snapPoints={["92%"]}
         bgColor={Colors.light.blackBackground}
@@ -1544,7 +1548,7 @@ export default function HomeScreen() {
             />
           </View>
         ) : null}
-      </BottomSheetWrapper> */}
+      </BottomSheetWrapper>
 
       {!isAnyBottomSheetOpen ? (
         <HomeFabSpeedDial

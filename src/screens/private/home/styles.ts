@@ -8,7 +8,6 @@ import { Colors } from "../../../../constants/theme";
 import { getFigmaForcedSmallCapsTextStyle } from "@/src/utils/figmaTypography";
 
 const CARD_WIDTH = Dimensions.get("window").width - 32;
-const FASTING_LEGEND_TEXT_WIDTH = (Dimensions.get("window").width - 120) / 2;
 
 /** Consistent vertical gap between major home ScrollView sections. */
 export const HOME_SECTION_GAP = 16;
@@ -723,10 +722,14 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
     fontVariant: ["small-caps"],
   },
-  // Category Filter Section
+  // Category Filter Section — inter-block gap owned here (HOME_SECTION_GAP only)
   categoryFilterScroll: {
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 0,
+    marginBottom: HOME_SECTION_GAP,
+  },
+  dashboardCardsList: {
+    gap: HOME_SECTION_GAP,
+    marginBottom: HOME_SECTION_GAP,
   },
   categoryFilterContent: {
     flexDirection: "row",
@@ -969,73 +972,92 @@ export const styles = StyleSheet.create({
   },
   fastingLegendCard: {
     width: "100%",
-    overflow: "hidden",
     backgroundColor: Colors.light.dullestWhite,
-    borderRadius: 10,
-    padding: 12,
-    paddingTop: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 14,
+    position: "relative",
   },
   fastingLegendCardClose: {
     position: "absolute",
-    top: 8,
-    right: 8,
-    zIndex: 1,
-  },
-  fastingLegendCardContent: {
-    paddingRight: 20,
+    top: 10,
+    right: 10,
+    zIndex: 2,
   },
   fastingLegendLayout: {
-    gap: 12,
+    width: "100%",
+    gap: 8,
+    flex: 1,
   },
   fastingLegendRow: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
     gap: 8,
   },
   fastingLegendRowCentered: {
     alignItems: "center",
+    width: "100%",
   },
   fastingLegendColumn: {
     flex: 1,
-    minWidth: 0,
+    // minWidth: 0,
+  },
+  fastingLegendHalf: {
+    flex: 1,
+    // width: "50%",
   },
   fastingLegendItem: {
+    // Figma: ring vertically centered on the 2-line text block
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
     width: "100%",
   },
-  fastingLegendItemFixed: {
-    flex: 1,
-    flexBasis: 0,
-    minWidth: 0,
-  },
-  fastingLegendTextWrap: {
-    flex: 1,
-    minWidth: 0,
-  },
-  fastingLegendTextWrapFixed: {
-    width: FASTING_LEGEND_TEXT_WIDTH,
-  },
-  fastingLegendText: {
-    fontWeight: "500",
-    fontSize: 10,
-    lineHeight: 14,
-    fontFamily: fonts.primary.medium,
-    color: Colors.light.grey,
-  },
-  fastingLegendRing: {
-    borderWidth: 1,
+  fastingLegendRingSlot: {
+    width: 10,
+    marginRight: 8,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
-  fastingLegendRingDot: {},
+  fastingLegendTextCol: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+  },
+  fastingLegendText: {
+    fontWeight: "500",
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 0.2,
+    textTransform: "uppercase",
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.grey,
+    textAlign: "left",
+  },
   fastingProgressLegendRow: {
+    // Figma: equal columns + clear center gutter
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
+    gap: 16,
+  },
+  fastingLegendSkippedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
+    marginTop: 4,
+  },
+  fastingLegendSkippedText: {
+    fontWeight: "500",
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 0.2,
+    textTransform: "uppercase",
+    fontFamily: fonts.primary.medium,
+    color: Colors.light.grey,
   },
   fastingCategoryLegend: {
     width: "100%",
@@ -1243,6 +1265,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.dullestWhite,
     borderRadius: 10,
     padding: 10,
+    marginBottom: HOME_SECTION_GAP,
   },
   timeSpentHeaderRow: {
     flexDirection: "row",
@@ -1506,9 +1529,6 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Colors.light.green,
     minWidth: 0,
-  },
-  fastingLegendItemUnsetWidth: {
-    width: undefined,
   },
   timeSpentDetailPercentRow: {
     flexDirection: "row",

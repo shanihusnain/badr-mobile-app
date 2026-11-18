@@ -1,5 +1,4 @@
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import { styles } from "../styles";
 
 const DEFAULT_RING_SIZE = 10;
 
@@ -9,25 +8,28 @@ type FastingLegendRingProps = {
   size?: number;
 };
 
-function getRingSizeStyle(size: number, color: string): ViewStyle {
+function getRingStyle(
+  size: number,
+  color: string,
+  completed: boolean,
+): ViewStyle {
+  if (completed) {
+    return {
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      backgroundColor: color,
+      borderWidth: 0,
+    };
+  }
+
   return {
     width: size,
     height: size,
-    minWidth: size,
-    minHeight: size,
-    maxWidth: size,
-    maxHeight: size,
     borderRadius: size / 2,
+    borderWidth: 1.5,
     borderColor: color,
-  };
-}
-
-function getDotSizeStyle(dotSize: number, color: string): ViewStyle {
-  return {
-    width: dotSize,
-    height: dotSize,
-    borderRadius: dotSize / 2,
-    backgroundColor: color,
+    backgroundColor: "transparent",
   };
 }
 
@@ -36,30 +38,17 @@ export function FastingLegendRing({
   completed = false,
   size = DEFAULT_RING_SIZE,
 }: FastingLegendRingProps) {
-  const dotSize = Math.max(size * 0.55, 6);
-
   return (
     <View
-      style={[
-        styles.fastingLegendRing,
-        ringStyles.sized,
-        getRingSizeStyle(size, color),
-      ]}
-    >
-      {completed ? (
-        <View
-          style={[
-            styles.fastingLegendRingDot,
-            getDotSizeStyle(dotSize, color),
-          ]}
-        />
-      ) : null}
-    </View>
+      style={[styles.ring, getRingStyle(size, color, completed)]}
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+    />
   );
 }
 
-const ringStyles = StyleSheet.create({
-  sized: {
+const styles = StyleSheet.create({
+  ring: {
     flexShrink: 0,
   },
 });

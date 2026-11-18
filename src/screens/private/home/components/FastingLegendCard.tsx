@@ -25,15 +25,13 @@ export function FastingLegendCard({
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         activeOpacity={0.7}
       >
-        <Ionicons name="close" size={18} color={Colors.light.white} />
+        <Ionicons name="close" size={14} color={Colors.light.grey} />
       </TouchableOpacity>
-      <View style={styles.fastingLegendCardContent}>
-        {variant === "planned" ? (
-          <FastingPlannedLegend entries={legendEntries} />
-        ) : (
-          <FastingProgressLegend entries={legendEntries} />
-        )}
-      </View>
+      {variant === "planned" ? (
+        <FastingPlannedLegend entries={legendEntries} />
+      ) : (
+        <FastingProgressLegend entries={legendEntries} />
+      )}
     </View>
   );
 }

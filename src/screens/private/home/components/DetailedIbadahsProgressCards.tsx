@@ -258,7 +258,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    marginBottom: 16,
     overflow: "hidden",
   },
   leftSection: {
