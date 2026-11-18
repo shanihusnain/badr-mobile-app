@@ -75,6 +75,8 @@ export type SinglePrayerWeeklyProgressDashboardProps = {
    * Used by RECITATION_COMPLETION.
    */
   activityCaptionsMatchDayLabel?: boolean;
+  /** Font size for recitation count captions. */
+  recitationCountFontSize?: number;
   comparisonVariant?:
     | "onTime"
     | "prayers"

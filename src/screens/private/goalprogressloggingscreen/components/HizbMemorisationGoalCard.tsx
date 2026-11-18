@@ -152,6 +152,7 @@ export function HizbMemorisationGoalCard({
                 <View
                   style={[
                     surahGoalStyles.statusChip,
+                    statusChip.isNotStarted && surahGoalStyles.statusChipNotStarted,
                     statusChip.showPercent &&
                       surahGoalStyles.statusChipAchieved,
                   ]}
@@ -159,6 +160,7 @@ export function HizbMemorisationGoalCard({
                   <Text
                     style={[
                       surahGoalStyles.statusChipText,
+                      statusChip.isNotStarted && surahGoalStyles.statusChipTextNotStarted,
                       statusChip.showPercent &&
                         surahGoalStyles.statusChipTextAchieved,
                     ]}

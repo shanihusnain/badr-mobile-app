@@ -140,12 +140,14 @@ export function JuzRecitationGoalCard({
                 <View
                   style={[
                     surahGoalStyles.statusChip,
+                    statusChip.isNotStarted && surahGoalStyles.statusChipNotStarted,
                     statusChip.showPercent && surahGoalStyles.statusChipAchieved,
                   ]}
                 >
                   <Text
                     style={[
                       surahGoalStyles.statusChipText,
+                      statusChip.isNotStarted && surahGoalStyles.statusChipTextNotStarted,
                       statusChip.showPercent &&
                         surahGoalStyles.statusChipTextAchieved,
                     ]}

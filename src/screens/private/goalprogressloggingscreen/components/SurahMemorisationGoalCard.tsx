@@ -118,6 +118,7 @@ export function SurahMemorisationGoalCard({
                 <View
                   style={[
                     surahGoalStyles.statusChip,
+                    statusChip.isNotStarted && surahGoalStyles.statusChipNotStarted,
                     statusChip.showPercent &&
                       surahGoalStyles.statusChipAchieved,
                   ]}
@@ -125,6 +126,7 @@ export function SurahMemorisationGoalCard({
                   <Text
                     style={[
                       surahGoalStyles.statusChipText,
+                      statusChip.isNotStarted && surahGoalStyles.statusChipTextNotStarted,
                       statusChip.showPercent &&
                         surahGoalStyles.statusChipTextAchieved,
                     ]}

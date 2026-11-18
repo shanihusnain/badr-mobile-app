@@ -264,7 +264,11 @@ export function QuranWeeklyRecitationProgressDashboard({
     weeklySurahItems,
   ]);
 
-  const isSingleSurahDashboard = Boolean(selectedSurahId || surahContextLabel);
+  const isSingleSurahDashboard =
+    Boolean(selectedSurahId || surahContextLabel) ||
+    (quranGoalType === "RECITATION_SURAH" &&
+      visualizationMode === "daily" &&
+      dailyTarget > 1);
 
   const mappedWeekDays = useMemo((): SinglePrayerDayProgress[] => {
     if (isWeeklySurahCarouselMode && activeWeeklySurah) {
@@ -432,6 +436,11 @@ export function QuranWeeklyRecitationProgressDashboard({
       }
       greenActivityCaptions={isJuzMode}
       activityCaptionsMatchDayLabel={isCompletionMode}
+      recitationCountFontSize={
+        visualizationMode === "daily" && isSingleSurahDashboard && dailyTarget > 1
+          ? 11
+          : undefined
+      }
       renderDayRing={isCompletionStyleMode ? undefined : renderDayRing}
       statsRow={
         <View style={styles.statsRow}>
