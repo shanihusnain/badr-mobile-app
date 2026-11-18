@@ -46,8 +46,8 @@ export const FASTING_LEGEND_ENTRIES: FastingLegendEntry[] = [
   },
   {
     id: "mon-thu",
-    plannedLabel: "PLANNED MON & THU FAST",
-    completedLabel: "COMPLETED MON & THU FAST",
+    plannedLabel: "PLANNED MON & THU",
+    completedLabel: "COMPLETED MON & THU",
     color: Colors.light.ringMonThu,
   },
   {

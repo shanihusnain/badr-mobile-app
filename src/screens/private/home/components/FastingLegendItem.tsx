@@ -13,8 +13,8 @@ type FastingLegendItemProps = {
  * Figma copy + wrap (line1 / line2):
  *   PLANNED MISSED      / RAMADAN FAST
  *   COMPLETED MISSED    / RAMADAN FAST
- *   PLANNED MON &       / THU FAST
- *   COMPLETED MON &     / THU FAST
+ *   PLANNED MON &       / THU
+ *   COMPLETED MON &     / THU
  *   PLANNED WHITE       / DAYS
  *   COMPLETED WHITE     / DAYS
  *
@@ -30,8 +30,8 @@ const FIGMA_LINES: Record<
     completed: ["COMPLETED MISSED", "RAMADAN FAST"],
   },
   "mon-thu": {
-    planned: ["PLANNED MON &", "THU FAST"],
-    completed: ["COMPLETED MON &", "THU FAST"],
+    planned: ["PLANNED MON &", "THU"],
+    completed: ["COMPLETED MON &", "THU"],
   },
   "white-days": {
     planned: ["PLANNED WHITE", "DAYS"],
