@@ -665,12 +665,13 @@ export function collectCompletionLoggedJuzFromFrame(
         if (!dayAttempts.includes(attemptFilter)) continue;
       } else {
         // Day has juz but no attempt tag — only include when week totalLabel
-        // implies this attempt (legacy payloads).
+        // explicitly matches this attempt. Untagged prior-Khatm days must not
+        // leak into C2/C3+ or every juz looks excluded again (stepper → J30).
         const weekAttempt = parseCompletionAttemptNumber(
           null,
           frame.week.totalLabel,
         );
-        if (weekAttempt != null && weekAttempt !== attemptFilter) continue;
+        if (weekAttempt !== attemptFilter) continue;
       }
     }
 
@@ -809,22 +810,12 @@ export function getQuranFrameCompletionResumeCursor(
     safeCompleted >= 30 ? { attemptNumber: openAttempt } : undefined;
 
   const sources = cycleFrames && cycleFrames.length > 0 ? cycleFrames : [frame];
-  let { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
+  // When attempt-scoped (C2/C3/…), keep empty results empty — a finished prior
+  // Khatm must not re-import juz 1–30 as exclusions or the stepper clamps to J30.
+  const { fullyLogged, openPartialJuz } = mergeCompletionLoggedJuzFromFrames(
     sources,
     attemptOptions,
   );
-
-  // Fallback: if attempt-scoped merge found nothing, retry unscoped so a
-  // partial like j2* still excludes juz 2 from Full.
-  if (
-    attemptOptions &&
-    fullyLogged.length === 0 &&
-    openPartialJuz.length === 0
-  ) {
-    const unscoped = mergeCompletionLoggedJuzFromFrames(sources);
-    fullyLogged = unscoped.fullyLogged;
-    openPartialJuz = unscoped.openPartialJuz;
-  }
 
   const openPartialMinAyatByJuz = computeOpenPartialMinAyatByJuz(
     sources,

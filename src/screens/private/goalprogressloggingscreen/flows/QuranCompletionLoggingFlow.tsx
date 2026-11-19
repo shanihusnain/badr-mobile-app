@@ -143,7 +143,17 @@ export default function QuranCompletionLoggingFlow({
   const resumeCursor = useMemo((): CompletionResumeCursor => {
     const fromFrame = frameResume;
     // Optimistic only — cleared on refetch. Durable exclusions come from frame.
-    const local = getLocalCompletionLoggedJuz();
+    // Scope by open Khatm so C1/C2 locals do not poison C3+.
+    const openCompletion =
+      frameProgress != null
+        ? getCurrentCompletionNumber({
+            targetCompletions: frameProgress.targetCompletions,
+            completedCompletions: frameProgress.completedCompletions,
+          })
+        : null;
+    const local = getLocalCompletionLoggedJuz({
+      completionNumber: openCompletion,
+    });
     if (
       local.fullyLogged.length === 0 &&
       local.openPartialJuz.length === 0
@@ -191,7 +201,7 @@ export default function QuranCompletionLoggingFlow({
       openPartialJuz,
       openPartialMinAyatByJuz,
     };
-  }, [frameResume, localLogTick]);
+  }, [frameProgress, frameResume, localLogTick]);
 
   const flowDefinition = useMemo(() => {
     const base = getQuranCompletionFlowDefinition(goalData.id);
@@ -313,22 +323,43 @@ export default function QuranCompletionLoggingFlow({
   }, [steps.length]);
 
   // Seed / clamp steppers whenever exclusions advance (same as Juz).
+  // Fresh Khatm (empty exclusions after C1) reseeds to resume mins so a stale
+  // J30 does not stick on C2; otherwise only snap the current value off blocks.
   useEffect(() => {
     const fullExcluded = resumeCursor.fullExcludedJuz;
     const partialExcluded = resumeCursor.excludedJuz;
-    setFullStartJuz((prev) =>
-      snapJuzOffExcluded(prev, MIN_JUZ, MAX_JUZ, fullExcluded),
-    );
-    setFullEndJuz((prev) =>
-      snapJuzOffExcluded(prev, MIN_JUZ, MAX_JUZ, fullExcluded),
-    );
-    setPartialJuz((prev) =>
-      snapJuzOffExcluded(prev, minPartialJuz, MAX_JUZ, partialExcluded),
-    );
+    const minFull = resumeCursor.minFullStartJuz;
+    const freshFullAttempt = fullExcluded.length === 0;
+    const freshPartialAttempt = partialExcluded.length === 0;
+
+    setFullStartJuz((prev) => {
+      const seed =
+        freshFullAttempt || fullExcluded.includes(prev) || prev < MIN_JUZ
+          ? minFull
+          : prev;
+      return snapJuzOffExcluded(seed, MIN_JUZ, MAX_JUZ, fullExcluded);
+    });
+    setFullEndJuz((prev) => {
+      const seed =
+        freshFullAttempt || fullExcluded.includes(prev) || prev < MIN_JUZ
+          ? minFull
+          : prev;
+      return snapJuzOffExcluded(seed, MIN_JUZ, MAX_JUZ, fullExcluded);
+    });
+    setPartialJuz((prev) => {
+      const seed =
+        freshPartialAttempt ||
+        partialExcluded.includes(prev) ||
+        prev < minPartialJuz
+          ? minPartialJuz
+          : prev;
+      return snapJuzOffExcluded(seed, minPartialJuz, MAX_JUZ, partialExcluded);
+    });
   }, [
     minPartialJuz,
     resumeCursor.excludedJuz,
     resumeCursor.fullExcludedJuz,
+    resumeCursor.minFullStartJuz,
   ]);
 
   useEffect(() => {

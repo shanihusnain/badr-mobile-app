@@ -39,6 +39,8 @@ export function getCurrentCompletionNumber(
  * (and stay hidden if the frame refetch omits juz captions).
  */
 export type CompletionLogRecord = {
+  /** 1-based Khatm index (C1/C2/C3/…) so locals do not leak across completions. */
+  completionNumber: number | null;
   completionType: CompletionType;
   fullRange: { start: number; end: number } | null;
   partialJuz: number | null;
@@ -61,12 +63,17 @@ export function clearCompletionLogs(): void {
 }
 
 export function buildCompletionLogRecordFromEntry(entry: {
+  completionNumber?: number | null;
   completionType: CompletionType;
   fullJuzRange: { startJuz: number; endJuz: number } | null;
   partialJuz: number | null;
   ayatRange: { startAyat: number; endAyat: number } | null;
 }): CompletionLogRecord {
   return {
+    completionNumber:
+      entry.completionNumber != null && Number.isFinite(entry.completionNumber)
+        ? Math.round(entry.completionNumber)
+        : null,
     completionType: entry.completionType,
     fullRange: entry.fullJuzRange
       ? {
@@ -86,7 +93,10 @@ export function buildCompletionLogRecordFromEntry(entry: {
 }
 
 /** Juz already fully / partially logged in this session (Juz dual-exclusion model). */
-export function getLocalCompletionLoggedJuz(): {
+export function getLocalCompletionLoggedJuz(options?: {
+  /** When set, only count optimistic logs for this open Khatm (C2/C3/…). */
+  completionNumber?: number | null;
+}): {
   fullyLogged: number[];
   openPartialJuz: number[];
   /** Fully logged + open partals — blocked on Full. */
@@ -96,8 +106,21 @@ export function getLocalCompletionLoggedJuz(): {
   const fullyLogged = new Set<number>();
   const openPartial = new Set<number>();
   const openPartialMinAyatByJuz: Record<number, number> = {};
+  const attemptFilter =
+    options?.completionNumber != null &&
+    Number.isFinite(options.completionNumber) &&
+    options.completionNumber > 0
+      ? Math.round(options.completionNumber)
+      : null;
 
   for (const log of completionLogs) {
+    if (
+      attemptFilter != null &&
+      log.completionNumber != null &&
+      log.completionNumber !== attemptFilter
+    ) {
+      continue;
+    }
     if (
       log.fullRange &&
       (log.completionType === "full" || log.completionType === "both")
