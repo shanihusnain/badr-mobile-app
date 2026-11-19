@@ -45,7 +45,7 @@ export function FinancialInputStep({
     () => digitCountFromTarget(targetAmount),
     [targetAmount],
   );
-  const inputWidth = digitCount * DIGIT_WIDTH;
+  const inputWidth = digitCount * DIGIT_WIDTH + 4;
 
   const handleFocus = () => {
     // Same as goal-setting Counter: clear leading 0 so typing replaces it.
@@ -75,7 +75,7 @@ export function FinancialInputStep({
   return (
     <View style={localStyles.container}>
       <View style={localStyles.inputWrapper}>
-        <Text style={localStyles.currencySymbol}>{currencySymbol} </Text>
+        <Text style={localStyles.currencySymbol}>{currencySymbol === "USD" ? "$" : currencySymbol} </Text>
         <TextInput
           style={[localStyles.input, { width: inputWidth }]}
           value={amount}

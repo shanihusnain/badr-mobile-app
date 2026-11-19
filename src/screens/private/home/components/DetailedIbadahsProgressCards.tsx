@@ -24,7 +24,7 @@ import { SvgComponent as MissedRamadanFasticonNew } from "@/assets/icons/MissedR
 import { FastingFlowCardMondayFasts } from "@/assets/icons/FastingFlowCardMondayFasts";
 import { FastingFlowCardProphetDawoodCalender } from "@/assets/icons/FastingFlowCardProphetDawoodCalender";
 import { MissedZakatFlowCardIcon } from "@/assets/icons/MissedZakatFlowCardIcon";
-import { FlowCardFoodReliefIcon } from "@/assets/icons/FlowCardFoodReleifIcon";
+import { DashBoardMealsIcon } from "@/assets/icons/DashBoardMealsIcon";
 import { FlowCardHandHeartIcon } from "@/assets/icons/FlowCardHandHeartIcon";
 import { AllahNameIcon } from "@/assets/icons/AllahNameIcon";
 import { ThreeHeartIcon } from "@/assets/icons/ThreeHeartIcon";
@@ -122,7 +122,7 @@ export function getDetailedIbadahIcon(
     case "sadaqah-zakat":
       return <MissedZakatFlowCardIcon color={color} size={size} />;
     case "sadaqah-fidya":
-      return <FlowCardFoodReliefIcon color={color} size={size} />;
+      return <DashBoardMealsIcon color={color} size={size} />;
     case "sadaqah-kafarah":
       return <FlowCardHandHeartIcon color={color} size={size} />;
     case "sadaqah-Lillah":

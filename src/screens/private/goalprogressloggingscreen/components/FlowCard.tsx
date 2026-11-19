@@ -6,6 +6,7 @@ import {
   ViewStyle,
   StyleProp,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -77,8 +78,8 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         <Text
           style={styles.flowHeaderText}
           numberOfLines={headerSingleLine ? 1 : 2}
-          // adjustsFontSizeToFit
-          // minimumFontScale={headerSingleLine ? 0.85 : 0.8}
+          adjustsFontSizeToFit={headerSingleLine}
+          minimumFontScale={headerSingleLine ? 0.8 : undefined}
         >
           {headerLabel}
         </Text>
@@ -124,7 +125,10 @@ export const FlowCard: React.FC<FlowCardProps> = ({
                 canConfirm && styles.confirmButtonActive,
                 (!canConfirm || isConfirmLoading) && styles.navButtonDisabled,
               ]}
-              onPress={onConfirm}
+              onPress={() => {
+                Keyboard.dismiss();
+                onConfirm();
+              }}
               disabled={!canConfirm || isConfirmLoading}
               activeOpacity={0.8}
             >

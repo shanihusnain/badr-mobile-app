@@ -14,6 +14,7 @@ export const SponsringOrphanWhiteIcon = ({
       
       width={size}
       height={size}
+      viewBox="0 0 16 16"
     
     >
     <G fill={color} fillRule="evenodd" clipPath="url(#a)" clipRule="evenodd">

@@ -10,12 +10,19 @@ export const HouseWithHeartIcon = ({
   size?: number;
 }) => (
   <Svg width={size} height={size} viewBox="0 0 18 18" fill="none">
-    {/* Filled house with heart cut out (evenodd). */}
+    {/* Outline-only house and heart (transparent inside). */}
     <Path
-      fill={color}
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M9.18.627a.281.281 0 0 0-.36 0L.665 7.406a.281.281 0 0 0 .18.497h1.26v8.972H.844a.281.281 0 1 0 0 .563h16.188a.281.281 0 1 0 0-.563h-1.135V7.903h1.26a.28.28 0 0 0 .18-.498L9.18.627ZM7.118 7.648c-.676 0-1.253.232-1.67.671-.426.45-.65 1.097-.612 1.776.067 1.236.824 3.033 4.042 4.577a.284.284 0 0 0 .244 0c3.219-1.545 3.975-3.342 4.042-4.578.037-.678-.186-1.325-.612-1.775-.416-.439-.993-.67-1.67-.67-.96 0-1.559.481-1.882.951-.323-.47-.922-.952-1.882-.952Z"
+      stroke={color}
+      strokeWidth={1}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.2 16.6V7.6L9 1.4l6.8 6.2v9M1 16.6h16"
+    />
+    <Path
+      stroke={color}
+      strokeWidth={1}
+      strokeLinejoin="round"
+      d="M9 14.6C6 13 5.2 11.3 5.2 10.2c0-1 .7-1.7 1.6-1.7.9 0 1.6.6 2.2 1.4.6-.8 1.3-1.4 2.2-1.4.9 0 1.6.7 1.6 1.7 0 1.1-.8 2.8-3.8 4.4Z"
     />
   </Svg>
 );

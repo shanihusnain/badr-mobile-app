@@ -7,6 +7,7 @@ export const SvgComponent = ({ color = Colors.light.white, size = 18 }: { color?
    
     width={size}
     height={size}
+    viewBox="0 0 17.824 16.71"
     fill="none"
   
   >

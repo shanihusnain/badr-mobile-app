@@ -24,7 +24,7 @@ export function AmountStep({
   return (
     <View style={styles.container}>
       <View style={styles.inputWrapper}>
-        <Text style={styles.currencySymbol}>{currencySymbol} </Text>
+        <Text style={styles.currencySymbol}>{currencySymbol === "USD" ? "$" : currencySymbol} </Text>
         <TextInput
           style={styles.input}
           value={amount}

@@ -25,7 +25,6 @@ import {
   parseFlexibleTimeToStartTimeParts,
   getPrayerWindowFromTimeline,
   isStartTimeWithinPrayerWindow,
-  clampStartTimeToPrayerWindow,
   type StartTimeParts,
 } from "../components/TimePickerSteps";
 import { FlowCard } from "../components/FlowCard";
@@ -226,94 +225,26 @@ export default function FiveDailyPrayersLoggingFlow({
     [applyStartTimeParts, dashboardForDate?.prayerTimesCard?.timeline],
   );
 
-  const clampOnTimeStartTime = useCallback(
-    (parts: StartTimeParts, opts?: { force?: boolean }): StartTimeParts => {
-      if (timing !== "onTime" || !onTimePrayerWindow) return parts;
-      const hourNum = Number.parseInt(parts.hour, 10);
-      const minuteNum = Number.parseInt(parts.minute, 10);
-      const complete =
-        parts.hour.trim().length > 0 &&
-        parts.minute.trim().length > 0 &&
-        Number.isFinite(hourNum) &&
-        Number.isFinite(minuteNum) &&
-        hourNum >= 1 &&
-        hourNum <= 12 &&
-        minuteNum >= 0 &&
-        minuteNum <= 59;
-      if (!complete && !opts?.force) {
-        return parts;
-      }
-      if (!isStartTimeWithinPrayerWindow(parts, onTimePrayerWindow)) {
-        const clamped = clampStartTimeToPrayerWindow(parts, onTimePrayerWindow);
-        setStartTimeInvalid(true);
-        return clamped;
-      }
-      setStartTimeInvalid(false);
-      return {
-        hour: parts.hour.padStart(2, "0"),
-        minute: parts.minute.padStart(2, "0"),
-        period: parts.period,
-      };
-    },
-    [onTimePrayerWindow, timing],
-  );
-
   const handleSetStartHour = useCallback(
     (h: string) => {
-      const next = clampOnTimeStartTime({
-        hour: h,
-        minute: startMinute,
-        period: startPeriod,
-      });
-      applyStartTimeParts(next);
-      if (timing !== "onTime") clearStartTimeInvalid();
+      clearStartTimeInvalid();
+      setStartHour(h);
     },
-    [
-      applyStartTimeParts,
-      clampOnTimeStartTime,
-      clearStartTimeInvalid,
-      startMinute,
-      startPeriod,
-      timing,
-    ],
+    [clearStartTimeInvalid],
   );
   const handleSetStartMinute = useCallback(
     (m: string) => {
-      const next = clampOnTimeStartTime({
-        hour: startHour,
-        minute: m,
-        period: startPeriod,
-      });
-      applyStartTimeParts(next);
-      if (timing !== "onTime") clearStartTimeInvalid();
+      clearStartTimeInvalid();
+      setStartMinute(m);
     },
-    [
-      applyStartTimeParts,
-      clampOnTimeStartTime,
-      clearStartTimeInvalid,
-      startHour,
-      startPeriod,
-      timing,
-    ],
+    [clearStartTimeInvalid],
   );
   const handleSetStartPeriod = useCallback(
     (p: "am" | "pm") => {
-      const next = clampOnTimeStartTime({
-        hour: startHour,
-        minute: startMinute,
-        period: p,
-      });
-      applyStartTimeParts(next);
-      if (timing !== "onTime") clearStartTimeInvalid();
+      clearStartTimeInvalid();
+      setStartPeriod(p);
     },
-    [
-      applyStartTimeParts,
-      clampOnTimeStartTime,
-      clearStartTimeInvalid,
-      startHour,
-      startMinute,
-      timing,
-    ],
+    [clearStartTimeInvalid],
   );
 
   const handleSelectTiming = useCallback(
@@ -706,16 +637,12 @@ export default function FiveDailyPrayersLoggingFlow({
     if (isLogging) return;
     if (!selectedPrayer) return;
 
-    let confirmStartParts: StartTimeParts = {
+    const confirmStartParts: StartTimeParts = {
       hour: startHour,
       minute: startMinute,
       period: startPeriod,
     };
     if (timing === "onTime") {
-      confirmStartParts = clampOnTimeStartTime(confirmStartParts, {
-        force: true,
-      });
-      applyStartTimeParts(confirmStartParts);
       if (
         onTimePrayerWindow &&
         !isStartTimeWithinPrayerWindow(confirmStartParts, onTimePrayerWindow)
@@ -787,14 +714,12 @@ export default function FiveDailyPrayersLoggingFlow({
       if (lockedPrayersForSelectedDate.includes(selectedPrayer)) return;
     }
     if (currentStep === "startTime" && timing === "onTime") {
-      const clamped = clampOnTimeStartTime(
-        { hour: startHour, minute: startMinute, period: startPeriod },
-        { force: true },
-      );
-      applyStartTimeParts(clamped);
       if (
         onTimePrayerWindow &&
-        !isStartTimeWithinPrayerWindow(clamped, onTimePrayerWindow)
+        !isStartTimeWithinPrayerWindow(
+          { hour: startHour, minute: startMinute, period: startPeriod },
+          onTimePrayerWindow,
+        )
       ) {
         setStartTimeInvalid(true);
         return;

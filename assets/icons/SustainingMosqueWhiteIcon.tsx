@@ -12,6 +12,7 @@ export const SustainingMosqueWhiteIcon = ({
   <Svg
     width={size}
     height={size}
+    viewBox="0 0 12 16"
     fill="none"
   >
     <Path

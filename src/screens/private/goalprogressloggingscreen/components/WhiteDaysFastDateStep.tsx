@@ -107,6 +107,7 @@ const localStyles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     position: "relative",
+    transform: [{ translateY: -8 }],
   },
   dateRow: {
     width: "100%",

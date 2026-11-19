@@ -15,5 +15,9 @@ export function LoggingBackdrop() {
     return () => setLoggingOverlayActive?.(false);
   }, [setLoggingOverlayActive]);
 
-  return <Pressable style={commonStyles.backdrop} />;
+  return (
+    <Pressable
+      style={[commonStyles.backdrop, { backgroundColor: "rgba(0, 0, 0, 0.72)" }]}
+    />
+  );
 }

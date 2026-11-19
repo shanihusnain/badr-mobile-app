@@ -13,6 +13,7 @@ export const BuildingWellsWhiteIcon = ({
   
     width={size}
     height={size}
+    viewBox="0 0 14 14"
    
   >
     <G clipPath="url(#a)">

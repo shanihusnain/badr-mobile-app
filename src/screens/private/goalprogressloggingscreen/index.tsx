@@ -939,7 +939,16 @@ export const GoalProgressLoggingScreen = ({
   const dawoodHeaderSecondTitle =
     goalId === "fasting-Dawwod" ? "DAWOOD (AS)" : undefined;
 
-  const duhaHeaderTitle = goalId === "prayer-duha" ? "DUHA PRAYER" : null;
+  const shortenedPrayerHeaderTitle =
+    goalId === "prayer-duha"
+      ? "DUHA"
+      : goalId === "prayer-tawbah"
+        ? "TAWBAH"
+        : goalId === "prayer-istikhara"
+          ? "ISTIKHARA"
+          : goalId === "prayer-shukr"
+            ? "SHUKR"
+            : null;
 
   const whiteDaysHeaderTitle = isWhiteDaysFastsGoalId(goalId)
     ? "THE WHITE DAYS"
@@ -1130,8 +1139,8 @@ export const GoalProgressLoggingScreen = ({
                       ? recitationHeaderTitle
                       : dawoodHeaderTitle
                         ? dawoodHeaderTitle
-                        : duhaHeaderTitle
-                          ? duhaHeaderTitle
+                        : shortenedPrayerHeaderTitle
+                          ? shortenedPrayerHeaderTitle
                           : whiteDaysHeaderTitle
                             ? whiteDaysHeaderTitle
                             : kaffarahHeaderTitle
