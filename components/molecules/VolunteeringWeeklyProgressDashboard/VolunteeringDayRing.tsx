@@ -79,7 +79,7 @@ export function VolunteeringDayRing({
   const showBestBoost = isBestDay && hasLog && !isFuture && !showEmptyOutline;
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
   // Keep glyphs inside the green ring (no overflow).
-  const iconSize = Math.round(circleSize * 0.55);
+  const iconSize = Math.round(circleSize * (showBestBoost ? 0.72 : 0.55));
   const iconColor = isBestDay
     ? Colors.light.qiyamIconGold
     : Colors.light.white;

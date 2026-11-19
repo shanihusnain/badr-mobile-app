@@ -364,7 +364,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" style={styles.loadingSpinner} />
+              <LoadingComponent size="large" style={styles.loadingSpinner} />
             </View>
           ) : (
             categories.map((category) => (
@@ -395,7 +395,7 @@ export const DailyProgressBottomSheet = ({
             <View
               style={[styles.loadingContainer, { minHeight: loadingMinHeight }]}
             >
-              <LoadingComponent size="medium" style={styles.loadingSpinner} />
+              <LoadingComponent size="large" style={styles.loadingSpinner} />
             </View>
           ) : (
             detailGoals.map((goal) => (

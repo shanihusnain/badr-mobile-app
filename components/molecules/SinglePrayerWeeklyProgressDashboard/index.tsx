@@ -99,7 +99,12 @@ export function SinglePrayerWeeklyProgressDashboard({
   );
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={() => {
+        if (selectForDeletion) setSelectForDeletion("");
+      }}
+    >
       <PrayerWeeklyProgressHeader
         weekFraction={weekFraction}
         weekRangeLabel={weekRangeLabel}
@@ -148,7 +153,8 @@ export function SinglePrayerWeeklyProgressDashboard({
                       isDeletingLog ||
                       (!onDeleteLog && !prayerFrame?.frame?.prayerType)
                     }
-                    onPress={() => {
+                    onPress={(event) => {
+                      event.stopPropagation();
                       if (!day.date || isDeletingLog) return;
 
                       if (onDeleteLog) {
@@ -394,7 +400,7 @@ export function SinglePrayerWeeklyProgressDashboard({
           </>
         ) : null}
       </PrayerWeeklyDashboardBody>
-    </View>
+    </Pressable>
   );
 }
 

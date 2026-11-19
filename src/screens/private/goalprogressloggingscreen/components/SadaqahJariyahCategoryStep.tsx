@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -37,7 +38,7 @@ const VISIBLE_MENU_ROWS = 2;
 const MENU_ROW_HEIGHT = 25;
 const MENU_LIST_VERTICAL_PADDING = 7;
 /** Dropdown icons are designed at 18×18; keep them uniform in the menu. */
-const DROPDOWN_ICON_SIZE = 14;
+const DROPDOWN_ICON_SIZE = 16;
 
 function CategoryIcon({
   id,
@@ -133,7 +134,7 @@ export function SadaqahJariyahCategoryStep({
         onPress={() => setIsOpen((v) => !v)}
         activeOpacity={0.85}
       >
-        <CategoryIcon id={selected.id} size={DROPDOWN_ICON_SIZE} />
+        <CategoryIcon id={selected.id} size={19} />
         <Text style={styles.dropdownLabel} numberOfLines={1}>
           {selected.label}
         </Text>
@@ -185,7 +186,12 @@ export function SadaqahJariyahCategoryStep({
                   <View style={styles.catIconCirclePlain}>
                     <CategoryIcon id={cat.id} size={DROPDOWN_ICON_SIZE} />
                   </View>
-                  <Text style={styles.radioLabel} numberOfLines={1}>
+                  <Text
+                    style={styles.radioLabel}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={Platform.OS === "android"}
+                    minimumFontScale={0.85}
+                  >
                     {cat.label}
                   </Text>
                 </TouchableOpacity>
@@ -230,7 +236,7 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    marginTop: 4,
+    marginTop: Platform.OS === "android" ? -0.5 : 4,
     color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
     fontSize: 10,
@@ -245,7 +251,7 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    marginTop: 4,
+    marginTop: Platform.OS === "android" ? 0.3 : 4,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 8,
     paddingVertical: 6,

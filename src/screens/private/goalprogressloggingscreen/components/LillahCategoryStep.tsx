@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -140,7 +141,12 @@ export function LillahCategoryStep({
                   <View style={styles.catIconCirclePlain}>
                     <CategoryIcon id={cat.id} size={18} />
                   </View>
-                  <Text style={styles.radioLabel} numberOfLines={1}>
+                  <Text
+                    style={styles.radioLabel}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={Platform.OS === "android"}
+                    minimumFontScale={0.85}
+                  >
                     {cat.label}
                   </Text>
                 </TouchableOpacity>
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    marginTop: 4,
+    marginTop: Platform.OS === "android" ? -0.5 : 4,
     color: "rgba(255, 255, 255, 0.8)",
     fontFamily: fonts.primary.regular,
     fontSize: 10,
@@ -200,7 +206,7 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    marginTop: 4,
+    marginTop: Platform.OS === "android" ? 0.3 : 4,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 8,
     paddingVertical: 6,

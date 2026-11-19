@@ -84,7 +84,7 @@ export function SadaqahJariyahDayRing({
   const circleSize = showBestBoost ? size + BEST_DAY_SIZE_BOOST : size;
   // Keep glyphs inside the green ring (no overflow).
   const iconSize = showBestBoost
-    ? Math.round(circleSize * 0.55)
+    ? Math.round(circleSize * 0.80)
     : Math.round(circleSize * 0.62);
   const iconColor = isBestDay
     ? Colors.light.qiyamIconGold
