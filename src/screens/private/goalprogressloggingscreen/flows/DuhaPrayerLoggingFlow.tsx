@@ -359,36 +359,36 @@ export default function DuhaPrayerLoggingFlow({
           {flowMode === "collapsed" ? (
             <View style={localStyles.summaryCard}>
               <View style={localStyles.summaryBody}>
-                <View style={localStyles.summaryIconCircle}>
-                  <FlowCardDuhaPrayerIcon
-                    color={Colors.light.white}
-                    size={22}
-                  />
-                </View>
-                <View style={localStyles.summaryTextBlock}>
-                  <View
+                <View
+                  style={[
+                    localStyles.badge,
+                    badgeStatus.type === "completed"
+                      ? localStyles.badgeCompleted
+                      : badgeStatus.type === "not-started"
+                        ? localStyles.badgeNotStarted
+                        : localStyles.badgeInProgress,
+                    { alignSelf: "flex-start" },
+                  ]}
+                >
+                  <Text
                     style={[
-                      localStyles.badge,
+                      localStyles.badgeText,
                       badgeStatus.type === "completed"
-                        ? localStyles.badgeCompleted
+                        ? localStyles.badgeTextCompleted
                         : badgeStatus.type === "not-started"
-                          ? localStyles.badgeNotStarted
-                          : localStyles.badgeInProgress,
-                      { alignSelf: "flex-start" },
+                          ? localStyles.badgeTextNotStarted
+                          : localStyles.badgeTextInProgress,
                     ]}
                   >
-                    <Text
-                      style={[
-                        localStyles.badgeText,
-                        badgeStatus.type === "completed"
-                          ? localStyles.badgeTextCompleted
-                          : badgeStatus.type === "not-started"
-                            ? localStyles.badgeTextNotStarted
-                            : localStyles.badgeTextInProgress,
-                      ]}
-                    >
-                      {badgeStatus.text}
-                    </Text>
+                    {badgeStatus.text}
+                  </Text>
+                </View>
+                <View style={localStyles.summaryTitleRow}>
+                  <View style={localStyles.summaryIconCircle}>
+                    <FlowCardDuhaPrayerIcon
+                      color={Colors.light.white}
+                      size={22}
+                    />
                   </View>
                   <Text
                     style={[
@@ -483,6 +483,8 @@ const localStyles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     marginTop: 3,
+    // Align with title text (icon 38 + row gap 6).
+    marginLeft: 44,
   },
   badgeInProgress: {
     backgroundColor: Colors.light.lightpurple,
@@ -509,13 +511,12 @@ const localStyles = StyleSheet.create({
     color: Colors.light.notStartedTextColor,
   },
   summaryBody: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-  },
-  summaryTextBlock: {
-    flex: 1,
     gap: 9,
+  },
+  summaryTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   summaryIconCircle: {
     width: 38,
@@ -524,9 +525,9 @@ const localStyles = StyleSheet.create({
     backgroundColor: Colors.light.selectcategory,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 32,
   },
   summaryTitle: {
+    flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 14,
