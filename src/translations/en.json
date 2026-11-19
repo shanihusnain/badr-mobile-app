@@ -1460,7 +1460,7 @@
       ]
     },
     "duhaPrayer": {
-      "title": "DUHA PRAYER",
+      "title": "DUHA",
       "summaryDescription": "It is performed in sets of 2 rak'ahs anytime from approximately 15-20 minutes after sunrise until about 10-15 minutes before the Dhuhr prayer...",
       "description": "Duha prayer, also known as the repentant or Awabeen in Arabic, is performed in sets of 2 rak'ahs anytime 15-20 minutes after sunrise until 10-15 minutes before Dhuhr.",
       "heroTitle": "Spiritual Elevation & Physical Charity",
@@ -1522,7 +1522,7 @@
       ]
     },
     "tawbaPrayer": {
-      "title": "TAWBAH PRAYER",
+      "title": "TAWBAH",
       "summaryDescription": "Also known as the repentance prayer in English, the Tawbah prayer is a sincere 2 rak'ah prayer to seek forgiveness from Allah for our sins...",
       "description": "The Tawbah prayer, or the Prayer of Repentance, is a rewarding 2-rakah voluntary prayer for seeking Allah's forgiveness and repentance for any sins, whether minor or major, old or new.",
       "heroTitle": "Embracing the Power of Repentance",
@@ -1610,7 +1610,7 @@
       ]
     },
     "istikharah": {
-      "title": "ISTIKHARAH PRAYER",
+      "title": "ISTIKHARAH",
       "summaryDescription": "A two rak'ah prayer performed to seek guidance from Allah when faced with a decision. It helps us make choices that align with our faith and best interests.",
       "description": "The Istikhara prayer is a two rak'ah prayer for divine guidance when making a decision, fostering reliance on Allah and promoting peace of mind.",
       "heroTitle": "Seeking Divine Guidance in Decision-Making",
@@ -1697,7 +1697,7 @@
       ]
     },
     "shukrPrayer": {
-      "title": "SHUKR PRAYER",
+      "title": "SHUKR",
       "summaryDescription": "The Gratitude Prayer (Shukr) is a 2-rak'ah act of thanks to Allah for His countless blessings. It fosters positivity by inspiring recognition of His generosity...",
       "description": "Al-Shukr prayer is a two rak'ah prayer of gratitude, fostering humility and appreciation for Allah's countless blessings, strengthening our faith.",
       "heroTitle": "Gratitude in Devotion",
@@ -2459,7 +2459,7 @@
       ]
     },
     "dawood-fasts": {
-      "title": "THE FAST OF PROPHET DAWOOD (AS)",
+      "title": "PROPHET DAWOOD (AS) FASTS",
       "summaryDescription": "These fasts are observed by fasting every other day, reflecting Prophet Dawood's (PBUH) devotion and resilience, and serving as a model of piety...",
       "description": "The fast of Dawood (PBUH), observed everyother day, exemplifies devotion, patience, and resilience, serving as a timeless model of piety for Muslims.",
       "heroTitle": "A Testament to Devotion & Spiritual Resilience",
@@ -2561,7 +2561,7 @@
       ]
     },
     "monday-and-thursday-fasts": {
-      "title": "MONDAYS & THURSDAYS FASTS",
+      "title": "MONDAYS & THURSDAYS",
       "summaryDescription": "These fasts follow the Prophet's (PBUH) Sunnah, deepen devotion to Allah, promote well-being, and offer profound spiritual purification and self-discipline ...",
       "description": "Fasting on Mondays and Thursdays, a Sunnah of the Prophet (PBUH), offers structured opportunities to foster spiritual growth and deepen our connection with Allah.",
       "heroTitle": "Spiritual Strength & Consistent Devotion",
@@ -2668,7 +2668,7 @@
       ]
     },
     "white-days-fasts": {
-      "title": "WHITE DAYS FASTS",
+      "title": "WHITE DAYS",
       "summaryDescription": "Fasting on the 13th, 14th, and 15th of each Islamic month deepens connection with Allah, nurtures discipline, and inspires profound spiritual growth and self-reflection..",
       "description": "Fasting on the White Days, the 13th, 14th, and 15th of each Islamic month, strengthens your connection with Allah, fosters discipline, and cultivates deep spiritual growth.",
       "heroTitle": "Aligning with Celestial Harmony",
@@ -2923,11 +2923,11 @@
       ]
     },
     "kafarah-for-breaking-fasts": {
-      "title": "KAFFARAH FOR FASTS & OATHS",
+      "title": "KAFFARAH FOR BREAKING FASTS OR OATHS",
       "summaryDescription": "A form of sadaqah to atone for broken fasts or oaths, requiring feeding or clothing those in need as prescribed...",
       "description": "Kaffarah for breaking fasts or oaths is a sadaqah to atone for breaking them without a valid reason, requiring feeding 10 people per broken oath and 60 people per broken fast.",
       "heroTitle": "A Path to Atonement & Community Care",
-      "navTitle": "KAFFARAH FOR FASTS & OATHS",
+      "navTitle": "KAFFARAH FOR BREAKING FASTS OR OATHS",
       "readMore": [
         {
           "items": [

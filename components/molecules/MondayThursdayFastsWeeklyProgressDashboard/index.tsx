@@ -139,8 +139,8 @@ export function MondayThursdayFastsWeeklyProgressDashboard({
       const mondayThursdayDay = weekSummary.weekDays[args.index];
       if (!mondayThursdayDay) return null;
 
-      // Booked-for-other-goal days use disabledPast/todayDisabled → solid grey
-      // (never the other goal’s accent / logged / skipped colors).
+      // Future booked maps to "future" (dashboard bg + grey ring). Past booked
+      // stays disabledPast solid grey. todayDisabled uses today UI.
       return (
         <MondayThursdayFastDayRing
           size={args.size}

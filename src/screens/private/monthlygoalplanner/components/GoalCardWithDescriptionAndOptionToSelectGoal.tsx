@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     fontSize: 16,
     lineHeight: 20,
-    textTransform: "capitalize",
   },
   backgroundImage: {
     width: "100%",

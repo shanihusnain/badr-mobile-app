@@ -109,8 +109,8 @@ export function ProphetDawoodFastsWeeklyProgressDashboard({
       const dawoodDay = weekSummary.weekDays[args.index];
       if (!dawoodDay) return null;
 
-      // Booked-for-other-goal days use disabledPast/todayDisabled → solid grey
-      // (never the other goal’s accent / logged / skipped colors).
+      // Future booked maps to "future" (dashboard bg + grey ring). Past booked
+      // stays disabledPast solid grey. todayDisabled uses today UI.
       const ring = (
         <ProphetDawoodFastDayRing
           size={args.size}

@@ -4,12 +4,6 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { MissedRamadanFastDayState } from "@/src/screens/private/goalprogressloggingscreen/missedRamadanFastsWeeklyData";
 
-/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
-const PRAYER_FUTURE_OUTLINE = {
-  color: "rgba(255, 255, 255, 0.32)",
-  borderWidth: 1,
-} as const;
-
 type RingVisual =
   | {
       variant: "outline";
@@ -49,38 +43,40 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      // Match prayer upcoming empty ring (thin translucent white outline).
+      // Unplanned future (enabled or disabled): dashboard bg + grey ring.
       return {
-        variant: "outline",
-        color: PRAYER_FUTURE_OUTLINE.color,
-        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: Colors.light.grey,
       };
     case "pastNeutral":
     case "disabledPast":
-    case "todayDisabled":
-      // NOT_PLANNED past or booked for another goal — solid grey disc.
+      // NOT_PLANNED past or booked for another goal (past) — solid grey disc.
       return {
         variant: "solid",
         color: Colors.light.selectcategory,
         scale: 0.92,
       };
+    case "today":
+    case "todayDisabled":
     case "plannedToday":
-      // Planned today — grey disc inside Ramadan accent ring border.
+      // Same today UI (#213144 fill + border). Only border color differs —
+      // planned → ringRamadan; not planned / todayDisabled → grey.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.ibadahProgressCardBg,
+        borderColor:
+          state === "plannedToday"
+            ? Colors.light.ringRamadan
+            : Colors.light.grey,
+      };
+    case "planned":
+      // Future planned: dashboard bg + Ramadan accent border.
       return {
         variant: "solidWithBorder",
         fillColor: Colors.light.greybuttonBackground,
         borderColor: Colors.light.ringRamadan,
       };
-    case "today":
-      // Plain today — grey disc; accent border only if frame marks planned.
-      return {
-        variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: isPlanned ? Colors.light.ringRamadan : Colors.light.grey,
-      };
-    case "planned":
-      // #5 — empty ringRamadan (#B7977E) outline
-      return { variant: "outline", color: Colors.light.ringRamadan };
     case "plannedSkipped":
       // #9
       return { variant: "skippedWarning" };
@@ -198,33 +194,19 @@ export function MissedRamadanFastDayRing({
   }
 
   if (visual.variant === "solidWithBorder") {
-    // Outer bordered ring + inner fill so accent borders stay crisp
-    // (same-view fill+border often washes out ringRamadan on dark fills).
-    const innerSize = Math.max(size - borderWidth * 2, size * 0.72);
+    // One view — black fill + border; planned vs unplanned only differs by borderColor.
     return (
       <View style={wrapperStyle}>
         <View
-          style={[
-            styles.ring,
-            {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              borderWidth,
-              borderColor: visual.borderColor,
-              backgroundColor: "transparent",
-            },
-          ]}
-        >
-          <View
-            style={{
-              width: innerSize,
-              height: innerSize,
-              borderRadius: innerSize / 2,
-              backgroundColor: visual.fillColor,
-            }}
-          />
-        </View>
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: visual.fillColor,
+            borderWidth,
+            borderColor: visual.borderColor,
+          }}
+        />
       </View>
     );
   }

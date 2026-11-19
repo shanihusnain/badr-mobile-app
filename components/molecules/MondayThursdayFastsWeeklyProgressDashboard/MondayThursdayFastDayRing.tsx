@@ -4,12 +4,6 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { MondayThursdayFastDayState } from "@/src/screens/private/goalprogressloggingscreen/mondayThursdayFastsWeeklyData";
 
-/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
-const PRAYER_FUTURE_OUTLINE = {
-  color: "rgba(255, 255, 255, 0.32)",
-  borderWidth: 1,
-} as const;
-
 type RingVisual =
   | {
       variant: "outline";
@@ -54,36 +48,40 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      // Match prayer upcoming empty ring (thin translucent white outline).
+      // Unplanned future (enabled or disabled): dashboard bg + grey ring.
       return {
-        variant: "outline",
-        color: PRAYER_FUTURE_OUTLINE.color,
-        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: Colors.light.grey,
       };
     case "pastNeutral":
-    case "todayDisabled":
     case "disabledPast":
-      // NOT_PLANNED past or booked for another goal — solid grey disc.
+      // NOT_PLANNED past or booked for another goal (past) — solid grey disc.
       return {
         variant: "solid",
         color: Colors.light.selectcategory,
         scale: 0.92,
       };
     case "today":
+    case "todayDisabled":
     case "plannedToday":
-      // Same solid today disc as Missed Ramadan; ring border carries
-      // planned accent (seagreen) vs grey — not the today chip box.
+      // Same today UI (#213144 fill + border). todayDisabled keeps this UI.
+      // Border: planned → seagreen; not planned / disabled → grey.
       return {
         variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
+        fillColor: Colors.light.ibadahProgressCardBg,
         borderColor:
           state === "plannedToday" || isPlanned
             ? Colors.light.seagreen
             : Colors.light.grey,
       };
     case "planned":
-      // Future planned Mon/Thu — empty seagreen ring (fills after log → completed)
-      return { variant: "outline", color: Colors.light.seagreen };
+      // Future planned Mon/Thu: dashboard bg + seagreen accent border.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: Colors.light.seagreen,
+      };
     case "completed":
       // #7 / #8 — seagreen ring + solid mid fill
       return { variant: "completed" };

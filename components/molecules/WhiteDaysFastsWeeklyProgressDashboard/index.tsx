@@ -164,8 +164,8 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
       const whiteDay = weekSummary.weekDays[args.index];
       if (!whiteDay) return null;
 
-      // Booked-for-other-goal → force inactive/todayDisabled solid grey
-      // (never the other goal’s accent / logged / skipped colors).
+      // Booked-for-other-goal: today → todayDisabled; else inactive.
+      // Future booked still uses future grey-ring UI (isFuture must stay true).
       const state = whiteDay.bookedFor
         ? whiteDay.isToday
           ? "todayDisabled"
@@ -179,10 +179,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
           isMenstruating={whiteDay.bookedFor ? false : whiteDay.isMenstruating}
           isWhiteDay={whiteDay.bookedFor ? false : whiteDay.isWhiteDay}
           isToday={whiteDay.isToday}
-          isFuture={
-            !whiteDay.bookedFor &&
-            isWhiteDaysFutureDate(whiteDay.date, whiteDay.isToday)
-          }
+          isFuture={isWhiteDaysFutureDate(whiteDay.date, whiteDay.isToday)}
         />
       );
     },

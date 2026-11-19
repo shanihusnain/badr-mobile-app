@@ -29,6 +29,7 @@ import {
   goalTypeToGoalId,
   formatDailyProgressGoalTitle,
   formatDailyProgressGoalSubtitle,
+  getFastingGoalsDataKey,
   getSadaqahGoalsDataKey,
   toUiIbadahCategory,
   type UiIbadahCategory,
@@ -213,11 +214,12 @@ export const DailyProgressBottomSheet = ({
       const target = goal.target ?? 0;
       if (!goalId || target <= 0) return [];
 
-      // Prefer Figma goalsData keys (e.g. kafarah-for-breaking-fasts) over
-      // short API displayName ("Kaffarah").
-      const sadaqahKey = getSadaqahGoalsDataKey(goal.goalType);
-      const goalsDataTitle = sadaqahKey
-        ? i18n.t(`goalsData.${sadaqahKey}.title`, { defaultValue: "" })
+      // Prefer Figma goalsData keys over short API displayName.
+      const goalsDataKey =
+        getFastingGoalsDataKey(goal.goalType) ??
+        getSadaqahGoalsDataKey(goal.goalType);
+      const goalsDataTitle = goalsDataKey
+        ? i18n.t(`goalsData.${goalsDataKey}.title`, { defaultValue: "" })
         : "";
       const title =
         (typeof goalsDataTitle === "string" && goalsDataTitle.trim()) ||

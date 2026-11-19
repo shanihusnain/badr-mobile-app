@@ -4,12 +4,6 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { WhiteDaysFastDayState } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 
-/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
-const PRAYER_FUTURE_OUTLINE = {
-  color: "rgba(255, 255, 255, 0.32)",
-  borderWidth: 1,
-} as const;
-
 type RingVisual =
   | {
       variant: "outline";
@@ -57,27 +51,32 @@ function getRingVisual(
 
   switch (state) {
     case "today":
-      // Plain today (not a White Day) — same disc as other fasting goals.
+    case "todayDisabled":
+    case "plannedToday":
+      // Same today UI (#213144 fill + border). todayDisabled keeps this UI.
+      // Only border differs: planned → white; not planned / disabled → grey.
+      // Future planned White Days: dashboard bg + white accent (same as planned).
+      if (state === "plannedToday" && isFuture) {
+        return {
+          variant: "solidWithBorder",
+          fillColor: Colors.light.greybuttonBackground,
+          borderColor: Colors.light.white,
+        };
+      }
       return {
         variant: "solidWithBorder",
-        fillColor: Colors.light.greybuttonBackground,
-        borderColor: Colors.light.grey,
-      };
-    case "todayDisabled":
-      // Booked for another goal — solid grey (same as Missed / Mon-Thu).
-      return {
-        variant: "solid",
-        color: Colors.light.selectcategory,
-        scale: 0.92,
+        fillColor: Colors.light.ibadahProgressCardBg,
+        borderColor:
+          state === "plannedToday" ? Colors.light.white : Colors.light.grey,
       };
     case "inactive":
-      // Upcoming non–White Day — match prayer future outline.
+      // Future (enabled or disabled/booked): dashboard bg + grey ring.
       // Past non–White Day — solid muted grey.
       if (isFuture) {
         return {
-          variant: "outline",
-          color: PRAYER_FUTURE_OUTLINE.color,
-          borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
+          variant: "solidWithBorder",
+          fillColor: Colors.light.greybuttonBackground,
+          borderColor: Colors.light.grey,
         };
       }
       return {
@@ -86,17 +85,12 @@ function getRingVisual(
         scale: 0.92,
       };
     case "planned":
-      return { variant: "outline", color: Colors.light.white };
-    case "plannedToday":
-      // Future White Days stay as white outline; actual today is a grey disc
-      // with white accent border.
-      return isFuture
-        ? { variant: "outline", color: Colors.light.white }
-        : {
-            variant: "solidWithBorder",
-            fillColor: Colors.light.greybuttonBackground,
-            borderColor: Colors.light.white,
-          };
+      // Future planned White Day: dashboard bg + white accent border.
+      return {
+        variant: "solidWithBorder",
+        fillColor: Colors.light.greybuttonBackground,
+        borderColor: Colors.light.white,
+      };
     case "completed":
       // Past + today: white ring + fill (same structure as Mon/Thu completed,
       // White Days accent = white).

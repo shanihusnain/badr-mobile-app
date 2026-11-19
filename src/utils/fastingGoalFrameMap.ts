@@ -528,13 +528,16 @@ function resolveMissedRamadanDayState(
   const today = moment().format("YYYY-MM-DD");
   const date = normalizeDate(day.date);
   const hasDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const isCalendarToday = Boolean(day.isToday) || (hasDate && date === today);
   const isFuture = hasDate && date > today;
   const isPast = hasDate && date < today;
   const bookedForOtherGoal = Boolean(day.bookedForOtherGoal);
 
   // #3 / #4 — booked for another fasting goal
   if (bookedForOtherGoal) {
-    if (day.isToday) return "todayDisabled";
+    // Today: same today UI. Future: same unplanned future grey ring. Past: solid grey.
+    if (isCalendarToday) return "today";
+    if (isFuture) return "future";
     if (isPast) return "disabledPast";
   }
 
@@ -543,7 +546,7 @@ function resolveMissedRamadanDayState(
     (state === "MADE_UP" || state === "COVERED_EARLY") &&
     isCoveredElsewherePlannedDate(day)
   ) {
-    return "pastNeutral";
+    return isCalendarToday ? "today" : "pastNeutral";
   }
 
   // #7 / #8 — completed on the day the fast was actually kept
@@ -559,7 +562,7 @@ function resolveMissedRamadanDayState(
 
   // MADE_UP without keptOn — still not a skip warning
   if (state === "MADE_UP") {
-    return "pastNeutral";
+    return isCalendarToday ? "today" : "pastNeutral";
   }
 
   // #9 — skipped planned (not yet made up)
@@ -569,20 +572,17 @@ function resolveMissedRamadanDayState(
 
   // #10 / #11 — EXCUSED = planned + menstruating (ring via isMenstruating)
   if (state === "EXCUSED" || state === "MENSTRUATING") {
-    return day.isToday ? "plannedToday" : "planned";
+    return isCalendarToday ? "plannedToday" : "planned";
   }
 
   // #6 — today planned fast
-  if (state === "DUE" && day.isToday && day.canLog) {
-    return "plannedToday";
-  }
-  if (state === "DUE" && day.isToday) {
+  if (state === "DUE" && isCalendarToday) {
     return "plannedToday";
   }
 
   // #5 — upcoming planned (today → plannedToday so ring gets accent border)
   if ((state === "UPCOMING" || state === "PLANNED") && day.isPlanned) {
-    return day.isToday ? "plannedToday" : "planned";
+    return isCalendarToday ? "plannedToday" : "planned";
   }
 
   // #15 — blur days after goal is fully achieved (no per-day field)
@@ -592,20 +592,20 @@ function resolveMissedRamadanDayState(
 
   // #1 / #2 / #14 — NOT_PLANNED
   if (state === "NOT_PLANNED" || !day.isPlanned) {
-    if (day.isToday) return "today";
+    if (isCalendarToday) return "today";
     if (isFuture) return "future";
     if (isPast) return "pastNeutral";
   }
 
   // Fallbacks for remaining planned-like signals
   if (day.isPlanned) {
-    if (day.isToday) return "plannedToday";
+    if (isCalendarToday) return "plannedToday";
     if (isFuture) return "planned";
     // Past planned without MISSED/COMPLETED — treat as skipped
     return "plannedSkipped";
   }
 
-  if (day.isToday) return "today";
+  if (isCalendarToday) return "today";
   if (isFuture) return "future";
   return "pastNeutral";
 }
@@ -624,11 +624,17 @@ export function mapMissedRamadanFrameDay(
 
   const booked = getBookedOtherGoalFields(day);
 
+  const date = normalizeDate(day.date);
+  const today = moment().format("YYYY-MM-DD");
+  const isCalendarToday =
+    Boolean(day.isToday) ||
+    (/^\d{4}-\d{2}-\d{2}$/.test(date) && date === today);
+
   return {
     day: day.dayLabel,
-    date: normalizeDate(day.date),
+    date,
     state,
-    isToday: Boolean(day.isToday),
+    isToday: isCalendarToday,
     isPlanned:
       Boolean(day.isPlanned) ||
       isExcusedMenstruating ||

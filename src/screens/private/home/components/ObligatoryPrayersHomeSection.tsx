@@ -40,15 +40,12 @@ function motivationalFromHomeOrFrame(
 ): string {
   const summary = typeof frameSummary === "string" ? frameSummary.trim() : "";
   if (summary) return summary;
-  const frame =
-    typeof frameMessage === "string" ? frameMessage.trim() : "";
+  const frame = typeof frameMessage === "string" ? frameMessage.trim() : "";
   if (frame) return frame;
   return typeof homeMessage === "string" ? homeMessage.trim() : "";
 }
 
-export function ObligatoryPrayersHomeSection({
-  obligatoryPrayers,
-}: Props) {
+export function ObligatoryPrayersHomeSection({ obligatoryPrayers }: Props) {
   const router = useRouter();
   const homeCard = obligatoryPrayers.card ?? null;
   const hasGoal = Boolean(obligatoryPrayers.hasGoal && homeCard);
@@ -155,8 +152,7 @@ export function ObligatoryPrayersHomeSection({
 
   const activeWeek =
     requestedWeek ?? frame?.cycle.weekNumber ?? homeCard?.weekNumber ?? 1;
-  const totalWeeks =
-    frame?.cycle.totalWeeks ?? homeCard?.totalWeeks ?? 1;
+  const totalWeeks = frame?.cycle.totalWeeks ?? homeCard?.totalWeeks ?? 1;
   const canPrev = !loading && activeWeek > 1;
   const canNext =
     !loading &&
@@ -177,12 +173,11 @@ export function ObligatoryPrayersHomeSection({
   const handleAddPrayer = useCallback(() => {
     router.push({
       pathname: "/goalprogressloggingscreen/[goalId]" as any,
-      params: { goalId: "prayer-fiveDailyPrayers" },
+      params: { goalId: "prayer-fiveDailyPrayers"},
     });
   }, [router]);
 
-  const title =
-    obligatoryPrayers.title?.trim() || "My Obligatory Prayers";
+  const title = obligatoryPrayers.title?.trim() || "My Obligatory Prayers";
   const addLabel = obligatoryPrayers.addButton?.trim() || "ADD PRAYER";
   const emptyText = obligatoryPrayers.emptyText?.trim() || null;
 

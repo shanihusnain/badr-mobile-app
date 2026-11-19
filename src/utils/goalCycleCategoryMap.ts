@@ -1,5 +1,6 @@
 import type { GoalId } from "@/src/screens/private/home/components/goalsData";
 import { GOAL_ID_TO_PRAYER_TYPE } from "@/src/utils/prayerGoalMap";
+import { FASTING_TYPE_TO_UI_ID } from "@/src/utils/fastingGoalMap";
 import { SADAQAH_TYPE_TO_UI_ID } from "@/src/utils/sadaqahGoalMap";
 import type { GoalCycleCategoryGoal } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 
@@ -103,6 +104,14 @@ const QURAN_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
 };
 
 /**
+ * Figma `goalsData.*` keys for fasting (missed-fasts, dawood-fasts, …).
+ * Prefer these over the short API `displayName`.
+ */
+export function getFastingGoalsDataKey(goalType: string): string | null {
+  return FASTING_TYPE_TO_UI_ID[goalType.toUpperCase()] ?? null;
+}
+
+/**
  * Figma `goalsData.*` keys for sadaqah (missed-zakat, lilah-donations, …).
  * Prefer these over the short API `displayName` (e.g. "Kaffarah").
  */
@@ -114,9 +123,16 @@ export function getSadaqahGoalsDataKey(goalType: string): string | null {
  * Fallback English titles matching `goalsData.<key>.title` / Figma when i18n
  * is unavailable. Forced-small-caps prep will lowercase these.
  */
+const FASTING_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
+  "fasting-ramadan": "Missed Ramadan Fasts",
+  "fasting-mondayThursday": "Mondays & Thursdays",
+  "fasting-whiteDays": "White Days",
+  "fasting-Dawwod": "Prophet Dawood (AS) Fasts",
+};
+
 const SADAQAH_DAILY_PROGRESS_TITLES: Partial<Record<GoalId, string>> = {
   "sadaqah-zakat": "Missed Zakat",
-  "sadaqah-kafarah": "Kaffarah for Fasts & Oaths",
+  "sadaqah-kafarah": "Kaffarah for Breaking Fasts or Oaths",
   "sadaqah-fidya": "Fidya",
   "sadaqah-Lillah": "Lillah Donations",
   "sadaqah-jariyah": "Sadaqah Jariyah",
@@ -132,6 +148,7 @@ export function formatDailyProgressGoalTitle(
   }
   return (
     QURAN_DAILY_PROGRESS_TITLES[goalId] ??
+    FASTING_DAILY_PROGRESS_TITLES[goalId] ??
     SADAQAH_DAILY_PROGRESS_TITLES[goalId] ??
     displayName
   );

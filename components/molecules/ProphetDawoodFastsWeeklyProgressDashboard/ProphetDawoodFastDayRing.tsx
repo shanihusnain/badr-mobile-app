@@ -4,12 +4,6 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Colors } from "@/constants/theme";
 import type { ProphetDawoodFastDayState } from "@/src/screens/private/goalprogressloggingscreen/prophetDawoodFastsWeeklyData";
 
-/** Same as prayer `ringInnerFuture` — upcoming empty day outline. */
-const PRAYER_FUTURE_OUTLINE = {
-  color: "rgba(255, 255, 255, 0.32)",
-  borderWidth: 1,
-} as const;
-
 type RingVisual = {
   variant: "outline" | "solid" | "menstruating" | "completedWithOutline";
   borderColor: string;
@@ -35,40 +29,39 @@ function getRingVisual(
 
   switch (state) {
     case "future":
-      return {
-        variant: "outline",
-        borderColor: PRAYER_FUTURE_OUTLINE.color,
-        backgroundColor: "transparent",
-        borderWidth: PRAYER_FUTURE_OUTLINE.borderWidth,
-      };
-    case "today":
-      // Grey today disc; ring border grey when not a planned Dawood day.
+      // Unplanned future (enabled or disabled): dashboard bg + grey ring.
       return {
         variant: "outline",
         borderColor: Colors.light.grey,
         backgroundColor: Colors.light.greybuttonBackground,
       };
+    case "today":
     case "todayDisabled":
+    case "plannedToday":
+      // Same today UI (#213144 fill + border). todayDisabled keeps this UI.
+      // Border: planned → ringDawood; not planned / disabled → grey.
+      return {
+        variant: "outline",
+        borderColor:
+          state === "plannedToday"
+            ? Colors.light.ringDawood
+            : Colors.light.grey,
+        backgroundColor: Colors.light.ibadahProgressCardBg,
+      };
     case "disabledPast":
     case "pastNeutral":
-      // Disabled for this goal (booked elsewhere) or past NOT_PLANNED — solid grey
+      // Past booked elsewhere or past NOT_PLANNED — solid grey
       return {
         variant: "solid",
         borderColor: Colors.light.selectcategory,
         backgroundColor: Colors.light.selectcategory,
       };
-    case "plannedToday":
-      // Same grey today disc; ring border uses Dawood accent when planned.
+    case "planned":
+      // Future planned Dawood: dashboard bg + Dawood accent border.
       return {
         variant: "outline",
         borderColor: Colors.light.ringDawood,
         backgroundColor: Colors.light.greybuttonBackground,
-      };
-    case "planned":
-      return {
-        variant: "outline",
-        borderColor: Colors.light.ringDawood,
-        backgroundColor: "transparent",
       };
     case "completed":
       // Logged planned fast — ringDawood outline + nested solid fill

@@ -94,8 +94,8 @@ export function MissedRamadanFastsWeeklyProgressDashboard({
       const missedDay = weekSummary.weekDays[args.index];
       if (!missedDay) return null;
 
-      // Booked-for-other-goal days use disabledPast/todayDisabled → solid grey
-      // (never the other goal’s accent / logged / skipped colors).
+      // Today / plannedToday share the same ring UI (black fill); only border
+      // color differs. Past booked-elsewhere days stay solid grey.
       return (
         <MissedRamadanFastDayRing
           size={args.size}
