@@ -166,6 +166,7 @@ function formatCurrencyWithBackendCode(
 ): string {
   const code = currencyCode.trim().toUpperCase();
   const formatted = Math.round(amount || 0).toLocaleString("en-US");
+  if (code === "USD") return `$${formatted}`;
   return `${code} ${formatted}`;
 }
 
