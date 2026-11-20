@@ -39,6 +39,7 @@ type FlowCardProps = {
   headerStyle?: StyleProp<ViewStyle>;
   /** Keep header label on one line (shrink if needed). */
   headerSingleLine?: boolean;
+  footerLeading?: React.ReactNode;
 };
 
 export const FlowCard: React.FC<FlowCardProps> = ({
@@ -60,6 +61,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
   contentStyle,
   headerStyle,
   headerSingleLine = false,
+  footerLeading,
 }) => {
   console.log("headerLabel headerLabel headerLabel headerLabel", headerLabel);
   const { i18n } = useTranslation();
@@ -89,6 +91,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
 
       {showFooter ? (
         <View style={styles.flowFooter}>
+          {footerLeading}
           <View style={styles.navGroup}>
             <TouchableOpacity
               style={[styles.navButton, !canGoBack && { opacity: 0.65 }]}
