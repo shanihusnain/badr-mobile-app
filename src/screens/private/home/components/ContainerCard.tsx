@@ -18,7 +18,7 @@ type Props = {
   cardWidth: number;
   renderTextWithHighlight: (
     text: string,
-    highlightedTexts: string[]
+    highlightedTexts: string[],
   ) => Array<{ text: string; highlighted: boolean }>;
 };
 
@@ -27,7 +27,10 @@ export const ContainerCard = ({
   cardWidth,
   renderTextWithHighlight,
 }: Props) => {
-  const textParts = renderTextWithHighlight(item.content, item.highlightedTexts);
+  const textParts = renderTextWithHighlight(
+    item.content,
+    item.highlightedTexts,
+  );
 
   return (
     <View style={[styles.card, { width: cardWidth }]}>
@@ -39,7 +42,8 @@ export const ContainerCard = ({
         {textParts.map((part, index) => (
           <Text
             key={index}
-            style={part.highlighted ? styles.highlightedText : styles.content}
+            // style={part.highlighted ? styles.highlightedText : styles.content}
+            style={styles.content}
           >
             {part.text}
           </Text>
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#1e2d3d",
     borderRadius: 16,
-    padding: wp(5),
+    padding: wp(3),
     justifyContent: "center",
     minHeight: 160,
   },
@@ -70,19 +74,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   content: {
-    color: "rgba(255,255,255,0.75)",
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 14,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     lineHeight: 20,
-    letterSpacing: 0,
+    letterSpacing: 0.1,
   },
   highlightedText: {
     color: Colors.light.white,
     fontSize: 14,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: 20,
-    letterSpacing: 0,
+    lineHeight: 19,
+    letterSpacing: 0.1,
   },
 });

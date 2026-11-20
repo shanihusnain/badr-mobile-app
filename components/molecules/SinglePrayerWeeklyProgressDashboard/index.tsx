@@ -235,9 +235,9 @@ export function SinglePrayerWeeklyProgressDashboard({
                           !isMarkedForDeletion &&
                           styles.dayItemSelected,
                         showTodayChip &&
-                          isSelected &&
-                          !isMarkedForDeletion &&
-                          day.todayChipBorderColor
+                        isSelected &&
+                        !isMarkedForDeletion &&
+                        day.todayChipBorderColor
                           ? {
                               borderWidth: 1.5,
                               borderColor: day.todayChipBorderColor,
@@ -270,7 +270,7 @@ export function SinglePrayerWeeklyProgressDashboard({
                         />
                       )}
                       {/* Slightly less gap on best day so label aligns with other days */}
-                      <TopSpace top={isBestDayVisible ? 6 : 10} />
+                      <TopSpace top={isBestDayVisible ? 6.5 : 10} />
                       <Text
                         style={[
                           isBestDayVisible

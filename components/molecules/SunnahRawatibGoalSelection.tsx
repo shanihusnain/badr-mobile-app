@@ -17,7 +17,6 @@ import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { SwitchButton } from "../atoms/SwitchButton";
-import { TopSpace } from "../atoms/TopSpace";
 import { useAuth } from "@/provider/useAuth";
 
 function RadioOption({
@@ -287,8 +286,10 @@ export default function SunnahRawatibGoalSelection({
 
           {/* After Dhuhr */}
           <View style={styles.sliderGroup}>
-            <SliderHeading text={t("prayerGoals.afterDhuhrHeading")} />
-            <TopSpace top={20} />
+            <SliderHeading
+              text={t("prayerGoals.afterDhuhrHeading")}
+              style={styles.headingAboveRadios}
+            />
             <View style={[styles.radioRow, styles.radioRowCentered]}>
               <RadioOption
                 selected={afterDuhrOption === "one"}
@@ -444,6 +445,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
+  // Match Before Asr switchRow → radios gap.
+  headingAboveRadios: {
+    marginBottom: 14,
+  },
   slider: {
     // Keep CustomSlider 112% bleed — do not force width: "100%".
     marginVertical: 0,
@@ -473,7 +478,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     gap: 20,
-    marginBottom: 12,
+    // No extra margin — CustomSlider compact paddingTop (28) matches header→slider gap.
+    marginBottom: 0,
     width: "100%",
   },
   radioRowCentered: {

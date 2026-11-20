@@ -86,8 +86,7 @@ const DeckSwipeCard = ({
           ? Math.sign(e.translationX)
           : Math.sign(e.velocityX);
       // Last card: only dismiss left (WHOOP video). Intermediate: either side.
-      const shouldDismiss =
-        wentFarEnough && (!isLastCard || direction < 0);
+      const shouldDismiss = wentFarEnough && (!isLastCard || direction < 0);
 
       if (shouldDismiss) {
         translateX.value = withTiming(
@@ -125,7 +124,7 @@ const DeckSwipeCard = ({
         transform: [
           { translateX: translateX.value + pivotOffsetX },
           { translateY: -pivotOffsetY },
-          { rotate: `${rotateDeg}deg` },
+          { rotate: `${0}deg` },
         ],
         zIndex: total,
       };
@@ -272,7 +271,9 @@ export const SwipeCardDeck = ({
 
   return (
     <Animated.View style={deckAnimatedStyle}>
-      <View style={[styles.deckContainer, { width: cardWidth, height: "100%" }]}>
+      <View
+        style={[styles.deckContainer, { width: cardWidth, height: "100%" }]}
+      >
         {showEmptyState || contentRemaining === 0 ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCenter}>
@@ -339,11 +340,11 @@ const styles = StyleSheet.create({
   },
   remainingBadge: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    width: 28,
-    paddingVertical: 6,
-    borderRadius: 8,
+    top: 8,
+    right: 8,
+    width: 24,
+    paddingVertical: 4,
+    borderRadius: 4,
     backgroundColor: Colors.light.calendarBg,
     justifyContent: "center",
     alignItems: "center",

@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   headerNav: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 14,
     flexShrink: 0,
     alignSelf: "flex-end",
     minWidth: 0,

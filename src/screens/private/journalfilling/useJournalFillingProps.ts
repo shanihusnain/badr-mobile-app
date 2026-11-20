@@ -38,6 +38,7 @@ import type {
   JournalDateCapsule,
   JournalDraftState,
 } from "./types";
+import { useAuth } from "@/provider/useAuth";
 
 type UseJournalFillingPropsOptions = {
   initialDateKey?: string;
@@ -93,6 +94,8 @@ export function useJournalFillingProps({
 }: UseJournalFillingPropsOptions = {}) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  console.log("user inside useJournalFillingProps", user);
   const { mutateAsync: updateJournalDay } = useUpdateJournalDay();
   const today = useMemo(() => startOfDay(new Date()), []);
   const todayKey = toDateKey(today);
@@ -182,8 +185,7 @@ export function useJournalFillingProps({
 
     const isDayFilled = (day: JournalDayDayItem) =>
       day.isComplete || day.answeredCount > 0;
-    const currentDayFilled =
-      data.isComplete || data.answeredCount > 0;
+    const currentDayFilled = data.isComplete || data.answeredCount > 0;
 
     if (dayItems.length > 0) {
       setAvailableDays(dayItems);
@@ -258,19 +260,13 @@ export function useJournalFillingProps({
             : day.isComplete,
       };
     });
-  }, [
-    availableDays,
-    completionMap,
-    selectedDateKey,
-    todayKey,
-    yesterdayKey,
-  ]);
+  }, [availableDays, completionMap, selectedDateKey, todayKey, yesterdayKey]);
 
   const screenTitle = useMemo(() => {
     const selectedDate = parseDateKey(selectedDateKey);
 
     if (isYesterday(selectedDate, today)) {
-      return t("journalFilling.titleYesterday", { name: userName });
+      return t("journalFilling.titleYesterday", { name: user?.username });
     }
 
     return t("journalFilling.titleOnDate", {
@@ -278,7 +274,7 @@ export function useJournalFillingProps({
       month: getMonthName(selectedDate),
       day: selectedDate.getDate(),
     });
-  }, [selectedDateKey, t, today, userName]);
+  }, [selectedDateKey, t, today, user?.username]);
 
   const hasChanges = useMemo(
     () => !areDraftsEqual(draft, savedDraft),

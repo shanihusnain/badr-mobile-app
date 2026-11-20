@@ -17,7 +17,7 @@ import { HeaderWithImageAndDescription } from "@/components/atoms/HeaderWithImag
 import { HandHeartIconDetailTextIcon } from "@/assets/icons/HandHeartIconDetailTextIcon";
 import {
   Icon,
-  qiyamallayldetailimage,
+  qiyamallaylflowbackgroundimage,
   fivedailyprayerbottomsheetimage,
   duhaprayerdetailimage,
   istikharaprayerdetailimage,
@@ -834,7 +834,7 @@ export const GoalDescriptionDetails = ({
   }, [navigation]);
 
   const getImageSource = () => {
-    if (goalUiId === "qiyamalLail") return qiyamallayldetailimage;
+    if (goalUiId === "qiyamalLail") return qiyamallaylflowbackgroundimage;
     if (goalUiId === "fiveDailyPrayers") return fivedailyprayerbottomsheetimage;
     if (goalUiId === "duhaPrayer") return duhaprayerdetailimage;
     if (goalUiId === "istikharah") return istikharaprayerdetailimage;

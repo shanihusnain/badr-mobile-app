@@ -16,7 +16,6 @@ export const Tabs = ({
 }) => {
   const isSelected = selectedTab === label;
 
-  console.log("selectedTab inside rge ", selectedTab);
   return (
     <Pressable
       key={label}
