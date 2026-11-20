@@ -25,18 +25,22 @@ export function JournalCustomizeCard({
         contentFit="cover"
       />
       <TopSpace top={30} />
-      <Text style={styles.journalCustomizeTitle}>CUSTOMIZE YOUR JOURNAL</Text>
+      <Text style={styles.journalCustomizeTitle}>Customize Your Journal</Text>
       <TopSpace top={12} />
-      <View style={styles.proposedPlanContent}>
+      <View style={styles.journalCustomizeDescriptionRow}>
         <FilterIcon size={35} color={Colors.light.white} />
         <View style={styles.proposedPlanTextBlock}>
-          <Text style={styles.proposedPlanDescription}>
-            {CUSTOMIZE_DESCRIPTION.toUpperCase()}
+          <Text style={styles.journalCustomizeDescription}>
+            {CUSTOMIZE_DESCRIPTION}
           </Text>
         </View>
       </View>
-      <TopSpace top={18} />
-      <PrimaryButton text="Get Started" onPress={onGetStartedPress ?? (() => {})} />
+      <TopSpace top={48} />
+      <PrimaryButton
+        text="Get Started"
+        onPress={onGetStartedPress ?? (() => {})}
+        style={styles.journalCustomizeButton}
+      />
     </View>
   );
 }

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
 import moment from "moment-hijri";
 import { Colors } from "@/constants/theme";
 import { GoalData } from "../../home/components/goalsData";
@@ -107,13 +108,26 @@ export default function MissedPrayersLoggingFlow({
     maghrib: 0,
     isha: 0,
   });
+  const [selectionHistory, setSelectionHistory] = useState<PrayerName[]>([]);
 
   const handleIncrementPrayer = useCallback((prayer: PrayerName) => {
     setQuantities((prev) => ({
       ...prev,
       [prayer]: (prev[prayer] || 0) + 1,
     }));
+    setSelectionHistory((prev) => [...prev, prayer]);
   }, []);
+
+  const handleUndoPrayer = useCallback(() => {
+    const lastPrayer = selectionHistory[selectionHistory.length - 1];
+    if (!lastPrayer) return;
+
+    setQuantities((prev) => ({
+      ...prev,
+      [lastPrayer]: Math.max(0, (prev[lastPrayer] || 0) - 1),
+    }));
+    setSelectionHistory((prev) => prev.slice(0, -1));
+  }, [selectionHistory]);
 
   // Step 3: Start Time
   const [startHour, setStartHour] = useState(
@@ -309,6 +323,7 @@ export default function MissedPrayersLoggingFlow({
   // Fresh session quantities whenever the selected day changes.
   useEffect(() => {
     setQuantities({ ...EMPTY_SLOT_COUNTS });
+    setSelectionHistory([]);
   }, [selectedDate]);
 
   const currentStep = STEPS[stepIndex];
@@ -337,6 +352,7 @@ export default function MissedPrayersLoggingFlow({
     setStepIndex(0);
     setSelectedDate(toDateString(new Date()));
     setQuantities({ ...EMPTY_SLOT_COUNTS });
+    setSelectionHistory([]);
     setStartHour(now.hour);
     setStartMinute(now.minute);
     setStartPeriod(now.period);
@@ -665,6 +681,28 @@ export default function MissedPrayersLoggingFlow({
                 isConfirmLoading={isLogging}
                 styles={commonStyles}
                 style={commonStyles.inPlaceFlowCard}
+                footerLeading={
+                  currentStep === "prayers-qty" ? (
+                    <TouchableOpacity
+                      style={[
+                        localStyles.undoButton,
+                        selectionHistory.length === 0 &&
+                          localStyles.undoButtonDisabled,
+                      ]}
+                      onPress={handleUndoPrayer}
+                      disabled={selectionHistory.length === 0}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Undo last selected prayer"
+                    >
+                      <Feather
+                        name="rotate-ccw"
+                        size={17}
+                        color={Colors.light.white}
+                      />
+                    </TouchableOpacity>
+                  ) : undefined
+                }
               >
                 {renderStepContent(currentStep)}
               </FlowCard>
@@ -807,6 +845,22 @@ const localStyles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.35,
+  },
+  undoButton: {
+    position: "absolute",
+    left: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: Colors.light.white + "99",
+    backgroundColor: Colors.light.white + "29",
+    alignItems: "center",
+    justifyContent: "center",
+    transform: [{ translateY: -5 }],
+  },
+  undoButtonDisabled: {
+    opacity: 0.6,
   },
   spacer: {
     flex: 1,

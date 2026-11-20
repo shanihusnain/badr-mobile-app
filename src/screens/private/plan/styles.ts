@@ -531,6 +531,24 @@ export const planStyles = StyleSheet.create({
     fontFamily: fonts.primary.semiBold,
     color: Colors.light.white,
   },
+  journalCustomizeDescriptionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 20,
+    transform: [{ translateY: 3 }],
+  },
+  journalCustomizeDescription: {
+    fontFamily: fonts.primary.regular,
+    fontWeight: "400",
+    fontSize: 14,
+    fontStyle: "normal",
+    lineHeight: 20,
+    letterSpacing: 0.1,
+    color: Colors.light.white,
+  },
+  journalCustomizeButton: {
+    transform: [{ translateY: -8 }],
+  },
   journalCustomizeHabitRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -594,17 +612,17 @@ export const planStyles = StyleSheet.create({
   },
   journalCustomizeSheetListContent: {
     paddingHorizontal: 20,
-    paddingBottom: 54,
+    paddingBottom: 70,
   },
   journalCustomizeSheetFooter: {
     paddingHorizontal: 20,
-    paddingTop: 2,
+    paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: Colors.light.darkgrey,
     alignItems: "center",
   },
   journalCustomizeSheetButton: {
-    width: "72%",
+    width: "93%",
     alignSelf: "center",
   },
 });

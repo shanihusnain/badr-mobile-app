@@ -156,6 +156,7 @@ export const JournalCustomizeBottomSheet = forwardRef<
           </Text>
           {" this feature allows you to select behaviors and practices to track daily, fostering growth in your character."}
         </Text>
+        <TopSpace top={16} />
         <PlanTabBar
           tabs={journalTabs}
           selectedTab={selectedJournalTab}
