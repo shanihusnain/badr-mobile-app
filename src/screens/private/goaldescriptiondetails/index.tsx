@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import {
   FlatList,
   ScrollView,
-  StyleSheet,
   Text,
   TextStyle,
   View,
