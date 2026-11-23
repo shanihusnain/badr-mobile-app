@@ -6,8 +6,13 @@ import {
   type TodayGoalProgressEntry,
 } from "../todayGoalsProgress";
 import { styles } from "../styles";
-import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import i18next from "i18next";
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from "react-native-responsive-screen";
+import { Colors } from "@/constants/theme";
+import { resolveMyDayEntryIcon } from "../resolveMyDayEntryIcon";
 
 type Props = {
   entry: TodayGoalProgressEntry;
@@ -42,7 +47,6 @@ function DurationTimeline() {
 }
 
 export function TodayGoalProgressCard({ entry }: Props) {
-  const { t } = useTypedTranslation();
   const showLoggedAt = hasLoggedTime(entry);
   const showDuration = hasDurationDetails(entry);
   const showTimeline = hasDurationTimeline(entry);
@@ -50,6 +54,10 @@ export function TodayGoalProgressCard({ entry }: Props) {
 
   const translatedTitle = getTodayGoalTitle(entry.id, entry.goalTitle);
   const translatedDesc = getTodayGoalDesc(entry.id, entry.description);
+  // Larger circle + ~72% glyph fill to match Figma weight (still clipped safely).
+  const iconCircleSize = Math.min(hp(3.2), wp(11.5));
+  const iconSize = iconCircleSize * 0.7;
+  const entryIcon = resolveMyDayEntryIcon(entry, Colors.light.white, iconSize);
 
   return (
     <View style={[styles.dayProgressCard, styles.dayProgressCardSwipeChild]}>
@@ -70,16 +78,40 @@ export function TodayGoalProgressCard({ entry }: Props) {
       </View>
 
       <View style={styles.dayProgressDetailRow}>
-        <Text
-          style={[
-            styles.dayProgressDescription,
-            !showDuration && styles.dayProgressDescriptionFull,
-          ]}
-          numberOfLines={2}
-          ellipsizeMode="tail"
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            minWidth: 0,
+          }}
         >
-          {translatedDesc}
-        </Text>
+          <View
+            style={{
+              height: iconCircleSize,
+              width: iconCircleSize,
+              borderRadius: iconCircleSize / 2,
+              backgroundColor: Colors.light.ibadahIconCircleBg,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            {entryIcon}
+          </View>
+          <Text
+            style={[
+              styles.dayProgressDescription,
+              !showDuration && styles.dayProgressDescriptionFull,
+              { flex: 1, flexShrink: 1 },
+            ]}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {translatedDesc}
+          </Text>
+        </View>
 
         {showDuration ? (
           <View style={styles.dayProgressDurationRow}>

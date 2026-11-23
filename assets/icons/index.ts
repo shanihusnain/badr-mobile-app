@@ -19,6 +19,7 @@ import { ClockIcon } from "./ClockIcon";
 import { CreateAccountCalenderIcon } from "./CreateAccountCalenderIcon";
 import { ChevronUpIcon } from "./ChecvronUpIcon";
 import { ChevronDownIcon } from "./ChevronDownIcon";
+import { CalendarWarning } from "./CalendarWarning";
 //D
 import { DocumentIcon } from "./DocumentIcon";
 import { DocumentSearchIcon } from "./DocumentSearchIcon";
@@ -524,4 +525,5 @@ export {
   JournalBulbIcon,
   CurrentStreakBorder,
   LongestStreakBorder,
+  CalendarWarning,
 };

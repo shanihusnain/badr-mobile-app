@@ -107,6 +107,7 @@ import {
   toDateKey,
 } from "@/src/screens/private/journalfilling/journalFillingDateUtils";
 import WarningModal from "@/components/atoms/WarningModal";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import {
   useGetDashboardDataForDate,
   type HomeDailyContentItem,
@@ -523,9 +524,7 @@ export default function HomeScreen() {
         case "FAJR":
           icon = <UpComingFajrIcon color={color} size={size} />;
           break;
-        case "SUNRISE":
-          icon = <SunriseIcon color={color} size={size} />;
-          break;
+
         case "DHUHR":
         case "DUHR":
           icon = <UpComingDuhrIcon color={color} size={size} />;
@@ -897,7 +896,7 @@ export default function HomeScreen() {
                 <TaperedCircleBorder
                   percentage={category.percentage}
                   borderColor={Colors.light.grey}
-                  size={30}
+                  size={hp(4)}
                   variant="illuminated"
                 >
                   <View />
@@ -1476,6 +1475,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
         <FastingOverviewCalendarSection date={todayDateKey} />
+        <TopSpace top={16} />
         <TimeSpentOverview
           onExpandPress={() => timeSpentSheetRef.current?.expand()}
           selectedDate={todayDateKey}

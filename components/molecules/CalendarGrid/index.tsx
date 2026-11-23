@@ -30,6 +30,7 @@ import { fonts } from "@/assets/fonts";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
+import { CalendarWarning } from "@/assets/icons";
 
 const RING_SIZE = 24;
 const COMPLETED_DOT_SIZE = 20;
@@ -926,20 +927,12 @@ export const CalendarGrid = ({
                   </Text>
                 </View>
                 {showMissedWarning && mode === "dawood_achievement" ? (
-                  <FontAwesome
-                    name="warning"
-                    size={10}
-                    color={Colors.light.golden}
-                    style={styles.dawoodMissedWarningOutside}
-                  />
+                  <CalendarWarning />
                 ) : null}
                 {showMissedWarning && mode !== "dawood_achievement" ? (
-                  <FontAwesome
-                    name="warning"
-                    size={14}
-                    color={Colors.light.golden}
-                    style={styles.missedWarningIcon}
-                  />
+                  <View style={styles.missedWarningIcon}>
+                    <CalendarWarning />
+                  </View>
                 ) : null}
                 {mode === "dawood_achievement" &&
                 cycleRestartDate &&
@@ -1164,8 +1157,8 @@ const styles = StyleSheet.create({
   },
   missedWarningIcon: {
     position: "absolute",
-    bottom: -5,
-    right: -12,
+    bottom: -2,
+    right: -6,
     zIndex: 3,
   },
   dawoodMissedWarningOutside: {

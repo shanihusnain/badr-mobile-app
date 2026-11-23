@@ -7,6 +7,7 @@ import { FastingCycleDates } from "./FastingCycleDates";
 import { FastingGoalTotalCard } from "./FastingGoalTotalCard";
 import { FastingLegendCard } from "./FastingLegendCard";
 import type { FastingLegendEntry } from "../fastingLegend";
+import { TopSpace } from "@/components/atoms/TopSpace";
 
 type FastingCalendarTrackProps = {
   variant: "planned" | "progress";
@@ -55,6 +56,7 @@ export function FastingCalendarTrack({
           variant="completed"
         />
       ) : null}
+      <TopSpace top={22} />
       <FastingCycleDates
         startDate={windowStartDate}
         endDate={windowEndDate}

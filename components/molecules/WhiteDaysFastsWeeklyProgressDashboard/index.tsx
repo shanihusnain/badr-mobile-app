@@ -15,6 +15,7 @@ import type {
 } from "@/src/screens/private/goalprogressloggingscreen/whiteDaysFastsWeeklyData";
 import { WhiteDaysFastDayRing } from "./WhiteDaysFastDayRing";
 import { useDeleteFastingLog } from "@/src/api/mutations/useDeleteFastingLog";
+import { formatMotivationalQuoteForThreeLines } from "@/src/utils/formatMotivationalQuoteForThreeLines";
 
 export type WhiteDaysFastsWeeklyProgressDashboardProps = {
   weekSummary: WhiteDaysFastWeekSummary;
@@ -57,43 +58,6 @@ function mapWhiteDaysDayToSinglePrayerDay(
   };
 }
 
-/** Display-only: keep API wording, insert breaks so week-1 footer shows 3 lines. */
-function formatMotivationalQuoteForThreeLines(quote: string): string {
-  const trimmed = quote.trim();
-  if (!trimmed || trimmed.includes("\n")) return trimmed;
-
-  const semiIndex = trimmed.indexOf(";");
-  if (semiIndex >= 0) {
-    const line1 = trimmed.slice(0, semiIndex + 1).trim();
-    const rest = trimmed.slice(semiIndex + 1).trim();
-    if (!rest) return line1;
-
-    const andIndex = rest.lastIndexOf(" and ");
-    if (andIndex > 0) {
-      return `${line1}\n${rest.slice(0, andIndex).trim()}\n${rest.slice(andIndex).trim()}`;
-    }
-
-    const mid = Math.ceil(rest.length / 2);
-    let splitAt = rest.lastIndexOf(" ", mid);
-    if (splitAt <= 0) splitAt = rest.indexOf(" ", mid);
-    if (splitAt > 0) {
-      return `${line1}\n${rest.slice(0, splitAt).trim()}\n${rest.slice(splitAt).trim()}`;
-    }
-    return `${line1}\n${rest}`;
-  }
-
-  const words = trimmed.split(/\s+/);
-  if (words.length < 3) return trimmed;
-  const third = Math.ceil(words.length / 3);
-  return [
-    words.slice(0, third).join(" "),
-    words.slice(third, third * 2).join(" "),
-    words.slice(third * 2).join(" "),
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 export function WhiteDaysFastsWeeklyProgressDashboard({
   weekSummary,
   selectedDayIndex,
@@ -122,28 +86,40 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
   const motivationalQuote = useMemo(() => {
     if (loading) return "---";
 
-    // Keep API week.motivation.message as-is; only insert display line breaks.
     const fromApi = weekSummary.motivationalQuote?.trim();
-    if (fromApi) {
-      return formatMotivationalQuoteForThreeLines(fromApi);
-    }
+    if (fromApi) return formatMotivationalQuoteForThreeLines(fromApi);
+
+    // TEMP test long quote — remove after verifying layout:
+    // return formatMotivationalQuoteForThreeLines(
+    //   "The White Days begin in 3 days; prepare your heart to fast.",
+    // );
 
     switch (weekSummary.motivationalQuoteKey) {
       case "allCompleted":
-        return t("progressLogging.whiteDaysMotivationAllCompleted");
+        return formatMotivationalQuoteForThreeLines(
+          t("progressLogging.whiteDaysMotivationAllCompleted"),
+        );
       case "missed":
-        return t("progressLogging.whiteDaysMotivationMissed");
+        return formatMotivationalQuoteForThreeLines(
+          t("progressLogging.whiteDaysMotivationMissed"),
+        );
       case "completed":
-        return t("progressLogging.whiteDaysMotivationCompleted");
+        return formatMotivationalQuoteForThreeLines(
+          t("progressLogging.whiteDaysMotivationCompleted"),
+        );
       case "approaching":
-        return t("progressLogging.whiteDaysMotivationApproaching", {
-          count: weekSummary.motivationalQuoteParams?.count ?? 1,
-        });
+        return formatMotivationalQuoteForThreeLines(
+          t("progressLogging.whiteDaysMotivationApproaching", {
+            count: weekSummary.motivationalQuoteParams?.count ?? 1,
+          }),
+        );
       case "upcoming":
       default:
-        return t("progressLogging.whiteDaysMotivationUpcoming", {
-          day: weekSummary.motivationalQuoteParams?.day ?? 1,
-        });
+        return formatMotivationalQuoteForThreeLines(
+          t("progressLogging.whiteDaysMotivationUpcoming", {
+            day: weekSummary.motivationalQuoteParams?.day ?? 1,
+          }),
+        );
     }
   }, [
     loading,

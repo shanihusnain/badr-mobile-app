@@ -2,26 +2,8 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/theme";
 import { PrayerName, PRAYER_OPTIONS } from "../progressLoggingConfig";
-import {
-  AsrIcon,
-  GreenTickIcon,
-  IshaIcon,
-  JummaIcon,
-  MaghribIcon,
-  SunIcon,
-  SunriseIcon,
-} from "@/assets/icons";
-
-const PRAYER_ICON_COMPONENTS: Record<
-  PrayerName,
-  React.ComponentType<{ color: string; size: number }>
-> = {
-  fajr: SunriseIcon,
-  dhuhr: SunIcon,
-  asr: AsrIcon,
-  maghrib: MaghribIcon,
-  isha: IshaIcon,
-};
+import { GreenTickIcon, JummaIcon } from "@/assets/icons";
+import { PRAYER_ICON_COMPONENTS } from "@/src/utils/prayerSlotIcons";
 
 interface PrayerSelectStepProps {
   selectedPrayer: PrayerName | null;

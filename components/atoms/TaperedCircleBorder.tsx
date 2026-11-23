@@ -598,9 +598,12 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
   const uid = useId().replace(/:/g, "");
   const blurId = `glowBlur-${uid}`;
 
-  // Compact rings get the same Skia neon, with a smaller pad so the
-  // canvas stays inside the card instead of size + 72.
-  const compactIlluminated = isIlluminated && size < 80;
+  // Compact rings get softer Skia neon + smaller glow pad.
+  // Home category rings scale with screen width (~70 on SE, ~82 on Pro Max);
+  // keep the cutoff above Pro Max home size so they don't suddenly switch to
+  // full hero bloom (blurScale 1 / pad 36), which looks overblown on device.
+  // Hero rings (logging 110+, overview 160+) stay on the full illuminated path.
+  const compactIlluminated = isIlluminated && size < 100;
   const glowPad = isIlluminated
     ? compactIlluminated
       ? Math.max(10, Math.round(size * 0.32))

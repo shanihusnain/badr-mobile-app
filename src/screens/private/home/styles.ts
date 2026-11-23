@@ -6,7 +6,7 @@ import {
 import { fonts } from "../../../../assets/fonts";
 import { Colors } from "../../../../constants/theme";
 import { getFigmaForcedSmallCapsTextStyle } from "@/src/utils/figmaTypography";
-
+import { RFValue } from "react-native-responsive-fontsize";
 const CARD_WIDTH = Dimensions.get("window").width - 32;
 
 /** Consistent vertical gap between major home ScrollView sections. */
@@ -234,7 +234,7 @@ export const styles = StyleSheet.create({
     right: 0,
     zIndex: 50,
     backgroundColor: Colors.light.blackBackground,
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 10,
   },
@@ -888,7 +888,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 10,
-    backgroundColor: Colors.light.dullestWhite,
+    backgroundColor: Colors.light.red,
     paddingVertical: 17,
     paddingHorizontal: 12,
     borderRadius: 10,
@@ -1378,7 +1378,7 @@ export const styles = StyleSheet.create({
     marginTop: 6,
   },
   timeSpentChartLoading: {
-    height: 220,
+    height: 240,
     marginTop: 6,
     alignItems: "center",
     justifyContent: "center",
@@ -1428,48 +1428,55 @@ export const styles = StyleSheet.create({
     borderTopColor: Colors.light.dullestWhite,
   },
   timeSpentChartContainer: {
-    height: 220,
+    height: 240,
     position: "relative",
+    width: "100%",
   },
-  timeSpentChartTouchLayer: {
+  timeSpentBarHitArea: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 1,
+    top: 12,
+    bottom: 8,
+    zIndex: 4,
   },
   timeSpentXAxisContainerWeek: {
     height: 36,
     position: "relative",
+    marginTop: 4,
+    overflow: "hidden",
   },
   timeSpentXAxisContainerMonth: {
-    height: 20,
+    height: 28,
     position: "relative",
+    marginTop: 4,
+    overflow: "hidden",
   },
   timeSpentXAxisLabelPosition: {
     position: "absolute",
     alignItems: "center",
   },
   timeSpentXAxisLabelDimmed: {
-    opacity: 0.25,
+    opacity: 0.3,
   },
   timeSpentXAxisDayLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
+    fontSize: 9,
+    lineHeight: 11,
+    textAlign: "center",
   },
   timeSpentXAxisDateLabelWeek: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 9,
+    lineHeight: 11,
+    marginTop: 1,
     textAlign: "center",
   },
   timeSpentXAxisDateLabelMonth: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 10,
+    fontSize: 9,
+    lineHeight: 11,
     textAlign: "center",
   },
   timeSpentXAxisDayLabelSelected: {

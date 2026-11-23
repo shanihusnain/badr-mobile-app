@@ -14,6 +14,8 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { useGetDayStreakDetails } from "@/src/api/queries/useGetDayStreakDetails";
 import { BadarNameLogo } from "@/assets/icons";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
+import { Image } from "expo-image";
+import { streakImage } from "@/assets/images";
 
 /** Figma artboard. */
 const DESIGN_WIDTH = 375;
@@ -126,7 +128,11 @@ export default function StreakCounter({ date }: { date?: string }) {
                   />
                 </Svg>
               </View>
-              <FlashIcon size={heroFlashSize} />
+              <Image
+                source={streakImage}
+                style={{ height: 150, width: 150, marginBottom: 20 }}
+                contentFit="contain"
+              />
             </View>
             <Text style={styles.streakNumber}>
               {localizeNumber(details?.streak ?? "", lng)}

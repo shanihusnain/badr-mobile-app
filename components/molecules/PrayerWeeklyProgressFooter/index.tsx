@@ -6,6 +6,7 @@ import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { AimIcon, LighteningIcon } from "@/assets/icons";
 import { width } from "@/src/screens/private/more/style";
+import { formatMotivationalQuoteForThreeLines } from "@/src/utils/formatMotivationalQuoteForThreeLines";
 
 export type PrayerWeeklyProgressFooterComparisonVariant =
   | "onTime"
@@ -34,8 +35,8 @@ export type PrayerWeeklyProgressFooterProps = {
   /** Green streak label (five-daily); default is white/medium. */
   streakVariant?: "green" | "default";
   /**
-   * Week-1 only: narrow the inline quote so it wraps cleanly beside the streak
-   * without ellipsis (up to 3 lines).
+   * Week-1 only: tighter gap beside the streak. Streak + quote stay centered;
+   * quote uses remaining width (no artificial maxWidth).
    */
   compactWeekOneQuote?: boolean;
 };
@@ -50,8 +51,9 @@ export const PRAYER_WEEKLY_STATS_FOOTER_GAP = 8;
 export const PRAYER_WEEKLY_LATER_WEEK_MARGIN_TOP_ADJUSTMENT = -6.8;
 
 /**
- * Quote line metrics — week 1 reserves 3 lines (no ellipsis); later weeks 2.
- * Fixed min heights keep overall card height stable across weeks.
+ * Quote line metrics — week 1 reserves 3 lines; later weeks 2.
+ * Fixed heights keep card height stable. Long copy wraps in the available
+ * row width (no maxWidth / no font scaling).
  */
 const QUOTE_LINE_HEIGHT = 16;
 const WEEK_ONE_QUOTE_LINE_COUNT = 3;
@@ -60,8 +62,6 @@ const WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT =
   QUOTE_LINE_HEIGHT * WEEK_ONE_QUOTE_LINE_COUNT;
 const LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT =
   QUOTE_LINE_HEIGHT * LATER_WEEK_QUOTE_LINE_COUNT;
-/** Cap so long quotes wrap; short quotes stay text-sized. Side gaps stay equal via centering. */
-const WEEK_ONE_QUOTE_MAX_WIDTH = 220;
 
 /** Bold digit runs in comparison copy (e.g. "1 fast vs. last week"). */
 function renderComparisonLabelWithBoldDigits(
@@ -141,9 +141,14 @@ export function PrayerWeeklyProgressFooter({
     /\bmatch(?:es)?\s+last\s+week\b/i.test(comparisonCountLabel) ||
     /\bvs\.?\s+last\s+week\b/i.test(comparisonCountLabel);
 
-  const resolvedQuote = loading
+  const rawQuote = loading
     ? "---"
     : (motivationalQuote ?? defaultMotivationalQuote);
+  // Week 1: force 3 natural lines so short/medium quotes don't collapse to 2.
+  const resolvedQuote =
+    isWeekOneLayout && rawQuote !== "---"
+      ? formatMotivationalQuoteForThreeLines(rawQuote)
+      : rawQuote;
 
   const comparisonSuffixKey =
     comparisonVariant === "onTime"
@@ -190,24 +195,13 @@ export function PrayerWeeklyProgressFooter({
         <View
           style={[
             styles.footerRowWeekOne,
-            !compactWeekOneQuote && styles.footerRowWeekOneFullWidth,
             compactWeekOneQuote && styles.footerRowWeekOneCompact,
           ]}
         >
           {streakLabel}
-          <View
-            style={[
-              styles.quoteBlockInline,
-              compactWeekOneQuote && styles.quoteBlockInlineCompact,
-            ]}
-          >
+          <View style={styles.quoteBlockInline}>
             <AimIcon />
-            <View
-              style={[
-                styles.quoteTextWrapInline,
-                compactWeekOneQuote && styles.quoteTextWrapInlineCompact,
-              ]}
-            >
+            <View style={styles.quoteTextWrapInline}>
               <Text
                 style={styles.quoteText}
                 numberOfLines={WEEK_ONE_QUOTE_LINE_COUNT}
@@ -290,11 +284,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 20,
     minWidth: 0,
-  },
-  /** Full-width week-one row for prayers / non–White Days fasting goals. */
-  footerRowWeekOneFullWidth: {
-    width: "100%",
-    // flex: 1,
+    // Grow up to the card width so long quotes can wrap; short clusters stay
+    // content-sized and centered (equal side gaps).
+    maxWidth: "100%",
+    alignSelf: "center",
   },
   footerRowWeekOneCompact: {
     gap: 28,
@@ -366,22 +359,16 @@ const styles = StyleSheet.create({
     gap: 6,
     flexShrink: 1,
     minWidth: 0,
-    maxWidth: WEEK_ONE_QUOTE_MAX_WIDTH,
-  },
-  quoteBlockInlineCompact: {
-    maxWidth: WEEK_ONE_QUOTE_MAX_WIDTH - 20,
   },
   quoteTextWrapInline: {
     flexShrink: 1,
     minWidth: 0,
-    // Reserve 3-line height so week-1 card height stays stable.
+    // Fixed 3-line box — card height does not grow for long quotes.
+    height: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
     minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
+    maxHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
-  },
-  quoteTextWrapInlineCompact: {
-    flexShrink: 1,
-    minWidth: 0,
-    minHeight: WEEK_ONE_QUOTE_BLOCK_MIN_HEIGHT,
+    overflow: "hidden",
   },
   quoteBlockFull: {
     flexDirection: "row",
@@ -395,8 +382,11 @@ const styles = StyleSheet.create({
   quoteTextWrapFull: {
     flex: 1,
     minWidth: 0,
+    height: LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT,
     minHeight: LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT,
+    maxHeight: LATER_WEEK_QUOTE_BLOCK_MIN_HEIGHT,
     justifyContent: "flex-start",
+    overflow: "hidden",
   },
   quoteText: {
     color: Colors.light.white,

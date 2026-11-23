@@ -62,7 +62,8 @@ export function TimeSpentCategoryRow({
   const { t } = useTypedTranslation();
   const clampedPercent = Math.min(100, Math.max(0, progressPercent));
 
-  const cleanLabel = (label || "").replace(/\s*\(\d+%\)$/, "").trim();
+  // Strip trailing percent from API labels, including placeholders like "(--%)".
+  const cleanLabel = (label || "").replace(/\s*\((?:\d+|--)%\)$/, "").trim();
   const translationKey = getCategoryTranslationKey(cleanLabel);
   const translatedLabel = translationKey.startsWith("homeScreen.")
     ? t(translationKey as any)

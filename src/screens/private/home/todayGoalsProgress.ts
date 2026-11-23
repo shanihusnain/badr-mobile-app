@@ -14,6 +14,8 @@ export type TodayGoalProgressEntry = {
   category: Exclude<DashboardFilterTab, "All">;
   /** API filter key, e.g. PRAYER / QURAN. */
   apiCategory?: string;
+  /** API goal type enum, e.g. SUNNAH_RAWATIB / FIVE_DAILY_PRAYERS. */
+  goalType?: string;
   goalTitle: string;
   description: string;
   /** Optional single timestamp for when progress was logged. */

@@ -1,7 +1,7 @@
 import * as React from "react";
 import Svg, { G, Path, Defs, ClipPath } from "react-native-svg";
 export const SunIcon = ({ color, size }: { color: string; size: number }) => (
-  <Svg width={size} height={size} fill="none">
+  <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
     <G clipPath="url(#a)">
       <Path
         fill={color}

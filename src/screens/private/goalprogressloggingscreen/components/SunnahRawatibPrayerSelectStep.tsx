@@ -3,34 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { GreenTickIcon } from "@/assets/icons";
 import {
-  AsrIcon,
-  GreenTickIcon,
-  IshaIcon,
-  MaghribIcon,
-  SunIcon,
-  SunriseIcon,
-} from "@/assets/icons";
+  SUNNAH_ICON_COMPONENTS,
+  type SunnahPrayerId,
+} from "@/src/utils/prayerSlotIcons";
 
-export type SunnahPrayerId =
-  | "before_fajr"
-  | "before_dhuhr"
-  | "after_dhuhr"
-  | "before_asr"
-  | "after_maghrib"
-  | "after_isha";
-
-const SUNNAH_ICON_COMPONENTS: Record<
-  SunnahPrayerId,
-  React.ComponentType<{ color: string; size: number }>
-> = {
-  before_fajr: SunriseIcon,
-  before_dhuhr: SunIcon,
-  after_dhuhr: SunIcon,
-  before_asr: AsrIcon,
-  after_maghrib: MaghribIcon,
-  after_isha: IshaIcon,
-};
+export type { SunnahPrayerId };
 
 const SUNNAH_LABEL_KEYS: Record<SunnahPrayerId, string> = {
   before_fajr: "progressLogging.sunnahSlotBeforeFajr",

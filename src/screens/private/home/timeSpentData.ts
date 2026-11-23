@@ -108,7 +108,7 @@ export function formatHoursToTimeLabel(hours: number): string {
   const m = totalMinutes % 60;
   const hourLabel = i18next.t("homeScreen.timeSpent_hour_abbr") || "h";
   const minLabel = i18next.t("homeScreen.timeSpent_min_abbr") || "m";
-  return `${h}${hourLabel} ${String(m).padStart(2, "0")}${minLabel}`;
+  return `${h}${hourLabel} ${m}${minLabel}`;
 }
 
 export function formatTotalTime(hours: number): string {
@@ -310,9 +310,7 @@ export function transformBackendRows(
     displayHours <= 0
   ) {
     return rows.map((row) => {
-      const cleanLabel = (row.label || row.key || "")
-        .replace(/\s*\(\d+%\)$/, "")
-        .trim();
+      const cleanLabel = stripTrailingPercentLabel(row.label || row.key || "");
       return {
         label: cleanLabel,
         percent: 0,
@@ -324,9 +322,7 @@ export function transformBackendRows(
 
   if (displayHours !== undefined && displayHours !== null) {
     return rows.map((row) => {
-      const cleanLabel = (row.label || row.key || "")
-        .replace(/\s*\(\d+%\)$/, "")
-        .trim();
+      const cleanLabel = stripTrailingPercentLabel(row.label || row.key || "");
       const categoryHours = displayHours * ((row.percent ?? 0) / 100);
       return {
         label: cleanLabel,
@@ -338,9 +334,7 @@ export function transformBackendRows(
   }
 
   return rows.map((row) => {
-    const cleanLabel = (row.label || row.key || "")
-      .replace(/\s*\(\d+%\)$/, "")
-      .trim();
+    const cleanLabel = stripTrailingPercentLabel(row.label || row.key || "");
     return {
       label: cleanLabel,
       percent: row.percent ?? 0,
@@ -348,6 +342,11 @@ export function transformBackendRows(
       progressPercent: row.percent ?? 0,
     };
   });
+}
+
+/** Remove trailing "(12%)" or placeholder "(--%)" from API category labels. */
+function stripTrailingPercentLabel(label: string): string {
+  return label.replace(/\s*\((?:\d+|--)%\)$/, "").trim();
 }
 export function buildCycleWeeklyChartData(
   cycleOffset: number,

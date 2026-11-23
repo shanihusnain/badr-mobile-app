@@ -140,7 +140,7 @@ export function FastingOverviewCalendarSection({
         <FastingCalenderDashboardIcon size={32} />
         <Text style={styles.dashboardText}>{resolvedTitle}</Text>
       </View>
-      {showInfoBannerVisible ? (
+      {/* {showInfoBannerVisible ? (
         <View style={styles.fastingInfoBanner}>
           <Text style={styles.fastingInfoBannerText}>
             {labels.description || t("homeScreen.fastingInfoBanner")}
@@ -154,7 +154,7 @@ export function FastingOverviewCalendarSection({
             <Ionicons name="close" size={18} color={Colors.light.white} />
           </TouchableOpacity>
         </View>
-      ) : null}
+      ) : null} */}
       <ScrollView
         horizontal
         style={styles.fastingCalendarTabsScroll}

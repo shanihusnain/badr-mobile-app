@@ -1,8 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { useFont } from "@shopify/react-native-skia";
 import { useCallback, useRef, useState } from "react";
-import { View, Text, type ViewStyle } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { View, Text, Pressable, type ViewStyle } from "react-native";
 import {
   Bar,
   CartesianChart,
@@ -13,20 +12,41 @@ import type { TimeSpentChartItem, TimeSpentPeriod } from "../timeSpentData";
 import { formatHoursToTimeLabel, formatTotalTime } from "../timeSpentData";
 import { styles } from "../styles";
 
-const DIMMED_BAR_OPACITY = 0.25;
-const BAR_TOUCH_RADIUS = 36;
+/** Match past-achievement graph bar geometry. */
+const DIMMED_BAR_OPACITY = 0.3;
+const BAR_HIT_WIDTH = 44;
+const BAR_CORNER_RADIUS = 2;
+const BAR_WIDTH = 30;
 const BAR_ROUNDED_CORNERS = {
-  topLeft: 4,
-  topRight: 4,
-  bottomLeft: 4,
-  bottomRight: 4,
+  topLeft: BAR_CORNER_RADIUS,
+  topRight: BAR_CORNER_RADIUS,
+  bottomLeft: BAR_CORNER_RADIUS,
+  bottomRight: BAR_CORNER_RADIUS,
 } as const;
 
-function getXAxisLabelPositionStyle(x: number, labelWidth: number): ViewStyle {
-  return {
-    left: x - labelWidth / 2,
-    width: labelWidth,
-  };
+function getInnerPadding(barCount: number): number {
+  if (barCount <= 3) return 0.48;
+  if (barCount <= 4) return 0.52;
+  return 0.58;
+}
+
+function getLabelWidth(barCount: number): number {
+  if (barCount <= 3) return 76;
+  if (barCount <= 4) return 62;
+  if (barCount <= 6) return 52;
+  return 48;
+}
+
+function getClampedLabelLeft(
+  x: number,
+  labelWidth: number,
+  plotLeft: number,
+  plotRight: number,
+): number {
+  return Math.max(
+    plotLeft,
+    Math.min(x - labelWidth / 2, plotRight - labelWidth),
+  );
 }
 
 function getBarOpacity(
@@ -45,6 +65,8 @@ type XAxisLabelsProps = {
   chartData: TimeSpentChartItem[];
   selectedPeriod: TimeSpentPeriod;
   selectedBarIndex: number | null;
+  plotLeft: number;
+  plotRight: number;
 };
 
 function XAxisLabels({
@@ -52,8 +74,10 @@ function XAxisLabels({
   chartData,
   selectedPeriod,
   selectedBarIndex,
+  plotLeft,
+  plotRight,
 }: XAxisLabelsProps) {
-  const labelWidth = selectedPeriod === "week" ? 36 : 72;
+  const labelWidth = getLabelWidth(chartData.length);
   const containerStyle =
     selectedPeriod === "week"
       ? styles.timeSpentXAxisContainerWeek
@@ -68,13 +92,14 @@ function XAxisLabels({
         const isSelected = selectedBarIndex === index;
         const isDimmed =
           selectedBarIndex !== null && selectedBarIndex !== index;
+        const left = getClampedLabelLeft(x, labelWidth, plotLeft, plotRight);
 
         return (
           <View
             key={`${item.xLabel}-${item.dateLabel}-${index}`}
             style={[
               styles.timeSpentXAxisLabelPosition,
-              getXAxisLabelPositionStyle(x, labelWidth),
+              { left, width: labelWidth } satisfies ViewStyle,
               isDimmed && styles.timeSpentXAxisLabelDimmed,
             ]}
           >
@@ -103,6 +128,7 @@ function XAxisLabels({
                   styles.timeSpentXAxisDateLabelMonth,
                   isSelected && styles.timeSpentXAxisDateLabelMonthSelected,
                 ]}
+                numberOfLines={2}
               >
                 {item.dateLabel}
               </Text>
@@ -114,54 +140,36 @@ function XAxisLabels({
   );
 }
 
-function ChartTouchLayer({
-  barCenterXsRef,
-  onBarPress,
-}: {
-  barCenterXsRef: React.RefObject<number[]>;
+type BarHitAreasProps = {
+  barCenterXs: number[];
   onBarPress: (index: number) => void;
-}) {
-  const handleTap = useCallback(
-    (touchX: number) => {
-      const xs = barCenterXsRef.current;
-      if (!xs.length) return;
+};
 
-      let closestIndex = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
-
-      for (let index = 0; index < xs.length; index += 1) {
-        const distance = Math.abs(xs[index] - touchX);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
-        }
-      }
-
-      if (closestDistance <= BAR_TOUCH_RADIUS) {
-        onBarPress(closestIndex);
-      }
-    },
-    [barCenterXsRef, onBarPress],
-  );
-
-  const tapGesture = Gesture.Tap()
-    .runOnJS(true)
-    .maxDistance(12)
-    .onEnd((event) => {
-      handleTap(event.x);
-    });
-
+function BarHitAreas({ barCenterXs, onBarPress }: BarHitAreasProps) {
   return (
-    <GestureDetector gesture={tapGesture}>
-      <View style={styles.timeSpentChartTouchLayer} />
-    </GestureDetector>
+    <>
+      {barCenterXs.map((x, index) => (
+        <Pressable
+          key={`bar-hit-${index}`}
+          style={[
+            styles.timeSpentBarHitArea,
+            {
+              left: x - BAR_HIT_WIDTH / 2,
+              width: BAR_HIT_WIDTH,
+            },
+          ]}
+          onPress={() => onBarPress(index)}
+          accessibilityRole="button"
+          accessibilityLabel={`Bar ${index + 1}`}
+        />
+      ))}
+    </>
   );
 }
 
 type ChartBarsProps = {
   points: PointsArray;
   chartBounds: ChartBounds;
-  selectedPeriod: TimeSpentPeriod;
   selectedBarIndex: number | null;
   barCount: number;
   chartFont: ReturnType<typeof useFont>;
@@ -171,13 +179,12 @@ type ChartBarsProps = {
 function ChartBars({
   points,
   chartBounds,
-  selectedPeriod,
   selectedBarIndex,
   barCount,
   chartFont,
   formatBarLabel,
 }: ChartBarsProps) {
-  const innerPadding = selectedPeriod === "week" ? 0.45 : 0.55;
+  const innerPadding = getInnerPadding(barCount);
   const showAllLabels = selectedBarIndex === null;
 
   return (
@@ -196,7 +203,7 @@ function ChartBars({
             color={Colors.light.green}
             opacity={opacity}
             roundedCorners={BAR_ROUNDED_CORNERS}
-            barWidth={30}
+            barWidth={BAR_WIDTH}
             barCount={barCount}
             innerPadding={innerPadding}
             labels={
@@ -236,6 +243,7 @@ export function TimeSpentChartBlock({
   yTicks,
 }: TimeSpentChartBlockProps) {
   const [barCenterXs, setBarCenterXs] = useState<number[]>([]);
+  const [chartBounds, setChartBounds] = useState<ChartBounds | null>(null);
   const barCenterXsRef = useRef<number[]>([]);
 
   const chartFont = useFont(
@@ -266,6 +274,10 @@ export function TimeSpentChartBlock({
     });
   }, []);
 
+  const plotLeft = chartBounds?.left ?? 48;
+  const plotRight = chartBounds?.right ?? 280;
+  const hasGraphData = chartData.some((item) => item.hours > 0);
+
   return (
     <View style={styles.timeSpentChartSection}>
       <View style={styles.timeSpentChartContainer}>
@@ -276,8 +288,8 @@ export function TimeSpentChartBlock({
           yKeys={["hours"]}
           orientation="vertical"
           domain={{ y: [0, yMax] }}
-          padding={{ left: 0, right: 18, top: 18, bottom: 4 }}
-          domainPadding={{ left: 60, right: 50, top: 8 }}
+          padding={{ left: 0, right: 10, top: 22, bottom: 4 }}
+          domainPadding={{ left: 48, right: 28, top: 10 }}
           xAxis={{
             font: axisFont,
             formatXLabel: () => "",
@@ -296,13 +308,22 @@ export function TimeSpentChartBlock({
           ]}
           frame={{ lineColor: "transparent" }}
         >
-          {({ points, chartBounds }) => {
+          {({ points, chartBounds: bounds }) => {
             syncBarLabelPositions(points.hours.map((point) => point.x ?? 0));
+            queueMicrotask(() => {
+              setChartBounds((prev) =>
+                prev?.top === bounds.top &&
+                prev?.bottom === bounds.bottom &&
+                prev?.left === bounds.left &&
+                prev?.right === bounds.right
+                  ? prev
+                  : bounds,
+              );
+            });
             return (
               <ChartBars
                 points={points.hours}
-                chartBounds={chartBounds}
-                selectedPeriod={selectedPeriod}
+                chartBounds={bounds}
                 selectedBarIndex={selectedBarIndex}
                 barCount={chartData.length}
                 chartFont={chartFont}
@@ -311,10 +332,10 @@ export function TimeSpentChartBlock({
             );
           }}
         </CartesianChart>
-        <ChartTouchLayer
-          barCenterXsRef={barCenterXsRef}
-          onBarPress={onBarPress}
-        />
+
+        {hasGraphData && barCenterXs.length > 0 ? (
+          <BarHitAreas barCenterXs={barCenterXs} onBarPress={onBarPress} />
+        ) : null}
       </View>
 
       <XAxisLabels
@@ -322,6 +343,8 @@ export function TimeSpentChartBlock({
         chartData={chartData}
         selectedPeriod={selectedPeriod}
         selectedBarIndex={selectedBarIndex}
+        plotLeft={plotLeft}
+        plotRight={plotRight}
       />
     </View>
   );

@@ -7,7 +7,7 @@ export const SunriseIcon = ({
   color: string;
   size: number;
 }) => (
-  <Svg width={size} height={size} fill="none">
+  <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
     <G clipPath="url(#a)">
       <Path
         fill={color}

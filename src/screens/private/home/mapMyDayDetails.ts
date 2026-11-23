@@ -34,6 +34,7 @@ export function mapMyDayEntryToProgress(
     id: entry.id,
     category: tab,
     apiCategory: (entry.category ?? "").toUpperCase(),
+    goalType: entry.goalType || undefined,
     goalTitle: entry.goalName,
     description: entry.line,
     loggedAt: entry.time || undefined,

@@ -55,6 +55,7 @@ import missedprayerdetailimage from "./missedprayerdetailimage.png";
 import shukarprayerdetailimage from "./shukarprayerdetailimage.jpg";
 import quranrecitationbysurahbackgroundimage from "./quranrecitationbysurahbackgroundimage.jpg";
 import BadrTreeImage from "./badrtreeimage.png";
+import streakImage from "./streakimage.png";
 export {
   Icon,
   BadrTreeImage,
@@ -112,4 +113,5 @@ export {
   lillahdonationbottomsheetimage,
   volunteeringservicesbottomsheetimage,
   sadaqahjariyahbottomsheetimage,
+  streakImage,
 };
