@@ -92,9 +92,11 @@ function JournalCalendarModalComponent({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Previous period"
+              accessibilityState={{ disabled: true }}
+              disabled
               onPress={onPrevWindow}
               hitSlop={8}
-              style={styles.arrowBtn}
+              style={[styles.arrowBtn, styles.arrowBtnDisabled]}
             >
               <Feather
                 name="chevron-left"
@@ -110,9 +112,11 @@ function JournalCalendarModalComponent({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Next period"
+              accessibilityState={{ disabled: true }}
+              disabled
               onPress={onNextWindow}
               hitSlop={8}
-              style={styles.arrowBtn}
+              style={[styles.arrowBtn, styles.arrowBtnDisabled]}
             >
               <Feather
                 name="chevron-right"
@@ -244,6 +248,9 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: "center",
     justifyContent: "center",
+  },
+  arrowBtnDisabled: {
+    opacity: 0.35,
   },
   monthLabelContainer: {
     flex: 1,
