@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     width: CAPSULE_WIDTH,
     minHeight: 76,
     borderRadius: 36,
-    backgroundColor: Colors.light.journalFillingCapsuleBg,
+    backgroundColor: Colors.light.insightpill,
     borderWidth: 1,
     borderColor: Colors.light.journalFillingCapsuleBorder,
     alignItems: "center",
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   capsuleSelected: {
     borderColor: Colors.light.white,
     borderWidth: 1.5,
-    backgroundColor: Colors.light.journalFillingCapsuleSelectedBg,
+    backgroundColor: Colors.light.insightpill,
   },
   weekday: {
     color: Colors.light.grey,

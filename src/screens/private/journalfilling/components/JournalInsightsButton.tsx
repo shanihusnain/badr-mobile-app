@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     gap: 4,
     borderRadius: 4,
     padding: 6,
-    backgroundColor: Colors.light.dullWhiteOpacity,
+    backgroundColor: Colors.light.insightgrey,
   },
   label: {
     color: Colors.light.white,
