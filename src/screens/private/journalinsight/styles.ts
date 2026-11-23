@@ -5,6 +5,10 @@ import { StyleSheet } from "react-native";
 export const journalInsightStyles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
+    flexGrow: 1,
+  },
+  loadingContainer: {
+    minHeight: 500,
   },
   summaryCard: {
     backgroundColor: Colors.light.darkgrey,

@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { SvgComponent as JournalPencilIcon } from "@/assets/icons/JournalPencilIcon";
+import { PencilJournalingIcon } from "@/assets/icons/PencilJournalingIcon";
 
 type JournalFillingHeaderProps = {
   title?: string;
@@ -58,7 +58,7 @@ function JournalFillingHeaderComponent({
             accessibilityLabel="Edit journal"
             hitSlop={8}
           >
-            <JournalPencilIcon size={18} color={Colors.light.white} />
+            <PencilJournalingIcon size={22} colors={Colors.light.white} />
           </Pressable>
         ) : (
           <View style={styles.editPlaceholder} />

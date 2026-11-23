@@ -81,6 +81,27 @@ export const JournalCustomizeBottomSheet = forwardRef<
 
   const { mutate: toggleJournalingBehavior } = useToggleTheBehvaior();
 
+  const handleSelectJournalTab = useCallback(
+    (tabId: number) => {
+      const selectedTabIndex = journalTabs.findIndex(
+        (tab) => tab.id === selectedJournalTab,
+      );
+      const nextTabIndex = journalTabs.findIndex((tab) => tab.id === tabId);
+      const hasSelectedBehavior = journalHabits.some((habit) => habit.isAdded);
+
+      if (
+        selectedJournalTab !== 1 &&
+        nextTabIndex > selectedTabIndex &&
+        !hasSelectedBehavior
+      ) {
+        return;
+      }
+
+      onSelectJournalTab(tabId);
+    },
+    [journalHabits, journalTabs, onSelectJournalTab, selectedJournalTab],
+  );
+
   const handleToggleHabit = useCallback(
     (behaviorId: string, isAdded: boolean) => {
       const isSelected = !isAdded;
@@ -160,13 +181,17 @@ export const JournalCustomizeBottomSheet = forwardRef<
         <PlanTabBar
           tabs={journalTabs}
           selectedTab={selectedJournalTab}
-          onSelectTab={onSelectJournalTab}
+          onSelectTab={handleSelectJournalTab}
           scrollable
         />
         <TopSpace top={16} />
       </>
     ),
-    [journalTabs, onSelectJournalTab, selectedJournalTab],
+    [
+      handleSelectJournalTab,
+      journalTabs,
+      selectedJournalTab,
+    ],
   );
 
   return (

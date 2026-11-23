@@ -46,6 +46,7 @@ export function JournalInsightBehaviorCard({
       pathname: "/(private)/behaviordescriptiondetails/[id]",
       params: {
         id: String(behavior.id),
+        title: behavior.name,
         period: periodLabel,
         endDate,
       },

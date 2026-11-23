@@ -24,10 +24,12 @@ const SCREEN_HEADER_HEIGHT = 100;
 
 export const BehaviorDetailDescription = ({
   behavior,
+  fallbackTitle,
   periodLabel,
   endDate: initialEndDate,
 }: {
   behavior: string;
+  fallbackTitle?: string;
   periodLabel?: string;
   endDate?: string;
 }) => {
@@ -50,6 +52,7 @@ export const BehaviorDetailDescription = ({
     behaviorId: behavior,
     initialPeriodLabel: periodLabel,
     initialEndDate,
+    fallbackTitle,
   });
 
   const isWeekly = period.id === 1;
@@ -78,6 +81,7 @@ export const BehaviorDetailDescription = ({
             title={title}
             imageSource={content.heroImage}
             blurhash={content.heroBlurhash}
+            showImage={!isLoading}
             height={SCREEN_HEADER_HEIGHT + HERO_IMAGE_HEIGHT}
             periodCount={activePeriodView.periodCount}
             showHeroRing={!isWeekly}
@@ -144,7 +148,7 @@ export const BehaviorDetailDescription = ({
 
       <View style={styles.screenHeader} pointerEvents="box-none">
         <HeaderWithCrossTitleDynamicIcon
-          title="BEHAVIOR DETAILS"
+          title={title.toUpperCase()}
           navigation={navigation}
           bgcolor="transparent"
         />

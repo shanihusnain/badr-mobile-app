@@ -3,7 +3,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { getMonthShortUpper, getWeekdayShort, parseDateKey } from "../journalFillingDateUtils";
+import {
+  getMonthShortUpper,
+  getWeekdayShort,
+  isYesterday,
+  parseDateKey,
+} from "../journalFillingDateUtils";
 
 type JournalDateTextRowProps = {
   selectedDateKey: string;
@@ -24,10 +29,12 @@ function JournalDateTextRowComponent({
   );
 
   const label = useMemo(() => {
-    const weekday = getWeekdayShort(selectedDate).toUpperCase();
+    const dayLabel = isYesterday(selectedDate, new Date())
+      ? "YESTERDAY"
+      : getWeekdayShort(selectedDate).toUpperCase();
     const month = getMonthShortUpper(selectedDate);
     const day = selectedDate.getDate();
-    return `${weekday}, ${month} ${day}`;
+    return `${dayLabel}, ${month} ${day}`;
   }, [selectedDate]);
 
   return (

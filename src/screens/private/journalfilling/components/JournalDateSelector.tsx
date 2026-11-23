@@ -76,6 +76,7 @@ type DateCapsuleProps = {
 
 function DateCapsule({ item, onPress }: DateCapsuleProps) {
   const scale = useRef(new Animated.Value(1)).current;
+  const isDimmed = !item.isSelected && !item.isCompleted;
 
   const animatePress = () => {
     Animated.sequence([
@@ -102,27 +103,35 @@ function DateCapsule({ item, onPress }: DateCapsuleProps) {
       <Animated.View
         style={[
           styles.capsule,
-          item.isSelected && styles.capsuleSelected,
           { transform: [{ scale }] },
-          { borderWidth: item.isSelected || item.isToday ? 1.5 : 1 },
           {
-            borderStyle: item.isToday ? "dashed" : "solid",
-            borderColor:
-              item.isSelected || item.isToday
-                ? Colors.light.white
-                : Colors.light.journalFillingCapsuleBorder,
+            borderWidth: item.isSelected || item.isToday ? 1.5 : 0,
+            borderStyle: item.isToday && !item.isSelected ? "dashed" : "solid",
+            borderColor: Colors.light.white,
           },
         ]}
       >
         <Text
-          style={[styles.weekday, item.isSelected && styles.weekdaySelected]}
+          style={[
+            styles.weekday,
+            item.isSelected && styles.selectedDateText,
+            isDimmed && styles.pastDateText,
+          ]}
         >
           {item.weekdayLabel}
         </Text>
-        <Text style={[styles.day, item.isSelected && styles.daySelected]}>
+        <Text
+          style={[
+            styles.day,
+            item.isSelected && styles.selectedDateText,
+            isDimmed && styles.pastDateText,
+          ]}
+        >
           {item.dayOfMonth}
         </Text>
-        <View style={styles.indicatorSlot}>
+        <View
+          style={[styles.indicatorSlot, isDimmed && styles.pastDateIndicator]}
+        >
           {item.isCompleted ? (
             <View style={styles.indicatorCompleted}>
               <CheckIcon size={20} color={Colors.light.white} />
@@ -150,35 +159,32 @@ const styles = StyleSheet.create({
     minHeight: 76,
     borderRadius: 36,
     backgroundColor: Colors.light.insightpill,
-    borderWidth: 1,
-    borderColor: Colors.light.journalFillingCapsuleBorder,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 6,
     gap: 4,
   },
-  capsuleSelected: {
-    borderColor: Colors.light.white,
-    borderWidth: 1.5,
-    backgroundColor: Colors.light.insightpill,
-  },
   weekday: {
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontSize: 11,
   },
-  weekdaySelected: {
-    color: Colors.light.white,
-  },
   day: {
-    color: Colors.light.dullWhite,
+    color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 20,
   },
-  daySelected: {
+  pastDateText: {
+    color: "rgba(255, 255, 255, 0.5)",
+  },
+  selectedDateText: {
     color: Colors.light.white,
+    fontFamily: fonts.primary.bold,
+  },
+  pastDateIndicator: {
+    opacity: 0.2,
   },
   indicatorSlot: {
     minHeight: 20,

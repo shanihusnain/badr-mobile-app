@@ -299,6 +299,7 @@ export const planStyles = StyleSheet.create({
     backgroundColor: Colors.light.darkgrey,
     padding: 20,
     borderRadius: 8,
+    overflow: "hidden",
     width: 380,
     height: 120,
     alignSelf: "center",
@@ -457,6 +458,7 @@ export const planStyles = StyleSheet.create({
   journalHabitCard: {
     paddingHorizontal: 16,
     borderRadius: 8,
+    overflow: "hidden",
     backgroundColor: Colors.light.darkgrey,
     marginBottom: 10,
     width: 380,

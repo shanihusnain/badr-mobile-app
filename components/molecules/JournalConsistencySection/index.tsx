@@ -62,14 +62,12 @@ export function JournalConsistencySection({
           </Pressable>
         </View>
         <Text style={styles.achievementPercent}>
-          {showPlaceholders ? (
-            "---"
-          ) : (
+          {!showPlaceholders ? (
             <>
               {activeSnapshot.consistencyPercent}
               <Text style={styles.achievementPercentSymbol}>%</Text>
             </>
-          )}
+          ) : null}
         </Text>
         {showBadge ? (
           <View style={styles.deltaBadge}>
@@ -143,7 +141,7 @@ export function JournalConsistencySection({
             adjustsFontSizeToFit
             minimumFontScale={0.8}
           >
-            {isLoading ? "---" : activeSnapshot.dateRangeLabel}
+            {isLoading ? "" : activeSnapshot.dateRangeLabel}
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}

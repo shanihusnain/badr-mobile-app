@@ -627,11 +627,11 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
     isIlluminated &&
     (!compactIlluminated || allowCompactBadge) &&
     percent === 100;
-  // Streak badges overlay 12 o'clock — keep full track + continuous taper.
-  const openAtTop = showCompleteCheck;
+  // Leave a gap at 12 o'clock so ring ends meet the streak badge edges.
+  const openAtTop = showCompleteCheck || showRingBadge;
   // Keep badge small enough that short (1/7) tapers remain visible past it.
   const checkSize = showRingBadge
-    ? Math.max(16, Math.round(size * 0.22))
+    ? Math.max(24, Math.round(size * 0.34))
     : Math.max(28, Math.round(size * (34 / 174)));
   const visualTickPx = checkSize * TICK_PATH_INSET;
   // Arc gap slightly smaller than the glyph so both ends tuck into the icon.
@@ -659,20 +659,23 @@ export const TaperedCircleBorder: React.FC<TaperedCircleBorderProps> = ({
         ) : null}
 
         {showTrack ? (
-          <Circle
-            cx={CX}
-            cy={CY}
-            r={RADIUS}
-            stroke={borderColor}
-            strokeWidth={
-              isIlluminated
-                ? showRingBadge
-                  ? 1.25
-                  : ILLUMINATED_TRACK_WIDTH
-                : TRACK_WIDTH
-            }
-            fill="none"
-          />
+          showRingBadge ? (
+            <Path
+              d={arcPath(RADIUS, checkGapDeg / 2, 360 - checkGapDeg)}
+              stroke={borderColor}
+              strokeWidth={isIlluminated ? 1.25 : TRACK_WIDTH}
+              fill="none"
+            />
+          ) : (
+            <Circle
+              cx={CX}
+              cy={CY}
+              r={RADIUS}
+              stroke={borderColor}
+              strokeWidth={isIlluminated ? ILLUMINATED_TRACK_WIDTH : TRACK_WIDTH}
+              fill="none"
+            />
+          )
         ) : null}
 
         {useSegments
