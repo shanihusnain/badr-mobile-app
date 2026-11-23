@@ -3,7 +3,7 @@ import { HeaderWithImageTitleAndBell } from "@/components/atoms/HeaderWithImageT
 import { getPlanJournalHabitTitleById } from "@/src/screens/private/plan/planJournalConsistencyMockData";
 import { Stack } from "expo-router";
 
-function getRouteIdParam(params: object | undefined): string | undefined {
+function getRouteTitle(params: object | undefined): string {
   const { id, title } = (params ?? {}) as {
     id?: string | string[];
     title?: string | string[];
@@ -12,7 +12,7 @@ function getRouteIdParam(params: object | undefined): string | undefined {
   const titleParam = Array.isArray(title) ? title[0] : title;
   if (titleParam) return titleParam;
 
-  return Array.isArray(id) ? id[0] : id;
+  return getPlanJournalHabitTitleById(Array.isArray(id) ? id[0] : id);
 }
 
 export default function PlanLayout() {
@@ -30,9 +30,7 @@ export default function PlanLayout() {
         options={{
           headerShown: true,
           header: ({ route }) => {
-            const title = getPlanJournalHabitTitleById(
-              getRouteIdParam(route.params),
-            );
+            const title = getRouteTitle(route.params);
 
             return (
               <HeaderWithImageTitleAndBell

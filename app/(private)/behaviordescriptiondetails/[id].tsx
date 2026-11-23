@@ -10,6 +10,7 @@ export default function BehaviorDescriptionDetailsScreen() {
     id?: string | string[];
     period?: string | string[];
     endDate?: string | string[];
+    title?: string | string[];
   }>();
 
   const id = firstParam(params.id);
@@ -18,6 +19,7 @@ export default function BehaviorDescriptionDetailsScreen() {
   return (
     <BehaviorDetailDescription
       behavior={id}
+      fallbackTitle={firstParam(params.title)}
       periodLabel={firstParam(params.period)}
       endDate={firstParam(params.endDate)}
     />

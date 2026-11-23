@@ -2,6 +2,7 @@ import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useGetJournalInsights } from "@/src/api/queries/useGetJournalInsights";
 import BottomSheet from "@gorhom/bottom-sheet";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GoalTabContent } from "./components/GoalTabContent";
 import { JournalCustomizeBottomSheet } from "./components/JournalCustomizeBottomSheet";
@@ -16,6 +17,9 @@ function todayDateKey() {
 }
 
 export default function PlanScreen() {
+  const { customizeJournal } = useLocalSearchParams<{
+    customizeJournal?: string | string[];
+  }>();
   const {
     tabs,
     PERIODS,
@@ -32,6 +36,22 @@ export default function PlanScreen() {
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [insightsEndDate, setInsightsEndDate] = useState(todayDateKey);
+  const shouldOpenJournalCustomizer = Array.isArray(customizeJournal)
+    ? customizeJournal[0] === "true"
+    : customizeJournal === "true";
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!shouldOpenJournalCustomizer) return;
+
+      setSelectedTab(2);
+      const timeout = setTimeout(() => {
+        bottomSheetRef.current?.expand();
+      }, 250);
+
+      return () => clearTimeout(timeout);
+    }, [setSelectedTab, shouldOpenJournalCustomizer]),
+  );
 
   const { data: journalInsights, isFetching: isFetchingJournalInsights } =
     useGetJournalInsights(period.label, insightsEndDate);

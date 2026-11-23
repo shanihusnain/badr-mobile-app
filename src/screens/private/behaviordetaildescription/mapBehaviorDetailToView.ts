@@ -140,7 +140,7 @@ export function mapBehaviorDetailToView(
       periodView: loadingPeriodView(),
       content: {
         heroImage: BeforeJournalCustomization,
-        heroBlurhash: null,
+        heroBlurhash: BEHAVIOR_DETAIL_HERO_BLURHASH,
         impactTitle: "---",
         impactBlocks: [],
         recommendationsTitle: "---",

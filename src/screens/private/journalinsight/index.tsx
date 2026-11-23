@@ -1,4 +1,5 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
 import { PastAchievementStudyMaterial } from "@/components/molecules/PastAchievementStudyMaterial";
@@ -45,6 +46,10 @@ export const JornalInsight = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {isLoading ? (
+          <LoadingComponent size="large" style={styles.loadingContainer} />
+        ) : (
+          <>
         <TopSpace top={32} />
         <JournalConsistencySection
           activeSnapshot={activeSnapshot}
@@ -85,6 +90,8 @@ export const JornalInsight = ({
             />
           </>
         ) : null}
+          </>
+        )}
       </ScrollView>
     </BlackScreenWrapper>
   );

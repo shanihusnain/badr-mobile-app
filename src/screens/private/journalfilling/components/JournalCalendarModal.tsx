@@ -190,9 +190,7 @@ function JournalCalendarModalComponent({
                                   {
                                     color: !isAvailable
                                       ? Colors.light.grey
-                                      : isFilled
-                                        ? Colors.light.green
-                                        : Colors.light.white,
+                                      : Colors.light.white,
                                   },
                                 ]}
                               >

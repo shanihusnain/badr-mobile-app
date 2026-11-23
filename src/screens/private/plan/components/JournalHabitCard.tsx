@@ -5,6 +5,7 @@ import {
   SocialResponsibilityIcon,
 } from "@/assets/icons";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
 import { Pressable, Text, View } from "react-native";
 import type { PlanJournalHabit } from "../planJournalConsistencyMockData";
@@ -43,7 +44,7 @@ export function JournalHabitCard({
   isLoading = false,
 }: JournalHabitCardProps) {
   const showPlaceholder = isLoading || habit.percent == null;
-  const percentNum = showPlaceholder ? "---" : String(habit.percent);
+  const percentNum = String(habit.percent ?? "");
 
   return (
     <Pressable
@@ -57,25 +58,27 @@ export function JournalHabitCard({
         </View>
         <Text style={styles.journalHabitName}>{habit.name}</Text>
         <View style={styles.journalHabitRingWrap}>
-          <TaperedCircleBorder
-            percentage={showPlaceholder ? "0%" : `${habit.percent}%`}
-            borderColor={Colors.light.ringTrackEmpty}
-            size={56}
-            variant="illuminated"
-          >
-            <View style={styles.journalHabitPercentRow}>
-              {showPlaceholder ? (
-                <Text style={styles.journalHabitPercentText}>---</Text>
-              ) : (
-                <>
-                  <Text style={styles.journalHabitPercentText}>
-                    {percentNum}
-                  </Text>
-                  <Text style={styles.journalHabitPercentSymbol}>%</Text>
-                </>
-              )}
-            </View>
-          </TaperedCircleBorder>
+          {isLoading ? (
+            <LoadingComponent size="small" />
+          ) : (
+            <TaperedCircleBorder
+              percentage={`${habit.percent ?? 0}%`}
+              borderColor={Colors.light.ringTrackEmpty}
+              size={56}
+              variant="illuminated"
+            >
+              <View style={styles.journalHabitPercentRow}>
+                {!showPlaceholder ? (
+                  <>
+                    <Text style={styles.journalHabitPercentText}>
+                      {percentNum}
+                    </Text>
+                    <Text style={styles.journalHabitPercentSymbol}>%</Text>
+                  </>
+                ) : null}
+              </View>
+            </TaperedCircleBorder>
+          )}
         </View>
       </View>
     </Pressable>

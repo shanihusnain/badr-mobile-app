@@ -9,9 +9,10 @@ const HERO_RING_SIZE = 112;
 
 type BehaviorDetailHeroProps = {
   title: string;
-  imageSource: Parameters<typeof ImageBackground>[0]["source"];
+  imageSource: Parameters<typeof ImageBackground>[0]["source"] | null;
   /** expo-image BlurHash while a remote hero URI is loading. */
   blurhash?: string | null;
+  showImage?: boolean;
   height: number;
   periodCount?: number;
   showHeroRing?: boolean;
@@ -21,6 +22,7 @@ export function BehaviorDetailHero({
   title,
   imageSource,
   blurhash = null,
+  showImage = true,
   height,
   periodCount,
   showHeroRing = false,
@@ -29,7 +31,7 @@ export function BehaviorDetailHero({
 
   return (
     <ImageBackground
-      source={imageSource}
+      source={showImage ? imageSource : null}
       placeholder={
         trimmedBlurhash ? { blurhash: trimmedBlurhash } : undefined
       }

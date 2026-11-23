@@ -224,7 +224,7 @@ export function useJournalFillingProps({
   }, []);
 
   const dateCapsules = useMemo<JournalDateCapsule[]>(() => {
-    const sourceDays: JournalDayDayItem[] =
+    const sourceDays: JournalDayDayItem[] = (
       availableDays.length > 0
         ? [...availableDays]
         : [
@@ -234,17 +234,8 @@ export function useJournalFillingProps({
               answeredCount: 0,
               isComplete: Boolean(completionMap[selectedDateKey]),
             },
-          ];
-
-    // Keep today's dashed border visible even when API days[] omits today.
-    if (!sourceDays.some((day) => day.date === todayKey)) {
-      sourceDays.push({
-        date: todayKey,
-        isYesterday: false,
-        answeredCount: 0,
-        isComplete: Boolean(completionMap[todayKey]),
-      });
-    }
+          ]
+    ).filter((day) => day.date !== todayKey);
 
     return sourceDays.map((day) => {
       const date = parseDateKey(day.date);
@@ -253,7 +244,7 @@ export function useJournalFillingProps({
         weekdayLabel: getWeekdayShort(date),
         dayOfMonth: date.getDate(),
         isSelected: day.date === selectedDateKey,
-        isToday: day.date === todayKey,
+        isToday: day.date === yesterdayKey,
         isCompleted:
           completionMap[day.date] !== undefined
             ? Boolean(completionMap[day.date])

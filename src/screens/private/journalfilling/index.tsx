@@ -1,11 +1,12 @@
 import React, { useCallback, useLayoutEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import { JournalFillingHeader } from "@/components/atoms/JournalFillingHeader";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { DiscardJournalDialog } from "./components/DiscardJournalDialog";
 import { JournalDateSelector } from "./components/JournalDateSelector";
 import { JournalDateTextRow } from "./components/JournalDateTextRow";
@@ -91,15 +92,26 @@ export function JournalFillingScreen({
     onRequestClose: onClose,
   });
 
+  const handleEditPress = useCallback(() => {
+    router.push({
+      pathname: "/(tabs)/(plan)",
+      params: { customizeJournal: "true" },
+    });
+  }, []);
+
   useLayoutEffect(() => {
     // Don't touch the parent route header when embedded in a home sheet.
     if (isSheet) return;
     navigation.setOptions({
       header: () => (
-        <JournalFillingHeader showEdit={showEdit} onBackPress={handleBack} />
+        <JournalFillingHeader
+          showEdit={showEdit}
+          onBackPress={handleBack}
+          onEditPress={handleEditPress}
+        />
       ),
     });
-  }, [handleBack, isSheet, navigation, showEdit]);
+  }, [handleBack, handleEditPress, isSheet, navigation, showEdit]);
 
   const renderSection = useCallback(
     (section: (typeof sections)[number]) => (
@@ -123,6 +135,7 @@ export function JournalFillingScreen({
         <JournalFillingHeader
           showEdit={showEdit}
           onBackPress={handleBack}
+          onEditPress={handleEditPress}
           backgroundColor={Colors.light.blackBackground}
           compact
         />
@@ -165,7 +178,7 @@ export function JournalFillingScreen({
 
       {isLoadingEntry ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color={Colors.light.green} size="large" />
+          <LoadingComponent size="large" />
         </View>
       ) : (
         <>

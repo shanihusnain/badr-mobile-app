@@ -21,7 +21,12 @@ function JournalSaveButtonComponent({
   return (
     <View style={[styles.container, { paddingBottom: bottomInset + 12 }]}>
       {loading ? (
-        <View style={styles.loadingOverlay}>
+        <View
+          style={[
+            styles.loadingOverlay,
+            { bottom: bottomInset + 12 },
+          ]}
+        >
           <ActivityIndicator color={Colors.light.white} />
         </View>
       ) : null}
@@ -59,7 +64,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 1,
     top: 12,
-    bottom: 12,
   },
 });
 
