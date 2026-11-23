@@ -44,33 +44,32 @@ export function mapHabitDetailToSnapshot(
 
   const trackedDays = Math.max(data.consistency?.trackedDays || 0, 1);
 
-  const behaviors = [...(data.behaviors ?? [])]
-    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-    .map((behavior) => {
-      const days = behavior.days ?? null;
-      const dayCount = days?.length ?? 0;
-      const completedDays = behavior.completedDays ?? 0;
-      const periodPercent =
-        dayCount > 0
-          ? Math.round((completedDays / dayCount) * 100)
-          : Math.min(100, Math.round((completedDays / trackedDays) * 100));
+  // Keep backend array order (API may rank by consistency, not displayOrder).
+  const behaviors = (data.behaviors ?? []).map((behavior) => {
+    const days = behavior.days ?? null;
+    const dayCount = days?.length ?? 0;
+    const completedDays = behavior.completedDays ?? 0;
+    const periodPercent =
+      dayCount > 0
+        ? Math.round((completedDays / dayCount) * 100)
+        : Math.min(100, Math.round((completedDays / trackedDays) * 100));
 
-      return {
-        id: behavior.behaviorId,
-        name: behavior.title,
-        description: behavior.summary,
-        weekDays:
-          days && days.length > 0
-            ? days.map((day) => ({
-                label: day.weekday,
-                date: String(day.dayOfMonth),
-                status: mapDayStatus(day.status),
-              }))
-            : undefined,
-        periodCount: completedDays,
-        periodPercent,
-      };
-    });
+    return {
+      id: behavior.behaviorId,
+      name: behavior.title,
+      description: behavior.summary,
+      weekDays:
+        days && days.length > 0
+          ? days.map((day) => ({
+              label: day.weekday,
+              date: String(day.dayOfMonth),
+              status: mapDayStatus(day.status),
+            }))
+          : undefined,
+      periodCount: completedDays,
+      periodPercent,
+    };
+  });
 
   return {
     dateRangeLabel: data.window.label,
