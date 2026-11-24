@@ -257,7 +257,10 @@ export function useJournalFillingProps({
     const selectedDate = parseDateKey(selectedDateKey);
 
     if (isYesterday(selectedDate, today)) {
-      return t("journalFilling.titleYesterday", { name: user?.username });
+      return t("journalFilling.titleYesterday", {
+        month: getMonthName(selectedDate),
+        day: selectedDate.getDate(),
+      });
     }
 
     return t("journalFilling.titleOnDate", {

@@ -3845,7 +3845,7 @@
     ]
   },
   "journalFilling": {
-    "titleYesterday": "ماذا حدث أمس،\n{{name}}؟",
+    "titleYesterday": "ماذا حدث أمس،\n{{month}} {{day}}؟",
     "titleOnDate": "ماذا حدث يوم {{weekday}}،\n{{month}} {{day}}؟",
     "notesPlaceholder": "أضف ملاحظة...",
     "saveJournal": "حفظ اليوميات",

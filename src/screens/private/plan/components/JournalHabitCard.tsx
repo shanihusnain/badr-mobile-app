@@ -64,7 +64,7 @@ export function JournalHabitCard({
             <TaperedCircleBorder
               percentage={`${habit.percent ?? 0}%`}
               borderColor={Colors.light.ringTrackEmpty}
-              size={56}
+              size={64}
               variant="illuminated"
             >
               <View style={styles.journalHabitPercentRow}>

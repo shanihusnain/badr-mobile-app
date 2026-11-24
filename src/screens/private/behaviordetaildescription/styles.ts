@@ -24,6 +24,10 @@ export const behaviorDetailStyles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: Colors.light.blackBackground,
   },
+  detailLoading: {
+    flex: 0,
+    minHeight: 420,
+  },
   heroSticky: {
     width: "100%",
     backgroundColor: Colors.light.blackBackground,

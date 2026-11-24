@@ -176,10 +176,13 @@ export const journalInsightStyles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
   },
   periodRingWrap: {
+    width: 56,
+    height: 56,
     flexShrink: 0,
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
+    transform: [{ translateY: -4 }],
   },
   periodCountText: {
     fontSize: 10,
