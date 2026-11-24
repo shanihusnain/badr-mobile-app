@@ -6,7 +6,7 @@ import { Pressable, Text, View } from "react-native";
 import type { JournalInsightBehavior } from "../journalInsightMockData";
 import { journalInsightStyles as styles } from "../styles";
 
-const PERIOD_RING_SIZE = 40;
+const PERIOD_RING_SIZE = 65;
 
 type JournalInsightBehaviorCardProps = {
   behavior: JournalInsightBehavior;
@@ -62,10 +62,7 @@ export function JournalInsightBehaviorCard({
           {behavior.weekDays!.map((day) => {
             const hasActivity = day.status !== "empty";
             return (
-              <View
-                key={`${day.label}-${day.date}`}
-                style={styles.weekDayItem}
-              >
+              <View key={`${day.label}-${day.date}`} style={styles.weekDayItem}>
                 <View
                   style={[styles.dayCircle, getDayCircleStyle(day.status)]}
                 />
@@ -87,21 +84,13 @@ export function JournalInsightBehaviorCard({
 
   return (
     <Pressable style={styles.behaviorCard} onPress={openBehaviorDetails}>
-      <Text style={styles.behaviorName}>{behavior.name}</Text>
-      <View style={styles.behaviorRow}>
-        <Text
-          style={[
-            styles.behaviorDescription,
-            {
-              flex: 1,
-              flexShrink: 1,
-              minWidth: 0,
-              marginTop: 0,
-            },
-          ]}
-        >
-          {behavior.description}
-        </Text>
+      <View style={styles.behaviorContentRow}>
+        <View style={styles.behaviorTextColumn}>
+          <Text style={styles.behaviorName}>{behavior.name}</Text>
+          <Text style={styles.behaviorDescriptionInline}>
+            {behavior.description}
+          </Text>
+        </View>
         <View style={styles.periodRingWrap}>
           <TaperedCircleBorder
             size={PERIOD_RING_SIZE}

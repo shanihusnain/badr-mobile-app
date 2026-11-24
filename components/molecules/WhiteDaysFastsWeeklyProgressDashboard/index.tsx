@@ -86,36 +86,32 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
   const motivationalQuote = useMemo(() => {
     if (loading) return "---";
 
-    const fromApi = weekSummary.motivationalQuote?.trim();
-    if (fromApi) return formatMotivationalQuoteForThreeLines(fromApi);
+    // 3-line breaks are week-1 only. Later weeks keep the raw quote (footer
+    // uses the vs-last-week layout + 2-line quote).
+    const isWeekOne = weekSummary.vsLastWeek == null;
+    const forDisplay = (quote: string) =>
+      isWeekOne ? formatMotivationalQuoteForThreeLines(quote) : quote;
 
-    // TEMP test long quote — remove after verifying layout:
-    // return formatMotivationalQuoteForThreeLines(
-    //   "The White Days begin in 3 days; prepare your heart to fast.",
-    // );
+    // Keep API week.motivation.message as-is; only insert display line breaks on week 1.
+    const fromApi = weekSummary.motivationalQuote?.trim();
+    if (fromApi) return forDisplay(fromApi);
 
     switch (weekSummary.motivationalQuoteKey) {
       case "allCompleted":
-        return formatMotivationalQuoteForThreeLines(
-          t("progressLogging.whiteDaysMotivationAllCompleted"),
-        );
+        return forDisplay(t("progressLogging.whiteDaysMotivationAllCompleted"));
       case "missed":
-        return formatMotivationalQuoteForThreeLines(
-          t("progressLogging.whiteDaysMotivationMissed"),
-        );
+        return forDisplay(t("progressLogging.whiteDaysMotivationMissed"));
       case "completed":
-        return formatMotivationalQuoteForThreeLines(
-          t("progressLogging.whiteDaysMotivationCompleted"),
-        );
+        return forDisplay(t("progressLogging.whiteDaysMotivationCompleted"));
       case "approaching":
-        return formatMotivationalQuoteForThreeLines(
+        return forDisplay(
           t("progressLogging.whiteDaysMotivationApproaching", {
             count: weekSummary.motivationalQuoteParams?.count ?? 1,
           }),
         );
       case "upcoming":
       default:
-        return formatMotivationalQuoteForThreeLines(
+        return forDisplay(
           t("progressLogging.whiteDaysMotivationUpcoming", {
             day: weekSummary.motivationalQuoteParams?.day ?? 1,
           }),
@@ -128,6 +124,7 @@ export function WhiteDaysFastsWeeklyProgressDashboard({
     weekSummary.motivationalQuoteKey,
     weekSummary.motivationalQuoteParams?.count,
     weekSummary.motivationalQuoteParams?.day,
+    weekSummary.vsLastWeek,
   ]);
 
   const totalFastsSuffix =

@@ -37,25 +37,24 @@ export const ContainerCard = ({
       {/* Title */}
       <Text style={styles.title}>{item.title}</Text>
 
-      {/* Content with Highlighted Text */}
-      <View style={styles.contentWrapper}>
+      {/* Nested Text so highlights wrap like one paragraph (not flex chunks). */}
+      <Text style={styles.content}>
         {textParts.map((part, index) => (
           <Text
             key={index}
-            // style={part.highlighted ? styles.highlightedText : styles.content}
-            style={styles.content}
+            style={part.highlighted ? styles.highlightedText : undefined}
           >
             {part.text}
           </Text>
         ))}
-      </View>
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#1e2d3d",
+    backgroundColor: Colors.light.welcomeCardHome,
     borderRadius: 16,
     padding: wp(3),
     justifyContent: "center",
@@ -69,10 +68,6 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.2),
     lineHeight: 20,
   },
-  contentWrapper: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
   content: {
     color: "rgba(255, 255, 255, 0.8)",
     fontSize: 14,
@@ -83,10 +78,7 @@ const styles = StyleSheet.create({
   },
   highlightedText: {
     color: Colors.light.white,
-    fontSize: 14,
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
-    lineHeight: 19,
-    letterSpacing: 0.1,
   },
 });

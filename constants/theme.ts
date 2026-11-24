@@ -93,9 +93,10 @@ export const Colors = {
     inactiveTaperedBorder: "#374556",
     dullRed: "rgba(255, 64, 70, 0.1)",
     unfilledTaperred: "#374666",
-    timeLineChip:"#07172A",
-    insightgrey:"#3B545D",
-    insightpill:"#6E8D8C"
+    timeLineChip: "#07172A",
+    insightgrey: "#3B545D",
+    insightpill: "#6E8D8C",
+    welcomeCardHome: "#1e2d3d",
   },
   dark: {
     text: "#11181C",
@@ -184,6 +185,7 @@ export const Colors = {
     inactiveTaperedBorder: "#374556",
     dullRed: "rgba(255, 64, 70, 0.1)",
     unfilledTaperred: "#374666",
+    welcomeCardHome: "#1e2d3d",
   },
 };
 

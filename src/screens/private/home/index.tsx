@@ -1309,13 +1309,15 @@ export default function HomeScreen() {
 
             <View style={styles.todayGoalsProgressSection}>
               <Text style={styles.todayGoalsProgressTitle}>
-                {myDayDetails?.sectionTitle?.trim() ||
-                  t("homeScreen.todayGoalsProgress")}
+                {prepareFigmaForcedSmallCapsText(
+                  myDayDetails?.sectionTitle?.trim() ||
+                    t("homeScreen.todayGoalsProgress"),
+                )}
               </Text>
               <TopSpace top={24} />
               {displayedTodayGoalsProgress.length === 0 ? (
                 myDayDetails?.emptyText ? (
-                  <Text style={styles.todayGoalsProgressTitle}>
+                  <Text style={styles.todayGoalsProgressEmptyText}>
                     {myDayDetails.emptyText}
                   </Text>
                 ) : null
@@ -1327,7 +1329,12 @@ export default function HomeScreen() {
                     onDelete={handleTodayProgressDelete}
                     onSwipeOpen={handleTodayProgressSwipeOpen}
                     openRowId={openTodayProgressRowId}
-                    wrapperStyle={styles.todayProgressSwipeWrapper}
+                    wrapperStyle={[
+                      styles.todayProgressSwipeWrapper,
+                      {
+                        marginBottom: 16,
+                      },
+                    ]}
                     contentStyle={styles.todayProgressSwipeContent}
                   >
                     <TodayGoalProgressCard entry={entry} />
