@@ -321,7 +321,7 @@ export const planStyles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.1,
     color: Colors.light.white,
-    // paddingRight: 28,
+    paddingRight: 28,
     width: "100%",
     // flexShrink: 1,
   },
@@ -625,5 +625,26 @@ export const planStyles = StyleSheet.create({
   journalCustomizeSheetButton: {
     width: "93%",
     alignSelf: "center",
+  },
+  journalCustomizeProgressContainer: {
+    flex: 1,
+    paddingTop: 16,
+  },
+  journalCustomizeProgressOverlay: {
+    flex: 1,
+    backgroundColor: "#000000",
+  },
+  journalCustomizeProgressRing: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 36,
+  },
+  journalCustomizeProgressText: {
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
   },
 });

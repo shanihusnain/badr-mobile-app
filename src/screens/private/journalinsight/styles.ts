@@ -112,9 +112,9 @@ export const journalInsightStyles = StyleSheet.create({
   },
   behaviorDescriptionInline: {
     fontSize: 14,
-    fontWeight: "400",
+    fontWeight: "500",
     color: Colors.light.white,
-    fontFamily: fonts.primary.regular,
+    fontFamily: fonts.primary.medium,
     lineHeight: 20,
     letterSpacing: 0.1,
     marginTop: 4,

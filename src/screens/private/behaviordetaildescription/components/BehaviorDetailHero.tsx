@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import { behaviorDetailStyles as styles } from "../styles";
 
-const HERO_RING_SIZE = 112;
+const HERO_RING_SIZE = 100;
 
 type BehaviorDetailHeroProps = {
   title: string;
@@ -62,18 +62,20 @@ export function BehaviorDetailHero({
         pointerEvents="none"
       />
 
-      {/* {showHeroRing && periodCount != null ? (
+      {showHeroRing && periodCount != null ? (
         <View style={styles.heroRingContainer}>
           <TaperedCircleBorder
             size={HERO_RING_SIZE}
-            percentage="0"
+            percentage={`${periodCount}%`}
             progressColor={Colors.light.white}
             borderColor="rgba(255, 255, 255, 0.35)"
+            variant="illuminated"
+            showCompleteCheckIcon={false}
           >
             <Text style={styles.heroRingCount}>{periodCount}</Text>
           </TaperedCircleBorder>
         </View>
-      ) : null} */}
+      ) : null}
 
       <View style={styles.heroTextContainer}>
         <Text style={styles.heroTitle}>{title}</Text>

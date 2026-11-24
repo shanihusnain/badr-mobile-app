@@ -80,6 +80,16 @@ function isHeadingType(type: string): boolean {
   );
 }
 
+function isListType(type: string): boolean {
+  return (
+    type === "BULLET" ||
+    type === "BULLET_POINT" ||
+    type === "LIST_ITEM" ||
+    type === "STEP" ||
+    type === "RECOMMENDATION"
+  );
+}
+
 function BehaviorDetailBlocks({
   blocks,
 }: {
@@ -134,10 +144,20 @@ function BehaviorDetailBlocks({
         // 2. Heading / Bullet block
         if (isHeadingType(type)) {
           const title = headingText || bodyText;
+          const showBullet = isListType(type);
           return (
             <View key={`heading-${index}`} style={styles.blockHeadingRow}>
-              <Text style={styles.blockHeadingBullet}>✦</Text>
-              <Text style={styles.blockHeadingText}>{renderParsedContent(title)}</Text>
+              {showBullet ? (
+                <Text style={styles.blockHeadingBullet}>✦</Text>
+              ) : null}
+              <Text
+                style={[
+                  styles.blockHeadingText,
+                  !showBullet && styles.blockHeadingTitle,
+                ]}
+              >
+                {renderParsedContent(title)}
+              </Text>
             </View>
           );
         }
@@ -147,8 +167,11 @@ function BehaviorDetailBlocks({
           return (
             <View key={`compound-${index}`} style={styles.compoundBlock}>
               <View style={styles.blockHeadingRow}>
-                <Text style={styles.blockHeadingBullet}>✦</Text>
-                <Text style={styles.blockHeadingText}>{renderParsedContent(headingText)}</Text>
+                <Text
+                  style={[styles.blockHeadingText, styles.blockHeadingTitle]}
+                >
+                  {renderParsedContent(headingText)}
+                </Text>
               </View>
               <Text style={styles.sectionBody}>{renderParsedContent(bodyText)}</Text>
             </View>
@@ -159,8 +182,11 @@ function BehaviorDetailBlocks({
         if (headingText && !bodyText) {
           return (
             <View key={`heading-only-${index}`} style={styles.blockHeadingRow}>
-              <Text style={styles.blockHeadingBullet}>✦</Text>
-              <Text style={styles.blockHeadingText}>{renderParsedContent(headingText)}</Text>
+              <Text
+                style={[styles.blockHeadingText, styles.blockHeadingTitle]}
+              >
+                {renderParsedContent(headingText)}
+              </Text>
             </View>
           );
         }
