@@ -77,6 +77,7 @@ export function JournalTabContent({
               adjustsFontSizeToFit
               numberOfLines={5}
               minimumFontScale={0.85}
+              
             >
               {bannerText || JOURNAL_BANNER_TEXT}
             </Text>
