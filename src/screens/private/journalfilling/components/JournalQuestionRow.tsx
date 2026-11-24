@@ -93,7 +93,7 @@ function AnswerButton({
     >
       <Feather
         name={isYes ? "check" : "x"}
-        size={18}
+        size={20}
         color={
           selected
             ? Colors.light.white
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   button: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",

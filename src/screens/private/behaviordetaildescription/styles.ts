@@ -290,6 +290,11 @@ export const behaviorDetailStyles = StyleSheet.create({
     letterSpacing: 0.1,
     opacity: 0.9,
   },
+  blockHeadingTitle: {
+    fontWeight: "600",
+    fontFamily: fonts.primary.semiBold,
+    textAlign: "left",
+  },
   compoundBlock: {
     gap: 8,
   },

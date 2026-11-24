@@ -1,6 +1,8 @@
 import { CheckIcon, PlusAddIcon } from "@/assets/icons";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
 import { TopSpace } from "@/components/atoms/TopSpace";
+import WarningModal from "@/components/atoms/WarningModal";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import { Colors } from "@/constants/theme";
 import {
@@ -13,8 +15,15 @@ import BottomSheet, {
   BottomSheetFooter,
 } from "@gorhom/bottom-sheet";
 import type { BottomSheetFooterProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types";
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { planStyles as styles } from "../styles";
 import { PlanTabBar } from "./PlanTabBar";
@@ -22,6 +31,7 @@ import { useToggleTheBehvaior } from "@/src/api/mutations/useToggleTheBehvaior";
 
 const CUSTOMIZE_DESCRIPTION =
   'Inspired by the Hadith of the Prophet (PBUH),"The most beloved of you to Allah are the best of you in character," this feature allows you to select behaviors and practices to track daily, fostering growth in your character.';
+const CUSTOMIZE_LOADING_DURATION_MS = 3000;
 
 type PlanTab = {
   id: number;
@@ -59,6 +69,18 @@ export const JournalCustomizeBottomSheet = forwardRef<
   const [selectionOverrides, setSelectionOverrides] = useState<
     Record<string, boolean>
   >({});
+  const [customizationProgress, setCustomizationProgress] = useState(0);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [isCustomized, setIsCustomized] = useState(false);
+  const [isSelectionWarningVisible, setIsSelectionWarningVisible] =
+    useState(false);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+  const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedJournalTabTitle =
     journalTabs.find((tab) => tab.id === selectedJournalTab)?.title ?? "All";
@@ -69,6 +91,21 @@ export const JournalCustomizeBottomSheet = forwardRef<
   useEffect(() => {
     setSelectionOverrides({});
   }, [categoryParam]);
+
+  useEffect(
+    () => () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (completionTimeoutRef.current) {
+        clearTimeout(completionTimeoutRef.current);
+      }
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const journalHabits = useMemo<JournalHabitRow[]>(() => {
     const behaviors = journalBehaviors?.behaviors ?? [];
@@ -94,6 +131,7 @@ export const JournalCustomizeBottomSheet = forwardRef<
         nextTabIndex > selectedTabIndex &&
         !hasSelectedBehavior
       ) {
+        setIsSelectionWarningVisible(true);
         return;
       }
 
@@ -115,11 +153,39 @@ export const JournalCustomizeBottomSheet = forwardRef<
   );
 
   const handleCustomizePress = useCallback(() => {
+    if (isCustomizing || isCustomized) return;
+
     const selectedBehaviorIds = journalHabits
       .filter((habit) => habit.isAdded)
       .map((habit) => habit.behaviorId);
-    onCustomizePress?.(selectedBehaviorIds);
-  }, [journalHabits, onCustomizePress]);
+    const startedAt = Date.now();
+
+    setCustomizationProgress(0);
+    setIsCustomizing(true);
+
+    progressIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setCustomizationProgress(
+        Math.min(100, (elapsed / CUSTOMIZE_LOADING_DURATION_MS) * 100),
+      );
+    }, 30);
+
+    completionTimeoutRef.current = setTimeout(() => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setCustomizationProgress(100);
+      setIsCustomizing(false);
+      setIsCustomized(true);
+
+      closeTimeoutRef.current = setTimeout(() => {
+        onCustomizePress?.(selectedBehaviorIds);
+        setCustomizationProgress(0);
+        setIsCustomized(false);
+      }, 700);
+    }, CUSTOMIZE_LOADING_DURATION_MS);
+  }, [isCustomized, isCustomizing, journalHabits, onCustomizePress]);
 
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
@@ -203,22 +269,61 @@ export const JournalCustomizeBottomSheet = forwardRef<
       onChange={onChange}
       scrollable={false}
     >
-      <BottomSheetFlatList
-        data={journalHabits}
-        keyExtractor={(item) => item.behaviorId}
-        renderItem={renderHabitItem}
-        ListHeaderComponent={listHeader}
-        contentContainerStyle={styles.journalCustomizeSheetListContent}
-        showsVerticalScrollIndicator={false}
-        enableFooterMarginAdjustment
+      <Modal
+        transparent
+        visible={isCustomizing || isCustomized}
+        animationType="fade"
+      >
+        <View style={styles.journalCustomizeProgressOverlay}>
+          <View style={styles.journalCustomizeProgressContainer}>
+            <Text style={styles.journalCustomizeSheetTitle}>
+              CUSTOMIZE YOUR JOURNAL
+            </Text>
+            <View style={styles.journalCustomizeProgressRing}>
+              <TaperedCircleBorder
+                percentage={`${customizationProgress}%`}
+                borderColor={Colors.light.dullWhiteOpacity}
+                size={170}
+                variant="illuminated"
+                glowColorOverride={Colors.light.golden}
+              >
+                <Text style={styles.journalCustomizeProgressText}>
+                  {isCustomized ? "CUSTOMIZED" : "CUSTOMIZING"}
+                </Text>
+              </TaperedCircleBorder>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {!isCustomizing && !isCustomized ? (
+        <>
+          <BottomSheetFlatList
+            data={journalHabits}
+            keyExtractor={(item) => item.behaviorId}
+            renderItem={renderHabitItem}
+            ListHeaderComponent={listHeader}
+            contentContainerStyle={styles.journalCustomizeSheetListContent}
+            showsVerticalScrollIndicator={false}
+            enableFooterMarginAdjustment
+          />
+          <View style={styles.journalCustomizeSheetFooter}>
+            <PrimaryButton
+              text="CUSTOMIZE"
+              onPress={handleCustomizePress}
+              style={styles.journalCustomizeSheetButton}
+            />
+          </View>
+        </>
+      ) : null}
+      <WarningModal
+        visible={isSelectionWarningVisible}
+        title="ACTION REQUIRED"
+        message="Please select at least one behavior per category to continue."
+        primaryButtonText="OK"
+        secondaryButtonText={null}
+        onPrimaryPress={() => setIsSelectionWarningVisible(false)}
+        onBackdropPress={() => setIsSelectionWarningVisible(false)}
       />
-      <View style={styles.journalCustomizeSheetFooter}>
-        <PrimaryButton
-          text="CUSTOMIZE"
-          onPress={handleCustomizePress}
-          style={styles.journalCustomizeSheetButton}
-        />
-      </View>
     </BottomSheetWrapper>
   );
 });
