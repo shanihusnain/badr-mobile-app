@@ -7,6 +7,7 @@ export const UpComingDuhrIcon = ({ color = Colors.light.white, size = 16 }: { co
    
     width={size}
     height={size}
+    viewBox="0 0 16 16"
     fill="none"
    
   >

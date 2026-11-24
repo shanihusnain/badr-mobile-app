@@ -127,9 +127,14 @@ export const behaviorDetailStyles = StyleSheet.create({
     gap: 8,
   },
   chartYAxis: {
+    position: "relative",
     width: 18,
-    justifyContent: "space-between",
-    paddingBottom: 2,
+  },
+  chartYAxisTick: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    transform: [{ translateY: -6 }],
   },
   chartYAxisLabel: {
     fontSize: 10,
@@ -139,6 +144,7 @@ export const behaviorDetailStyles = StyleSheet.create({
     textAlign: "right",
   },
   chartBarsArea: {
+    position: "relative",
     flex: 1,
     flexDirection: "row",
     alignItems: "flex-end",
@@ -146,6 +152,13 @@ export const behaviorDetailStyles = StyleSheet.create({
     gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(160, 160, 160, 0.25)",
+  },
+  chartGridLine: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(160, 160, 160, 0.25)",
   },
   chartBarColumn: {
     flex: 1,
