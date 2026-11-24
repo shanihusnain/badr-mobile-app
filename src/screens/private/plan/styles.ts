@@ -491,8 +491,8 @@ export const planStyles = StyleSheet.create({
     textTransform: "uppercase",
   },
   journalHabitRingWrap: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     alignItems: "center",
     justifyContent: "center",
     overflow: "visible",

@@ -1,4 +1,5 @@
 import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCrossTitleDynamicIcon";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
 import { useNavigation } from "expo-router";
@@ -88,8 +89,12 @@ export const BehaviorDetailDescription = ({
           />
 
           <View style={styles.scrollBody}>
-            <TopSpace top={4} />
-            <JournalConsistencySection
+            {isLoading ? (
+              <LoadingComponent size="large" style={styles.detailLoading} />
+            ) : (
+              <>
+                <TopSpace top={4} />
+                <JournalConsistencySection
               activeSnapshot={activeSnapshot}
               periods={periods}
               period={period}
@@ -136,12 +141,14 @@ export const BehaviorDetailDescription = ({
               />
             ) : null}
 
-            {showRecommendations ? (
-              <BehaviorDetailRecommendationsCard
-                title={content.recommendationsTitle}
-                blocks={content.recommendationBlocks}
-              />
-            ) : null}
+                {showRecommendations ? (
+                  <BehaviorDetailRecommendationsCard
+                    title={content.recommendationsTitle}
+                    blocks={content.recommendationBlocks}
+                  />
+                ) : null}
+              </>
+            )}
           </View>
         </ScrollView>
       </View>

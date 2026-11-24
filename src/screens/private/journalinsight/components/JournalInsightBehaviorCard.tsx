@@ -6,7 +6,7 @@ import { Pressable, Text, View } from "react-native";
 import type { JournalInsightBehavior } from "../journalInsightMockData";
 import { journalInsightStyles as styles } from "../styles";
 
-const PERIOD_RING_SIZE = 40;
+const PERIOD_RING_SIZE = 56;
 
 type JournalInsightBehaviorCardProps = {
   behavior: JournalInsightBehavior;
