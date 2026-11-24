@@ -67,7 +67,7 @@ export const journalInsightStyles = StyleSheet.create({
     fontFamily: fonts.primary.regular,
     textAlign: "left",
     lineHeight: 21,
-    opacity: 0.90,
+    opacity: 0.9,
   },
   behaviorCard: {
     backgroundColor: Colors.light.darkgrey,
@@ -80,6 +80,19 @@ export const journalInsightStyles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     marginTop: 12,
+  },
+  behaviorContentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    width: "100%",
+  },
+  behaviorTextColumn: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    justifyContent: "center",
   },
   behaviorName: {
     fontSize: 16,
@@ -96,6 +109,15 @@ export const journalInsightStyles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.1,
     marginTop: 12,
+  },
+  behaviorDescriptionInline: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: Colors.light.white,
+    fontFamily: fonts.primary.regular,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+    marginTop: 4,
   },
   weekDaysRow: {
     flexDirection: "row",
@@ -157,6 +179,7 @@ export const journalInsightStyles = StyleSheet.create({
     width: 56,
     height: 56,
     flexShrink: 0,
+    alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
     transform: [{ translateY: -4 }],

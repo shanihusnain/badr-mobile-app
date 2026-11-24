@@ -10,7 +10,7 @@ import { RFValue } from "react-native-responsive-fontsize";
 const CARD_WIDTH = Dimensions.get("window").width - 32;
 
 /** Consistent vertical gap between major home ScrollView sections. */
-export const HOME_SECTION_GAP = 16;
+export const HOME_SECTION_GAP = 24;
 
 export const styles = StyleSheet.create({
   container: {
@@ -842,6 +842,13 @@ export const styles = StyleSheet.create({
     marginBottom: HOME_SECTION_GAP,
   },
   todayGoalsProgressTitle: {
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 14,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+    }),
+  },
+  todayGoalsProgressEmptyText: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     fontSize: 14,
@@ -850,9 +857,8 @@ export const styles = StyleSheet.create({
   dayProgressCard: {
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingBottom: 10,
     paddingHorizontal: 7,
-    marginBottom: 10,
   },
   dayProgressCardSwipeChild: {
     marginBottom: 0,
@@ -1114,10 +1120,11 @@ export const styles = StyleSheet.create({
   },
   dayProgressGoalTitle: {
     flex: 1,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
-    color: Colors.light.white,
-    fontWeight: "600",
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 15,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+    }),
   },
   dayProgressGoalTitleFull: {
     paddingVertical: 10,

@@ -50,46 +50,46 @@ export const JornalInsight = ({
           <LoadingComponent size="large" style={styles.loadingContainer} />
         ) : (
           <>
-        <TopSpace top={32} />
-        <JournalConsistencySection
-          activeSnapshot={activeSnapshot}
-          periods={periods}
-          period={period}
-          deltaIsPositive={deltaIsPositive}
-          canGoToPreviousPeriod={canGoToPreviousPeriod}
-          canGoToNextPeriod={canGoToNextPeriod}
-          onSelectPeriod={setPeriod}
-          onPreviousPeriodRange={handlePreviousPeriodRange}
-          onNextPeriodRange={handleNextPeriodRange}
-          isLoading={isLoading}
-        />
-        <TopSpace top={20} />
-        <JournalInsightSummaryCard
-          snapshot={activeSnapshot}
-          isLoading={isLoading}
-        />
-        <TopSpace top={16} />
-        {activeSnapshot.behaviors.map((behavior) => (
-          <JournalInsightBehaviorCard
-            key={`${period.id}-${behavior.id}-${behavior.name}`}
-            behavior={behavior}
-            periodId={period.id}
-            periodLabel={period.label}
-            endDate={endDate}
-          />
-        ))}
-        {activeSnapshot.studyMaterial.length > 0 ? (
-          <>
-            <TopSpace top={10} />
-            <PastAchievementStudyMaterial
-              items={activeSnapshot.studyMaterial}
-              title="LEARN MORE"
-              onSeeAllPress={() => {
-                router.push("/(tabs)/(connect)/learnmorescreen");
-              }}
+            <TopSpace top={32} />
+            <JournalConsistencySection
+              activeSnapshot={activeSnapshot}
+              periods={periods}
+              period={period}
+              deltaIsPositive={deltaIsPositive}
+              canGoToPreviousPeriod={canGoToPreviousPeriod}
+              canGoToNextPeriod={canGoToNextPeriod}
+              onSelectPeriod={setPeriod}
+              onPreviousPeriodRange={handlePreviousPeriodRange}
+              onNextPeriodRange={handleNextPeriodRange}
+              isLoading={isLoading}
             />
-          </>
-        ) : null}
+            <TopSpace top={20} />
+            <JournalInsightSummaryCard
+              snapshot={activeSnapshot}
+              isLoading={isLoading}
+            />
+            <TopSpace top={16} />
+            {activeSnapshot.behaviors.map((behavior) => (
+              <JournalInsightBehaviorCard
+                key={`${period.id}-${behavior.id}-${behavior.name}`}
+                behavior={behavior}
+                periodId={period.id}
+                periodLabel={period.label}
+                endDate={endDate}
+              />
+            ))}
+            {activeSnapshot.studyMaterial.length > 0 ? (
+              <>
+                <TopSpace top={10} />
+                <PastAchievementStudyMaterial
+                  items={activeSnapshot.studyMaterial}
+                  title="LEARN MORE"
+                  onSeeAllPress={() => {
+                    router.push("/(tabs)/(connect)/learnmorescreen");
+                  }}
+                />
+              </>
+            ) : null}
           </>
         )}
       </ScrollView>

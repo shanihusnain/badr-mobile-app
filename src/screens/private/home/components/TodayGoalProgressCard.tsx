@@ -13,6 +13,7 @@ import {
 } from "react-native-responsive-screen";
 import { Colors } from "@/constants/theme";
 import { resolveMyDayEntryIcon } from "../resolveMyDayEntryIcon";
+import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
 
 type Props = {
   entry: TodayGoalProgressEntry;
@@ -73,7 +74,7 @@ export function TodayGoalProgressCard({ entry }: Props) {
             !showLoggedAt && styles.dayProgressGoalTitleFull,
           ]}
         >
-          {translatedTitle}
+          {prepareFigmaForcedSmallCapsText(translatedTitle)}
         </Text>
       </View>
 
