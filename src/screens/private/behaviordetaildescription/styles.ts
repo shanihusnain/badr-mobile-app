@@ -51,7 +51,7 @@ export const behaviorDetailStyles = StyleSheet.create({
   },
   heroRingContainer: {
     position: "absolute",
-    top: "28%",
+    top: "40%",
     left: 0,
     right: 0,
     alignItems: "center",
