@@ -262,15 +262,20 @@ export const styles = StyleSheet.create({
   categoriesContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: wp(2),
+    gap: wp(1.2),
     marginBottom: HOME_SECTION_GAP,
+  },
+  // Keep layout height while collapsed sticky is up so scroll doesn't jump
+  categoriesContainerHidden: {
+    opacity: 0,
   },
 
   categoryItemWrapper: {
     flex: 1,
     alignItems: "center",
-    overflow: "visible",
+    // overflow: "visible",
     justifyContent: "center",
+    paddingHorizontal: 10,
   },
 
   // Category Circle

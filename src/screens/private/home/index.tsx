@@ -13,7 +13,6 @@ import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Animated,
   type LayoutChangeEvent,
   ImageBackground,
   Pressable,
@@ -337,6 +336,8 @@ export default function HomeScreen() {
     string | null
   >(null);
   const [scrollCollapseThreshold, setScrollCollapseThreshold] = useState(260);
+  const [isStickyPinned, setIsStickyPinned] = useState(false);
+  const stickyPinnedRef = useRef(false);
   const [hideMyDayConfirmVisible, setHideMyDayConfirmVisible] = useState(false);
   const [deleteMyDayConfirmVisible, setDeleteMyDayConfirmVisible] =
     useState(false);
@@ -351,7 +352,7 @@ export default function HomeScreen() {
     goalId?: string;
   } | null>(null);
   const openBottomSheetsRef = useRef(new Set<string>());
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollOffsetRef = useRef(0);
   const { user } = useAuth();
   console.log("user in redux", user);
 
@@ -840,26 +841,34 @@ export default function HomeScreen() {
     });
   }, [deleteMyDayEntry, myDayEntries, pendingDeleteEntryId]);
 
-  const stickyHeaderOpacity = scrollY.interpolate({
-    inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-  const stickyHeaderTranslateY = scrollY.interpolate({
-    inputRange: [scrollCollapseThreshold - 50, scrollCollapseThreshold],
-    outputRange: [-14, 0],
-    extrapolate: "clamp",
-  });
-  const categorySectionOpacity = scrollY.interpolate({
-    inputRange: [scrollCollapseThreshold - 60, scrollCollapseThreshold - 10],
-    outputRange: [1, 0],
-    extrapolate: "clamp",
-  });
+  // Mutually exclusive: collapsed OR full rings — never both.
+  const syncStickyPinned = useCallback(
+    (scrollOffset: number, threshold: number) => {
+      const pinned = scrollOffset >= threshold;
+      if (pinned !== stickyPinnedRef.current) {
+        stickyPinnedRef.current = pinned;
+        setIsStickyPinned(pinned);
+      }
+    },
+    [],
+  );
 
   const handleCategoriesLayout = (e: LayoutChangeEvent) => {
-    const { y, height } = e.nativeEvent.layout;
-    setScrollCollapseThreshold(Math.max(80, y + height * 0.6));
+    const { y } = e.nativeEvent.layout;
+    // Pin once the top of the big rings hits the scroll viewport top.
+    const nextThreshold = Math.max(0, y);
+    setScrollCollapseThreshold(nextThreshold);
+    syncStickyPinned(scrollOffsetRef.current, nextThreshold);
   };
+
+  const handleHomeScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = e.nativeEvent.contentOffset.y;
+      scrollOffsetRef.current = y;
+      syncStickyPinned(y, scrollCollapseThreshold);
+    },
+    [scrollCollapseThreshold, syncStickyPinned],
+  );
 
   const handleInspirationScroll = (
     e: NativeSyntheticEvent<NativeScrollEvent>,
@@ -872,17 +881,13 @@ export default function HomeScreen() {
 
   return (
     <BlackScreenWrapper edges={["top"]}>
-      {/* Sticky collapsed category bar (fades in as big rings scroll away) */}
-      {!isAnyBottomSheetOpen ? (
-        <Animated.View
+      {/* Sticky compact category bar — only while pinned; full rings hidden */}
+      {!isAnyBottomSheetOpen && isStickyPinned ? (
+        <View
           pointerEvents="box-none"
           style={[
             styles.collapsedHeader,
-            {
-              paddingTop: safeAreaInsets.top + 10,
-              opacity: stickyHeaderOpacity,
-              transform: [{ translateY: stickyHeaderTranslateY }],
-            },
+            { paddingTop: safeAreaInsets.top + 8 },
           ]}
         >
           <View style={styles.collapsedRow}>
@@ -909,7 +914,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </Animated.View>
+        </View>
       ) : null}
 
       {/* Plain ScrollView (not Animated.ScrollView): Rive moon never paints
@@ -920,9 +925,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         removeClippedSubviews={false}
-        onScroll={(e) => {
-          scrollY.setValue(e.nativeEvent.contentOffset.y);
-        }}
+        onScroll={handleHomeScroll}
       >
         {/* Avatar + Streak row */}
         <View style={styles.topSection}>
@@ -1075,13 +1078,14 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* Goal category rings */}
-        <Animated.View
+        {/* Goal category rings — hidden while collapsed sticky is showing */}
+        <View
           onLayout={handleCategoriesLayout}
           style={[
             styles.categoriesContainer,
-            { opacity: categorySectionOpacity },
+            isStickyPinned ? styles.categoriesContainerHidden : null,
           ]}
+          pointerEvents={isStickyPinned ? "none" : "auto"}
         >
           {goalCategories.map((category) => (
             <Pressable
@@ -1094,7 +1098,7 @@ export default function HomeScreen() {
               <TaperedCircleBorder
                 percentage={category.percentage}
                 borderColor={Colors.light.grey}
-                size={66 * (SCREEN_CARD_WIDTH / 320)}
+                size={80 * (SCREEN_CARD_WIDTH / 320)}
                 percentageFontSize={17}
                 variant="illuminated"
               />
@@ -1123,7 +1127,7 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           ))}
-        </Animated.View>
+        </View>
 
         {/* Welcome / info card deck — only when home API sends greetingCard */}
         {translatedWelcomeCards.length > 0 ? (
