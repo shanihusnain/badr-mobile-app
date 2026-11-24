@@ -66,11 +66,7 @@ function JournalDateTextRowComponent({
         accessibilityLabel="Next day"
         style={styles.arrowBtn}
       >
-        <Feather
-          name="chevron-right"
-          size={18}
-          color={Colors.light.white}
-        />
+        <Feather name="chevron-right" size={18} color={Colors.light.white} />
       </Pressable>
     </View>
   );
@@ -107,4 +103,3 @@ const styles = StyleSheet.create({
 });
 
 export const JournalDateTextRow = memo(JournalDateTextRowComponent);
-

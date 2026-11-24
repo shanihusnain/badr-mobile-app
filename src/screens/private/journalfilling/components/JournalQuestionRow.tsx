@@ -134,9 +134,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   button: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: Colors.light.white,
