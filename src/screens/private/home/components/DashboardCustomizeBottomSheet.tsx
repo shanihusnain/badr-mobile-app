@@ -18,9 +18,11 @@ import { Pressable, ScrollView } from "react-native-gesture-handler";
 import { BottomSheetWrapper } from "@/components/molecules/BottomSheetWrapper";
 import { Colors } from "@/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { Tabs } from "@/components/atoms/Tabs";
 import { SwipeToDeleteRow } from "./SwipeToDeleteRow";
 import { fonts } from "@/assets/fonts";
+import { AddGoalIcon, EqualSign } from "@/assets/icons";
 import { Entypo } from "@expo/vector-icons";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,6 +40,12 @@ import {
   getDashboardWidgetCatalogEntry,
   isCustomizableDashboardWidgetKey,
 } from "../dashboardWidgetCatalog";
+import { getDetailedIbadahIcon } from "./DetailedIbadahsProgressCards";
+import { goalTypeToGoalId } from "@/src/utils/goalCycleCategoryMap";
+import {
+  getFigmaForcedSmallCapsTextStyle,
+  prepareFigmaForcedSmallCapsText,
+} from "@/src/utils/figmaTypography";
 
 export type DashboardCategory =
   | "Prayer"
@@ -94,7 +102,9 @@ function isCustomizeFilterTab(tab: DashboardApiTab | string): boolean {
   );
 }
 
-function mapActiveWidget(widget: DashboardCustomizeWidget): ActiveDashboardItem | null {
+function mapActiveWidget(
+  widget: DashboardCustomizeWidget,
+): ActiveDashboardItem | null {
   const key = String(widget.key ?? "")
     .trim()
     .toUpperCase();
@@ -105,6 +115,30 @@ function mapActiveWidget(widget: DashboardCustomizeWidget): ActiveDashboardItem 
     name: String(widget.name ?? "").trim() || catalog?.name || key,
     category: widget.category ?? catalog?.category ?? null,
   };
+}
+
+const CUSTOMIZE_ITEM_ICON_SIZE = 19;
+
+/** Same goal-level glyph as home categories / ibadah detail. */
+function resolveCustomizeItemIcon(item: ActiveDashboardItem): React.ReactNode {
+  const category = String(item.category ?? "")
+    .trim()
+    .toLowerCase();
+  const goalId = category ? goalTypeToGoalId(category, item.key) : null;
+  if (goalId) {
+    return getDetailedIbadahIcon(
+      goalId,
+      Colors.light.white,
+      CUSTOMIZE_ITEM_ICON_SIZE,
+    );
+  }
+  return (
+    <FontAwesome6
+      name="person-praying"
+      size={CUSTOMIZE_ITEM_ICON_SIZE}
+      color={Colors.light.white}
+    />
+  );
 }
 
 function getFilterTabTranslationKey(tabKey: string): string {
@@ -203,8 +237,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
         return sourceTabs
           .map((tab) => ({
             key: normalizeApiTab(tab.key),
-            label:
-              String(tab.label ?? tab.key ?? "").trim() || String(tab.key),
+            label: String(tab.label ?? tab.key ?? "").trim() || String(tab.key),
           }))
           .filter((tab) => isCustomizeFilterTab(tab.key));
       }
@@ -386,7 +419,7 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
 
     const renderFooter = useCallback(
       (props: BottomSheetFooterProps) => (
-        <BottomSheetFooter {...props} bottomInset={safeAreaInsets.bottom}>
+        <BottomSheetFooter {...props}>
           <View style={styles.saveFooter}>
             <PrimaryButton
               text={saveLabel}
@@ -424,14 +457,22 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
               onDelete={handleDelete}
               onSwipeOpen={handleSwipeOpen}
               openRowId={openRowId}
+              contentStyle={[
+                styles.listItem,
+                styles.addListItem,
+                isPending && styles.rowPending,
+              ]}
             >
-              <View
-                style={[
-                  styles.swipeListItemContent,
-                  isPending && styles.rowPending,
-                ]}
-              >
-                <Text style={styles.listItemTitle}>{translatedTitle}</Text>
+              <View style={styles.addListItemLeading}>
+                <View style={styles.listItemIconCircle}>
+                  {resolveCustomizeItemIcon(item)}
+                </View>
+                <Text style={styles.listItemTitle}>
+                  {prepareFigmaForcedSmallCapsText(translatedTitle)}
+                </Text>
+              </View>
+              <View style={styles.equalSignWrap}>
+                <EqualSign />
               </View>
             </SwipeToDeleteRow>
           </View>
@@ -510,14 +551,15 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
                     disabled={isPending}
                     onPress={() => handleAddItem(item)}
                   >
-                    <Text style={styles.listItemTitle}>{translatedTitle}</Text>
-                    <View style={styles.addActionCircle}>
-                      <Entypo
-                        name="plus"
-                        size={24}
-                        color={Colors.light.white}
-                      />
+                    <View style={styles.addListItemLeading}>
+                      <View style={styles.listItemIconCircle}>
+                        {resolveCustomizeItemIcon(item)}
+                      </View>
+                      <Text style={styles.listItemTitle}>
+                        {prepareFigmaForcedSmallCapsText(translatedTitle)}
+                      </Text>
                     </View>
+                    <AddGoalIcon />
                   </Pressable>
                 </View>
               );
@@ -602,8 +644,8 @@ const styles = StyleSheet.create({
   },
   saveFooter: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
+    // paddingTop: 12,
+    // paddingBottom: 16,
     backgroundColor: Colors.light.blackBackground,
   },
   rowWrapper: {
@@ -615,19 +657,38 @@ const styles = StyleSheet.create({
   },
   listItem: {
     backgroundColor: Colors.light.greybuttonBackground,
-    padding: 12,
-    borderRadius: 8,
-    gap: 4,
-  },
-  swipeListItemContent: {
     paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  equalSignWrap: {
+    flexShrink: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
   addListItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingVertical: 20,
+    paddingVertical: 16,
+  },
+  addListItemLeading: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minWidth: 0,
+    marginRight: 12,
+  },
+  listItemIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.ibadahIconCircleBg,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    flexShrink: 0,
   },
   addActionCircle: {
     alignItems: "center",
@@ -639,9 +700,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   listItemTitle: {
-    color: Colors.light.white,
-    fontSize: 14,
-    fontWeight: "600",
+    flexShrink: 1,
+    ...getFigmaForcedSmallCapsTextStyle({
+      fontSize: 14,
+      letterSpacing: 0.4,
+      color: Colors.light.white,
+    }),
   },
   addSection: {
     marginTop: 16,

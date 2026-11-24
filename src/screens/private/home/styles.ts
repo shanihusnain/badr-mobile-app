@@ -1108,15 +1108,24 @@ export const styles = StyleSheet.create({
   dayProgressTimeBadgeWrapper: {
     paddingVertical: 10,
     paddingHorizontal: 4,
+    flexDirection: "row",
+    alignItems: "center",
   },
   dayProgressTimeBadge: {
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 15,
-    color: Colors.light.white,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     backgroundColor: Colors.light.green,
     borderRadius: 6,
-    padding: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+  },
+  dayProgressTimeBadgeText: {
+    fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
+    fontSize: 15,
+    letterSpacing: 0.4,
+    color: Colors.light.white,
   },
   dayProgressGoalTitle: {
     flex: 1,
@@ -1499,19 +1508,22 @@ export const styles = StyleSheet.create({
   },
   timeSpentDisclaimerRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     marginTop: 12,
+    alignSelf: "center",
   },
   timeSpentDisclaimerIcon: {
     marginTop: 2,
   },
   timeSpentDisclaimerText: {
-    flex: 1,
+    flexShrink: 1,
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontSize: 12,
     lineHeight: 16,
+    textAlign: "center",
   },
 
   timeSpentCategoryList: {

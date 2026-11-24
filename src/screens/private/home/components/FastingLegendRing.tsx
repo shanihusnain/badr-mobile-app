@@ -8,28 +8,25 @@ type FastingLegendRingProps = {
   size?: number;
 };
 
-function getRingStyle(
-  size: number,
-  color: string,
-  completed: boolean,
-): ViewStyle {
-  if (completed) {
-    return {
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      backgroundColor: color,
-      borderWidth: 0,
-    };
-  }
-
+function getCompletedRingStyle(size: number, color: string): ViewStyle {
   return {
     width: size,
     height: size,
     borderRadius: size / 2,
-    borderWidth: 1.5,
-    borderColor: color,
+    backgroundColor: color,
+    borderWidth: 0,
+  };
+}
+
+/** Figma planned legend: solid hollow ring (not dashed). */
+function getPlannedRingStyle(size: number, color: string): ViewStyle {
+  return {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
     backgroundColor: "transparent",
+    borderWidth: 1.25,
+    borderColor: color,
   };
 }
 
@@ -40,7 +37,12 @@ export function FastingLegendRing({
 }: FastingLegendRingProps) {
   return (
     <View
-      style={[styles.ring, getRingStyle(size, color, completed)]}
+      style={[
+        styles.ring,
+        completed
+          ? getCompletedRingStyle(size, color)
+          : getPlannedRingStyle(size, color),
+      ]}
       accessibilityElementsHidden
       importantForAccessibility="no"
     />

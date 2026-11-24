@@ -57,14 +57,7 @@ export function FastingOverviewCalendarSection({
   const { t } = useTypedTranslation();
   const todayKey = useMemo(() => toDateKey(startOfDay(new Date())), []);
   const queryDate = date?.trim() || todayKey;
-  const allTabs = [
-    { key: "ALL", label: "ALL" },
-    { key: "MISSED_RAMADAN", label: "MISSED RAMADAN FASTS" },
-    { key: "MONDAY_THURSDAY", label: "MONDAY AND THURSDAY FASTS" },
-    { key: "WHITE_DAYS", label: "WHITE DAYS FASTS" },
-    { key: "PROPHET_DAWOOD", label: "DAWOOD FASTS" },
-  ];
-  const [selectedTab, setSelectedTab] = useState(allTabs.at(0));
+  const [selectedTabKey, setSelectedTabKey] = useState("ALL");
 
   const [selectedView, setSelectedView] = useState<"PLANNED" | "PROGRESS">(
     "PROGRESS",
@@ -74,14 +67,27 @@ export function FastingOverviewCalendarSection({
     useState(showInfoBanner);
 
   const { data: fastingCalendar } = useGetHomeFastingCalendar(
-    selectedTab?.key ?? "ALL",
+    selectedTabKey,
     selectedView,
     queryDate,
   );
-  const tabs = useMemo(
-    () => resolveHomeFastingTabs(fastingCalendar?.tabs),
-    [fastingCalendar?.tabs],
+  // Persist last API tab list so a tab switch doesn't briefly fall back to
+  // ALL-only and get reset by the sync effect.
+  const [optedTabs, setOptedTabs] = useState(() =>
+    resolveHomeFastingTabs(undefined),
   );
+  useEffect(() => {
+    if (
+      Array.isArray(fastingCalendar?.tabs) &&
+      fastingCalendar.tabs.length > 0
+    ) {
+      setOptedTabs(resolveHomeFastingTabs(fastingCalendar.tabs));
+    }
+  }, [fastingCalendar?.tabs]);
+
+  const tabs = optedTabs;
+  const selectedTab =
+    tabs.find((tab) => tab.key === selectedTabKey) ?? tabs[0] ?? null;
   const views = useMemo(
     () => resolveHomeFastingViews(fastingCalendar?.views),
     [fastingCalendar?.views],
@@ -96,15 +102,12 @@ export function FastingOverviewCalendarSection({
   );
   const markers = useMemo(
     () =>
-      mapHomeFastingDaysToMarkers(
-        fastingCalendar?.days,
-        selectedTab?.key ?? "ALL",
-      ),
-    [fastingCalendar?.days, selectedTab],
+      mapHomeFastingDaysToMarkers(fastingCalendar?.days, selectedTabKey),
+    [fastingCalendar?.days, selectedTabKey],
   );
   const legendEntries = useMemo(
-    () => resolveFastingLegendEntries(fastingCalendar?.days, selectedTab?.key),
-    [fastingCalendar?.days, selectedTab?.key],
+    () => resolveFastingLegendEntries(fastingCalendar?.days, selectedTabKey),
+    [fastingCalendar?.days, selectedTabKey],
   );
 
   const resolvedTitle = title ?? labels.title;
@@ -123,10 +126,16 @@ export function FastingOverviewCalendarSection({
   }, [selectedView, fastingCalendar?.legendDismissed]);
 
   useEffect(() => {
-    if (!tabs.some((tab) => tab.key === selectedTab?.key) && tabs[0]) {
-      // setSelectedTab(tabs[0]);
+    // Only auto-correct once we know the user's opted tabs (more than ALL).
+    const hasOptedGoalTabs = tabs.some((tab) => tab.key !== "ALL");
+    if (
+      hasOptedGoalTabs &&
+      !tabs.some((tab) => tab.key === selectedTabKey) &&
+      tabs[0]
+    ) {
+      setSelectedTabKey(tabs[0].key);
     }
-  }, [tabs, selectedTab]);
+  }, [tabs, selectedTabKey]);
 
   useEffect(() => {
     if (!views.some((view) => view.key === selectedView) && views[0]) {
@@ -163,12 +172,12 @@ export function FastingOverviewCalendarSection({
         nestedScrollEnabled
         scrollEventThrottle={16}
       >
-        {allTabs.map((tab) => (
+        {tabs.map((tab) => (
           <Tabs
             key={tab.key}
             label={tab.label}
-            onPress={() => setSelectedTab(tab)}
-            selectedTab={selectedTab?.label ?? "ALL"}
+            onPress={() => setSelectedTabKey(tab.key)}
+            selectedTab={selectedTab?.label ?? tabs[0]?.label ?? "ALL"}
             bgColor={Colors.light.blackBackground}
           />
         ))}

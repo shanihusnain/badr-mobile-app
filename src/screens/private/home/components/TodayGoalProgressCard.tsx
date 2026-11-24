@@ -13,6 +13,8 @@ import {
 } from "react-native-responsive-screen";
 import { Colors } from "@/constants/theme";
 import { resolveMyDayEntryIcon } from "../resolveMyDayEntryIcon";
+import { getDetailedIbadahIcon } from "./DetailedIbadahsProgressCards";
+import { goalTypeToGoalId } from "@/src/utils/goalCycleCategoryMap";
 import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
 
 type Props = {
@@ -60,12 +62,30 @@ export function TodayGoalProgressCard({ entry }: Props) {
   const iconSize = iconCircleSize * 0.7;
   const entryIcon = resolveMyDayEntryIcon(entry, Colors.light.white, iconSize);
 
+  // Same goal-level glyph as categories / ibadah detail (not the slot icon).
+  const chipGoalId =
+    entry.goalType != null
+      ? goalTypeToGoalId(
+          String(entry.apiCategory ?? entry.category),
+          entry.goalType,
+        )
+      : null;
+  const chipIbadahIcon =
+    chipGoalId != null
+      ? getDetailedIbadahIcon(chipGoalId, Colors.light.white, 14)
+      : null;
+
   return (
     <View style={[styles.dayProgressCard, styles.dayProgressCardSwipeChild]}>
       <View style={styles.dayProgressHeaderRow}>
         {showLoggedAt ? (
           <View style={styles.dayProgressTimeBadgeWrapper}>
-            <Text style={styles.dayProgressTimeBadge}>{entry.loggedAt}</Text>
+            <View style={styles.dayProgressTimeBadge}>
+              {chipIbadahIcon}
+              <Text style={styles.dayProgressTimeBadgeText}>
+                {(entry.loggedAt ?? "").toLocaleUpperCase("en-US")}
+              </Text>
+            </View>
           </View>
         ) : null}
         <Text

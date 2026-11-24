@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "..";
 
 export type HomeFastingCalendarTab = {
@@ -83,5 +83,7 @@ export const useGetHomeFastingCalendar = (
     queryKey: ["home", "fasting-calendar", tab, view, date],
     queryFn: () => getHomeFastingCalendar(tab, view, date),
     enabled: (options?.enabled ?? true) && Boolean(tab && view && date),
+    // Keep prior tabs/days while switching tab/view so selection doesn't snap back.
+    placeholderData: keepPreviousData,
   });
 };

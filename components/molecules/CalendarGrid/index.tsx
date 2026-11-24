@@ -33,7 +33,7 @@ import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { CalendarWarning } from "@/assets/icons";
 
 const RING_SIZE = 24;
-const COMPLETED_DOT_SIZE = 20;
+const COMPLETED_DOT_SIZE = 18;
 /**
  * Shared day footprint for cycle-window calendars (fasting goals).
  * Matches cycle_start cell size so grids stay visually consistent.
@@ -69,6 +69,14 @@ export type PlannedFastMarker = {
   color: string;
   state: "completed" | "missed" | "planned";
 };
+
+/**
+ * Figma completed: number is a dark cutout matching the calendar card bg
+ * (same on teal / gold / white fills).
+ */
+function getCompletedDayNumberColor(): string {
+  return Colors.light.greybuttonBackground;
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -327,12 +335,13 @@ export const CalendarGrid = ({
     let textStyle: TextStyle = {};
     let cellOpacity = 1;
     let showCompletedDot = false;
+    let showCompletedDoubleRing = false;
     let showMissedWarning = false;
     let markerColor: string | undefined;
+    let hijriStyle: TextStyle = {};
 
-    // Today gets a full-cell rectangular background in every mode
-    //   if (isToday)
-    //     cellBg = { backgroundColor: Colors.light.calendarTodayBg };
+    // Same selected chip as goal-selection cycle start calendar.
+    const showPlannedProgressTodayBg = mode === "planned_progress" && isToday;
 
     switch (mode) {
       // ── Date of Birth ───────────────────────────────────────────────
@@ -778,22 +787,43 @@ export const CalendarGrid = ({
         break;
       }
 
-      // ── Dashboard: planned vs. progress fast states ────────────────
+      // ── Dashboard: planned vs. progress fast states (Figma) ────────
+      // Planned = hollow category ring; Hijri stays muted grey
+      // Completed = filled disc + outer ring + dark number; Hijri = goal color
+      // Skipped = hollow ring + warning; Hijri = goal color
       case "planned_progress": {
         const marker = plannedFastMarkerMap.get(ds);
         if (marker) {
           markerColor = marker.color;
-          circleStyle = {
-            borderWidth: 1,
-            borderColor: marker.color,
-          };
-          showCompletedDot = marker.state === "completed";
-          showMissedWarning = marker.state === "missed";
-          textStyle = {
-            color: showCompletedDot
-              ? Colors.light.blackBackground
-              : marker.color,
-          };
+          if (marker.state === "completed") {
+            showCompletedDoubleRing = true;
+            circleStyle = {
+              borderWidth: 0,
+              overflow: "visible",
+              backgroundColor: "transparent",
+            };
+            textStyle = {
+              color: getCompletedDayNumberColor(),
+            };
+            hijriStyle = { color: marker.color };
+          } else if (marker.state === "planned") {
+            circleStyle = {
+              borderWidth: 1,
+              borderColor: marker.color,
+              backgroundColor: "transparent",
+            };
+            textStyle = { color: marker.color };
+            hijriStyle = {};
+          } else {
+            // missed / skipped
+            circleStyle = {
+              borderWidth: 1,
+              borderColor: marker.color,
+            };
+            showMissedWarning = true;
+            textStyle = { color: marker.color };
+            hijriStyle = { color: marker.color };
+          }
         }
         break;
       }
@@ -900,32 +930,60 @@ export const CalendarGrid = ({
             </View>
           ) : (
             <View
-              style={
+              style={[
                 mode === "dob" && isSelected
                   ? styles.dobSelectedMarker
-                  : undefined
-              }
+                  : undefined,
+                // Same pattern as cycle-start: shared marker chrome every day,
+                // today only adds backgroundColor (no padding/spacing shifts).
+                mode === "planned_progress"
+                  ? styles.plannedProgressDayMarker
+                  : undefined,
+                showPlannedProgressTodayBg
+                  ? styles.plannedProgressTodayMarker
+                  : undefined,
+              ]}
             >
               <View style={styles.dayMarkerWrap}>
-                <View style={[styles.circle, ringStyle, circleStyle]}>
-                  {showCompletedDot && markerColor ? (
-                    <View
-                      style={[
-                        styles.completedDot,
-                        { backgroundColor: markerColor },
-                      ]}
-                    />
-                  ) : null}
-                  <Text
+                {showCompletedDoubleRing && markerColor ? (
+                  <View
                     style={[
-                      styles.dayGregorian,
-                      textStyle,
-                      showCompletedDot && styles.dayGregorianAboveDot,
+                      styles.completedOuterRing,
+                      { borderColor: markerColor },
                     ]}
                   >
-                    {dayNumber}
-                  </Text>
-                </View>
+                    <View
+                      style={[
+                        styles.completedInnerFill,
+                        { backgroundColor: markerColor },
+                      ]}
+                    >
+                      <Text style={[styles.dayGregorian, textStyle]}>
+                        {dayNumber}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={[styles.circle, ringStyle, circleStyle]}>
+                    {showCompletedDot && markerColor ? (
+                      <View
+                        style={[
+                          styles.completedDot,
+                          { backgroundColor: markerColor },
+                        ]}
+                      />
+                    ) : null}
+                    <Text
+                      style={[
+                        styles.dayGregorian,
+                        textStyle,
+                        showCompletedDot && styles.dayGregorianAboveDot,
+                      ]}
+                    >
+                      {dayNumber}
+                    </Text>
+                  </View>
+                )}
                 {showMissedWarning && mode === "dawood_achievement" ? (
                   <CalendarWarning />
                 ) : null}
@@ -949,7 +1007,9 @@ export const CalendarGrid = ({
                 style={
                   mode === "white_days_achievement"
                     ? styles.cycleStartDayHijri
-                    : [styles.dayHijri, textStyle]
+                    : mode === "planned_progress"
+                      ? [styles.dayHijri, hijriStyle]
+                      : [styles.dayHijri, textStyle]
                 }
               >
                 {hijriDayLabel}
@@ -1155,6 +1215,24 @@ const styles = StyleSheet.create({
     minHeight: COMPLETED_DOT_SIZE,
     borderRadius: COMPLETED_DOT_SIZE / 2,
   },
+  /** Figma completed: outer stroke around filled disc. */
+  completedOuterRing: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    borderRadius: RING_SIZE / 2,
+    borderWidth: 1.25,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  /** Figma completed: solid fill with dark cutout number. */
+  completedInnerFill: {
+    width: COMPLETED_DOT_SIZE,
+    height: COMPLETED_DOT_SIZE,
+    borderRadius: COMPLETED_DOT_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   missedWarningIcon: {
     position: "absolute",
     bottom: -2,
@@ -1202,6 +1280,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: 20,
+  },
+  /** Same chrome every fasting day (mirrors cycleStartMarker). */
+  plannedProgressDayMarker: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    minWidth: 15,
+  },
+  /** Today only — background, no size/spacing change (mirrors cycleStartMarkerSelected). */
+  plannedProgressTodayMarker: {
+    backgroundColor: Colors.light.calendarTodayBg,
   },
   cycleStartWeekdayLabel: {
     color: Colors.light.white,

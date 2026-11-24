@@ -1,5 +1,12 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/theme";
@@ -40,8 +47,8 @@ type Props = {
   subtitleLabel: string;
   icon: React.ReactNode;
   iconBgColor?: string;
-  percentage: string;
-  progressColor: string;
+  percentage?: string;
+  progressColor?: string;
   isSelected?: boolean;
   onPress?: () => void;
   titleFontSize?: number;
@@ -50,6 +57,9 @@ type Props = {
   loading?: boolean;
   category?: string;
   isQuranGoal?: boolean;
+  /** Replaces the progress ring (e.g. EqualSign / plus in customize dashboard). */
+  rightAccessory?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function getDetailedIbadahIcon(
@@ -142,7 +152,7 @@ export const DetailedIbadahsProgressCard = ({
   subtitleLabel,
   icon,
   iconBgColor,
-  percentage,
+  percentage = "0%",
   progressColor,
   isSelected = false,
   onPress,
@@ -151,6 +161,8 @@ export const DetailedIbadahsProgressCard = ({
   loading = false,
   category,
   isQuranGoal,
+  rightAccessory,
+  style,
 }: Props) => {
   const percentNum = percentage.replace("%", "");
   const isFiveDailyPrayerIcon =
@@ -188,6 +200,7 @@ export const DetailedIbadahsProgressCard = ({
       style={[
         styles.cardContainer,
         { borderColor: isSelected ? Colors.light.green : "transparent" },
+        style,
       ]}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
@@ -225,23 +238,27 @@ export const DetailedIbadahsProgressCard = ({
       </View>
 
       <View style={styles.rightSection}>
-        <TaperedCircleBorder
-          percentage={loading ? "0%" : percentage}
-          borderColor={Colors.light.ringTrackEmpty}
-          size={64}
-          variant="illuminated"
-        >
-          <View style={styles.percentTextContainer}>
-            {loading ? (
-              <Text style={styles.percentText}>---</Text>
-            ) : (
-              <>
-                <Text style={styles.percentText}>{percentNum}</Text>
-                <Text style={styles.percentSymbol}>%</Text>
-              </>
-            )}
-          </View>
-        </TaperedCircleBorder>
+        {rightAccessory != null ? (
+          rightAccessory
+        ) : (
+          <TaperedCircleBorder
+            percentage={loading ? "0%" : percentage}
+            borderColor={Colors.light.ringTrackEmpty}
+            size={64}
+            variant="illuminated"
+          >
+            <View style={styles.percentTextContainer}>
+              {loading ? (
+                <Text style={styles.percentText}>---</Text>
+              ) : (
+                <>
+                  <Text style={styles.percentText}>{percentNum}</Text>
+                  <Text style={styles.percentSymbol}>%</Text>
+                </>
+              )}
+            </View>
+          </TaperedCircleBorder>
+        )}
       </View>
     </TouchableOpacity>
   );

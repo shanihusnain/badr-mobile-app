@@ -21,6 +21,7 @@ import { styles } from "../styles";
 import { TimeSpentCategoryRow } from "./TimeSpentCategoryRow";
 import { TimeSpentChartBlock } from "./TimeSpentChartBlock";
 import { useGetHomeScreenTimeSpent } from "@/src/api/queries/useGetHomeScreenTimeSpent";
+import { ExclamationWithcircle } from "@/assets/icons";
 
 const TAB_TO_CATEGORY: Record<TimeSpentTab, string> = {
   All: "ALL",
@@ -112,7 +113,10 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
     }
     const formatted = formatTotalTime(totalHours);
     if (selectedPeriod === "week") {
-      return t("homeScreen.timeSpentWeekSummary").replace("{{time}}", formatted);
+      return t("homeScreen.timeSpentWeekSummary").replace(
+        "{{time}}",
+        formatted,
+      );
     }
     return t("homeScreen.timeSpentMonthSummary").replace("{{time}}", formatted);
   }, [timeSpentData?.description, selectedPeriod, totalHours, t]);
@@ -299,12 +303,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
       />
 
       <View style={styles.timeSpentDisclaimerRow}>
-        <AntDesign
-          name="info-circle"
-          size={14}
-          color={Colors.light.grey}
-          style={styles.timeSpentDisclaimerIcon}
-        />
+        <ExclamationWithcircle />
         <Text style={styles.timeSpentDisclaimerText}>
           {timeSpentData?.note ?? t("homeScreen.timeSpentDisclaimer")}
         </Text>

@@ -5,6 +5,7 @@ import { AppleIcon } from "./AppleIcon";
 import { AddLoggingFlowIcon } from "./AddLoggingFlowIcon";
 import { AimIcon } from "./AimIcon";
 import { AchivementArrowIcon } from "./AchivementArrowIcon";
+import { AddGoalIcon } from "./AddGoalIcon";
 //B
 import { BirthIcon } from "./BirthIcon";
 import { BadarNameLogo } from "./BadarNameLogo";
@@ -32,6 +33,7 @@ import { DashBoardMealsIcon } from "./DashBoardMealsIcon";
 //E
 import { EyeIcon } from "./EyeIcon";
 import { ExamIcon } from "./ExamIcon";
+import { EqualSign } from "./EqualSign";
 //F
 import { FeelingSickIcon } from "./FeelingSickIcon";
 import { FlowCardCallender } from "./FlowCardCallender";
@@ -110,6 +112,7 @@ import { ExerciseIcon } from "./ExerciseIcon";
 import { EmailIcon } from "./EmailIcon";
 import { EnterInviteCode } from "./EnterInviteCode";
 import { EmailAddressMailIcon } from "./EmailAddressMailIcon";
+import { ExclamationWithcircle } from "./ExclamationWithcircle";
 //F
 import { FilterIcon } from "./FilterIcon";
 import { FlashIcon } from "./FlashIcon";
@@ -292,6 +295,7 @@ import { WhiteClockIcon } from "./WhiteClockIcon";
 
 export {
   VolunteeringServicesFlowCardIcon,
+  AddGoalIcon,
   AimIcon,
   AchivementArrowIcon,
   CreateAccountCalenderIcon,
@@ -392,6 +396,7 @@ export {
   FilterIcon,
   CresentAndStarIcon,
   ExclamationIconWithCircel,
+  ExclamationWithcircle,
   PersonalGrowthIcon,
   SocialResponsibilityIcon,
   HomeBondIcon,
@@ -526,4 +531,5 @@ export {
   CurrentStreakBorder,
   LongestStreakBorder,
   CalendarWarning,
+  EqualSign,
 };

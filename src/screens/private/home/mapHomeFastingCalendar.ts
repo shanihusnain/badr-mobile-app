@@ -12,12 +12,9 @@ import type {
   PlannedFastState,
 } from "./plannedFasts";
 
+/** Only "All" until API returns the user's opted fasting goal tabs. */
 export const HOME_FASTING_FALLBACK_TABS: HomeFastingCalendarTab[] = [
   { key: "ALL", label: "All" },
-  { key: "MISSED_RAMADAN", label: "Missed Ramadan Fasts" },
-  { key: "MONDAY_THURSDAY", label: "Monday & Thursday Fasts" },
-  { key: "PROPHET_DAWOOD", label: "Dawood Fasts" },
-  { key: "WHITE_DAYS", label: "White Days Fasts" },
 ];
 
 export const HOME_FASTING_FALLBACK_VIEWS: HomeFastingCalendarView[] = [
@@ -86,6 +83,7 @@ export function normalizeFastingTabKey(tab: string | null | undefined): string {
   const key = String(tab ?? "ALL")
     .trim()
     .toUpperCase();
+  if (key === "ALL") return "ALL";
   if (key.includes("DAWOOD")) return "PROPHET_DAWOOD";
   if (key.includes("RAMADAN")) return "MISSED_RAMADAN";
   if (key.includes("MON") || key.includes("THU")) return "MONDAY_THURSDAY";
