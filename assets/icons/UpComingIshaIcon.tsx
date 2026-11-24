@@ -6,6 +6,7 @@ export const UpComingIshaIcon = ({ color = Colors.light.white, size = 14 }: { co
   <Svg
     width={size}
     height={size}
+    viewBox="0 0 14 14"
     fill="none"
   >
     <Path

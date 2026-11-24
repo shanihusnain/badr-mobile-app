@@ -7,38 +7,46 @@ type BehaviorDetailPeriodChartProps = {
   yMax: number;
 };
 
-function buildYTicks(yMax: number): number[] {
-  const step = yMax <= 8 ? 2 : yMax <= 24 ? 4 : 6;
-  const ticks: number[] = [];
-
-  for (let value = 0; value <= yMax; value += step) {
-    ticks.unshift(value);
-  }
-
-  return ticks.length > 1 ? ticks : [yMax, 0];
-}
+const CHART_Y_MAX = 8;
+const Y_TICKS = [8, 6, 4, 2, 0];
 
 export function BehaviorDetailPeriodChart({
   bars,
-  yMax,
 }: BehaviorDetailPeriodChartProps) {
-  const yTicks = buildYTicks(yMax);
   const chartHeight = 132;
 
   return (
     <View style={styles.chartSection}>
       <View style={styles.chartPlotRow}>
         <View style={[styles.chartYAxis, { height: chartHeight }]}>
-          {yTicks.map((tick) => (
-            <Text key={tick} style={styles.chartYAxisLabel}>
-              {tick}
-            </Text>
+          {Y_TICKS.map((tick) => (
+            <View
+              key={tick}
+              style={[
+                styles.chartYAxisTick,
+                { top: `${((CHART_Y_MAX - tick) / CHART_Y_MAX) * 100}%` },
+              ]}
+            >
+              <Text style={styles.chartYAxisLabel}>{tick}</Text>
+            </View>
           ))}
         </View>
 
         <View style={[styles.chartBarsArea, { height: chartHeight }]}>
+          {Y_TICKS.map((tick) => (
+            <View
+              key={`grid-${tick}`}
+              style={[
+                styles.chartGridLine,
+                { top: `${((CHART_Y_MAX - tick) / CHART_Y_MAX) * 100}%` },
+              ]}
+            />
+          ))}
           {bars.map((bar) => {
-            const barHeight = Math.max(4, (bar.value / yMax) * chartHeight);
+            const barHeight = Math.max(
+              4,
+              (Math.min(bar.value, CHART_Y_MAX) / CHART_Y_MAX) * chartHeight,
+            );
 
             return (
               <View key={bar.label} style={styles.chartBarColumn}>

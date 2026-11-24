@@ -518,7 +518,7 @@ export default function HomeScreen() {
       const key = (item.key ?? "").toUpperCase();
       const isUpcoming = key === upcomingPrayerKey;
       const color = isUpcoming ? Colors.light.green : Colors.light.white;
-      const size = 16;
+      const size = 18;
       let icon: React.ReactNode = null;
       switch (key) {
         case "FAJR":
@@ -545,7 +545,16 @@ export default function HomeScreen() {
 
       return (
         <React.Fragment key={`${key}-${index}`}>
-          {index > 0 ? <View style={styles.prayerTimelineDash} /> : null}
+          {index > 0 ? (
+            <View style={styles.prayerTimelineDash}>
+              {Array.from({ length: 6 }, (_, dotIndex) => (
+                <View
+                  key={dotIndex}
+                  style={styles.prayerTimelineDashDot}
+                />
+              ))}
+            </View>
+          ) : null}
           <View
             style={[
               styles.prayerTimelineIcon,

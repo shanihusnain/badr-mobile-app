@@ -2,6 +2,7 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { JournalConsistencySection } from "@/components/molecules/JournalConsistencySection";
+import { Colors } from "@/constants/theme";
 import { useNavigation } from "expo-router";
 import { useLayoutEffect } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -158,6 +159,7 @@ export const BehaviorDetailDescription = ({
           title={title.toUpperCase()}
           navigation={navigation}
           bgcolor="transparent"
+          leftButtonBackground={Colors.light.dullestWhite}
         />
       </View>
     </View>
