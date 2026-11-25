@@ -112,4 +112,3 @@ const styles = StyleSheet.create({
 });
 
 export const JournalDateTextRow = memo(JournalDateTextRowComponent);
-

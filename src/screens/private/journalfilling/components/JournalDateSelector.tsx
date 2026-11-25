@@ -77,7 +77,7 @@ type DateCapsuleProps = {
 function DateCapsule({ item, onPress }: DateCapsuleProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const isDimmed = !item.isSelected && !item.isCompleted;
-
+  console.log("item", item);
   const animatePress = () => {
     Animated.sequence([
       Animated.timing(scale, {
