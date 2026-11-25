@@ -6,6 +6,7 @@ import {
   normalizeConsistencyBadge,
 } from "@/src/utils/consistencyBadge";
 import BottomSheet from "@gorhom/bottom-sheet";
+import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GoalTabContent } from "./components/GoalTabContent";
@@ -38,6 +39,7 @@ export default function PlanScreen() {
     setSelectedJournalTab,
   } = usePlanProps();
 
+  const queryClient = useQueryClient();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [insightsEndDate, setInsightsEndDate] = useState(todayDateKey);
   const shouldOpenJournalCustomizer = Array.isArray(customizeJournal)
@@ -133,10 +135,17 @@ export default function PlanScreen() {
     setInsightsEndDate(nextEndDate);
   }, [journalInsights?.navigation.nextEndDate]);
 
-  const handleCustomizePress = useCallback((selectedBehaviorIds: string[]) => {
-    console.log("Selected journal behaviors:", selectedBehaviorIds);
-    bottomSheetRef.current?.close();
-  }, []);
+  const handleCustomizePress = useCallback(
+    (_selectedBehaviorIds: string[]) => {
+      bottomSheetRef.current?.close();
+      // Refetch insights so customize vs consistency UI follows backend state.
+      void queryClient.invalidateQueries({ queryKey: ["journalInsights"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["dashboard-data-for-date"],
+      });
+    },
+    [queryClient],
+  );
 
   return (
     <BlackScreenWrapper edges={[]}>
@@ -166,6 +175,7 @@ export default function PlanScreen() {
           onGetStartedPress={() => bottomSheetRef.current?.expand()}
           isLoadingHabits={isFetchingJournalInsights}
           insightsEndDate={insightsEndDate}
+          journalInsights={journalInsights ?? null}
         />
       )}
       <JournalCustomizeBottomSheet

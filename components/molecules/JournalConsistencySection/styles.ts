@@ -40,7 +40,6 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     fontFamily: fonts.primary.bold,
     fontWeight: "700",
     lineHeight: 16,
-
   },
   achievementCaption: {
     color: Colors.light.subtext,
@@ -142,6 +141,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     gap: 2,
     minHeight: 28,
     alignSelf: "center",
+    marginTop: 6,
   },
   navBtn: {
     width: 24,

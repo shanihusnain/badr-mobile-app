@@ -1,5 +1,6 @@
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { Colors } from "@/constants/theme";
+import type { JournalInsightsData } from "@/src/api/queries/useGetJournalInsights";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -35,7 +36,18 @@ type JournalTabContentProps = {
   onGetStartedPress: () => void;
   isLoadingHabits?: boolean;
   insightsEndDate: string;
+  /** Raw insights payload — customization state comes from backend only. */
+  journalInsights?: JournalInsightsData | null;
 };
+
+/** Backend: customized when categories exist and customizeJournalCard is null. */
+function resolveIsJournalCustomized(
+  insights: JournalInsightsData | null | undefined,
+): boolean {
+  if (!insights) return false;
+  if (insights.customizeJournalCard != null) return false;
+  return (insights.categories?.length ?? 0) > 0;
+}
 
 export function JournalTabContent({
   bannerText,
@@ -51,8 +63,20 @@ export function JournalTabContent({
   onGetStartedPress,
   isLoadingHabits = false,
   insightsEndDate,
+  journalInsights = null,
 }: JournalTabContentProps) {
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const isJournalCustomized = resolveIsJournalCustomized(journalInsights);
+  const addBehaviorsCard = journalInsights?.addBehaviorsCard ?? null;
+  const customizeJournalCard = journalInsights?.customizeJournalCard ?? null;
+  // Keep consistency + habit cards mounted while period refetch shows loaders.
+  const showCustomizedContent =
+    isJournalCustomized ||
+    (isLoadingHabits && (activeSnapshot.journalingHabits?.length ?? 0) > 0);
+  const showCustomizeCard =
+    !isLoadingHabits &&
+    journalInsights != null &&
+    !isJournalCustomized;
 
   return (
     <ScrollView
@@ -77,7 +101,6 @@ export function JournalTabContent({
               adjustsFontSizeToFit
               numberOfLines={5}
               minimumFontScale={0.85}
-              
             >
               {bannerText || JOURNAL_BANNER_TEXT}
             </Text>
@@ -85,47 +108,77 @@ export function JournalTabContent({
           <TopSpace top={34} />
         </>
       ) : null}
-      <JournalConsistencySection
-        activeSnapshot={activeSnapshot}
-        periods={periods}
-        period={period}
-        deltaIsPositive={deltaIsPositive}
-        canGoToPreviousPeriod={canGoToPreviousPeriod}
-        canGoToNextPeriod={canGoToNextPeriod}
-        onSelectPeriod={onSelectPeriod}
-        onPreviousPeriodRange={onPreviousPeriodRange}
-        onNextPeriodRange={onNextPeriodRange}
-        isLoading={isLoadingHabits}
-      />
-      <TopSpace top={20} />
-      {activeSnapshot.journalingHabits?.map((habit) => (
-        <JournalHabitCard
-          key={habit.id}
-          habit={habit}
-          isLoading={isLoadingHabits}
-          onPress={() => {
-            router.push({
-              pathname: "/(tabs)/(plan)/journalinsight/[id]",
-              params: {
-                id: String(habit.id),
-                period: period.label,
-                endDate: insightsEndDate,
-                title: habit.name,
-              },
-            });
-          }}
-        />
-      ))}
-      <TopSpace top={20} />
-      <PlanNotificationsCard
-        title={JOURNAL_BEHAVIORS_TITLE}
-        description={JOURNAL_NOTIFICATIONS_DESCRIPTION}
-        callToActionText="GET STARTED"
-        iconSize={35}
-        onActionPress={onGetStartedPress}
-      />
-      <TopSpace top={20} />
-      <JournalCustomizeCard onGetStartedPress={onGetStartedPress} />
+
+      {showCustomizedContent ? (
+        <>
+          <JournalConsistencySection
+            activeSnapshot={activeSnapshot}
+            periods={periods}
+            period={period}
+            deltaIsPositive={deltaIsPositive}
+            canGoToPreviousPeriod={canGoToPreviousPeriod}
+            canGoToNextPeriod={canGoToNextPeriod}
+            onSelectPeriod={onSelectPeriod}
+            onPreviousPeriodRange={onPreviousPeriodRange}
+            onNextPeriodRange={onNextPeriodRange}
+            isLoading={isLoadingHabits}
+          />
+          <TopSpace top={20} />
+          {activeSnapshot.journalingHabits?.map((habit) => (
+            <JournalHabitCard
+              key={habit.id}
+              habit={habit}
+              isLoading={isLoadingHabits}
+              onPress={() => {
+                router.push({
+                  pathname: "/(tabs)/(plan)/journalinsight/[id]",
+                  params: {
+                    id: String(habit.id),
+                    period: period.label,
+                    endDate: insightsEndDate,
+                    title: habit.name,
+                  },
+                });
+              }}
+            />
+          ))}
+          {!isLoadingHabits && addBehaviorsCard != null ? (
+            <>
+              <TopSpace top={20} />
+              <PlanNotificationsCard
+                title={addBehaviorsCard.title?.trim() || JOURNAL_BEHAVIORS_TITLE}
+                description={
+                  addBehaviorsCard.body?.trim() ||
+                  JOURNAL_NOTIFICATIONS_DESCRIPTION
+                }
+                callToActionText={
+                  addBehaviorsCard.cta?.trim() || "GET STARTED"
+                }
+                iconSize={35}
+                onActionPress={onGetStartedPress}
+              />
+            </>
+          ) : null}
+        </>
+      ) : null}
+
+      {showCustomizeCard ? (
+        <>
+          <TopSpace top={20} />
+          <JournalCustomizeCard
+            onGetStartedPress={onGetStartedPress}
+            title={customizeJournalCard?.title}
+            description={
+              customizeJournalCard?.description ??
+              customizeJournalCard?.subtitle ??
+              customizeJournalCard?.body
+            }
+            buttonLabel={
+              customizeJournalCard?.button ?? customizeJournalCard?.cta
+            }
+          />
+        </>
+      ) : null}
     </ScrollView>
   );
 }
