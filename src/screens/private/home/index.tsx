@@ -369,12 +369,15 @@ export default function HomeScreen() {
     goldenBottomSheetRef.current?.expand();
   }, []);
 
-  const handleCategoryRingPress = useCallback((apiCategory: string) => {
-    setDailyProgressResume({ view: "detail", category: apiCategory });
-    requestAnimationFrame(() => {
-      goldenBottomSheetRef.current?.expand();
-    });
-  }, []);
+  const handleCategoryRingPress = useCallback(
+    (apiCategory: string) => {
+      router.push({
+        pathname: "/goalprogressoverview/[goal]",
+        params: { goal: apiCategory },
+      });
+    },
+    [router],
+  );
 
   const handleDailyProgressResumeConsumed = useCallback(() => {
     setDailyProgressResume(null);
