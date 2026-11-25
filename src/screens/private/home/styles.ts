@@ -651,6 +651,9 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: HOME_SECTION_GAP,
   },
+  myDaySection: {
+    marginBottom: 12,
+  },
   dashboardText: {
     fontFamily: fonts.primary.medium || "SF Pro Text",
     fontWeight: "500",
@@ -742,6 +745,9 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     paddingRight: 16,
+  },
+  myDayFilterTab: {
+    paddingHorizontal: 14,
   },
   categoryFilterItem: {
     height: 28,
