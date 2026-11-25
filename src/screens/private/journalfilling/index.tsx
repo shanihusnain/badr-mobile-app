@@ -148,6 +148,11 @@ export function JournalFillingScreen({
             onPressDate={openCalendar}
             onPressPrevDay={handlePreviousDay}
             onPressNextDay={handleNextDay}
+            canGoNextDay={
+              availableDateKeys.length === 0 ||
+              availableDateKeys.indexOf(selectedDateKey) <
+                availableDateKeys.length - 1
+            }
           />
           <JournalDateSelector
             dates={dateCapsules}

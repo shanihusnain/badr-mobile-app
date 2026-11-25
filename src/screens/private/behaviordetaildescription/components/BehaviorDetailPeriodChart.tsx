@@ -13,7 +13,7 @@ const Y_TICKS = [8, 6, 4, 2, 0];
 export function BehaviorDetailPeriodChart({
   bars,
 }: BehaviorDetailPeriodChartProps) {
-  const chartHeight = 132;
+  const chartHeight = 160;
 
   return (
     <View style={styles.chartSection}>

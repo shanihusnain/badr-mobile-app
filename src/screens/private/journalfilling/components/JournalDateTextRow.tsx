@@ -15,6 +15,7 @@ type JournalDateTextRowProps = {
   onPressDate: () => void;
   onPressPrevDay: () => void;
   onPressNextDay: () => void;
+  canGoNextDay: boolean;
 };
 
 function JournalDateTextRowComponent({
@@ -22,6 +23,7 @@ function JournalDateTextRowComponent({
   onPressDate,
   onPressPrevDay,
   onPressNextDay,
+  canGoNextDay,
 }: JournalDateTextRowProps) {
   const selectedDate = useMemo(
     () => parseDateKey(selectedDateKey),
@@ -29,9 +31,9 @@ function JournalDateTextRowComponent({
   );
 
   const label = useMemo(() => {
-    const dayLabel = isYesterday(selectedDate, new Date())
-      ? "YESTERDAY"
-      : getWeekdayShort(selectedDate).toUpperCase();
+    if (isYesterday(selectedDate, new Date())) return "YESTERDAY";
+
+    const dayLabel = getWeekdayShort(selectedDate).toUpperCase();
     const month = getMonthShortUpper(selectedDate);
     const day = selectedDate.getDate();
     return `${dayLabel}, ${month} ${day}`;
@@ -61,12 +63,19 @@ function JournalDateTextRowComponent({
 
       <Pressable
         onPress={onPressNextDay}
+        disabled={!canGoNextDay}
         hitSlop={8}
         accessibilityRole="button"
         accessibilityLabel="Next day"
         style={styles.arrowBtn}
       >
-        <Feather name="chevron-right" size={18} color={Colors.light.white} />
+        <Feather
+          name="chevron-right"
+          size={18}
+          color={
+            canGoNextDay ? Colors.light.white : Colors.light.dullWhiteOpacity
+          }
+        />
       </Pressable>
     </View>
   );

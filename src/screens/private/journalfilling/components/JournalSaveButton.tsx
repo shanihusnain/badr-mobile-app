@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { Colors } from "@/constants/theme";
 
@@ -20,23 +20,14 @@ function JournalSaveButtonComponent({
 }: JournalSaveButtonProps) {
   return (
     <View style={[styles.container, { paddingBottom: bottomInset + 12 }]}>
-      {loading ? (
-        <View
-          style={[
-            styles.loadingOverlay,
-            { bottom: bottomInset + 12 },
-          ]}
-        >
-          <ActivityIndicator color={Colors.light.white} />
-        </View>
-      ) : null}
       <PrimaryButton
         text={label}
         onPress={onPress}
         disabled={disabled || loading}
+        isLoading={loading}
         style={[
           styles.button,
-          (disabled || loading) && styles.buttonDisabled,
+          disabled && !loading && styles.buttonDisabled,
         ]}
       />
     </View>
@@ -57,13 +48,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.45,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFill,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-    top: 12,
   },
 });
 
