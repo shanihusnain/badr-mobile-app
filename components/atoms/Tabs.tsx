@@ -9,12 +9,14 @@ export const Tabs = ({
   selectedTab,
   bgColor,
   tabStyle,
+  inactiveTextColor,
 }: {
   label: string;
   onPress: () => void;
   selectedTab: string;
   bgColor?: string;
   tabStyle?: StyleProp<ViewStyle>;
+  inactiveTextColor?: string;
 }) => {
   const isSelected = selectedTab === label;
 
@@ -39,6 +41,9 @@ export const Tabs = ({
         style={[
           styles.categoryFilterText,
           isSelected && styles.categoryFilterTextActive,
+          !isSelected && inactiveTextColor
+            ? { color: inactiveTextColor }
+            : null,
         ]}
       >
         {label}

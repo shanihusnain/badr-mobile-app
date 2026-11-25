@@ -167,7 +167,7 @@ export function FastingOverviewCalendarSection({
       <ScrollView
         horizontal
         style={styles.fastingCalendarTabsScroll}
-        contentContainerStyle={styles.categoryFilterContent}
+        contentContainerStyle={styles.fastingCalendarTabsContent}
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled
         scrollEventThrottle={16}
@@ -179,6 +179,7 @@ export function FastingOverviewCalendarSection({
             onPress={() => setSelectedTabKey(tab.key)}
             selectedTab={selectedTab?.label ?? tabs[0]?.label ?? "ALL"}
             bgColor={Colors.light.blackBackground}
+            inactiveTextColor="#D7D7D7"
           />
         ))}
       </ScrollView>
@@ -190,7 +191,7 @@ export function FastingOverviewCalendarSection({
       <ScrollView
         horizontal
         style={styles.fastingCalendarTabsScroll}
-        contentContainerStyle={styles.categoryFilterContent}
+        contentContainerStyle={styles.fastingCalendarTabsContent}
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled
         scrollEventThrottle={16}
@@ -202,6 +203,8 @@ export function FastingOverviewCalendarSection({
             onPress={() => setSelectedView(normalizeFastingViewKey(view.key))}
             selectedTab={selectedViewLabel}
             bgColor={Colors.light.blackBackground}
+            tabStyle={styles.fastingViewTab}
+            inactiveTextColor="#D7D7D7"
           />
         ))}
       </ScrollView>

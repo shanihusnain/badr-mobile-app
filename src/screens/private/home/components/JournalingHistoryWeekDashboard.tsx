@@ -53,17 +53,13 @@ function JournalingDayRing({ logged }: JournalingDayRingProps) {
 
 export function JournalingHistoryWeekDashboard({
   weekDays,
-  title,
-  buttonLabel,
   onDayPress,
   onPressHeader,
   onBehaviorInsightsPress,
 }: JournalingHistoryWeekDashboardProps) {
   const { t } = useTranslation();
-  const headerTitle =
-    title?.trim() || t("homeScreen.journalWeeklyTitle");
-  const ctaLabel =
-    buttonLabel?.trim() || t("homeScreen.journalBehaviorInsights");
+  const headerTitle = t("homeScreen.journalWeeklyTitle");
+  const ctaLabel = t("homeScreen.journalBehaviorInsights");
 
   return (
     <View style={styles.card}>
@@ -125,7 +121,9 @@ export function JournalingHistoryWeekDashboard({
         activeOpacity={onBehaviorInsightsPress ? 0.8 : 1}
         disabled={!onBehaviorInsightsPress}
       >
-        <JournalBulbIcon />
+        <View style={styles.insightsIcon}>
+          <JournalBulbIcon />
+        </View>
         <Text style={styles.insightsText}>{ctaLabel}</Text>
       </TouchableOpacity>
     </View>
@@ -153,6 +151,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 19,
     letterSpacing: 0,
+    textTransform: "uppercase",
   },
   daysRow: {
     flexDirection: "row",
@@ -179,9 +178,9 @@ const styles = StyleSheet.create({
   dayItemTodayBackground: {
     position: "absolute",
     top: -12,
-    right: -8,
+    right: -4,
     bottom: -14,
-    left: -8,
+    left: -4,
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 8,
   },
@@ -197,13 +196,15 @@ const styles = StyleSheet.create({
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: RING_SIZE / 2,
-    backgroundColor: Colors.light.selectcategory,
+    borderWidth: 1,
+    borderColor: Colors.light.grey,
+    backgroundColor: Colors.light.greybuttonBackground,
   },
   dayLabel: {
     color: Colors.light.grey,
     fontSize: 11,
     lineHeight: 11,
-    fontWeight: "600",
+    fontWeight: "700",
     fontFamily: fonts.primary.semiBold,
   
     textAlign: "center",
@@ -221,12 +222,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.light.lightgreen,
   },
+  insightsIcon: {
+    transform: [{ translateY: -3 }],
+  },
   insightsText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     fontSize: 16,
-    lineHeight: 21,
-   
+    lineHeight: 20,
+    textAlignVertical: "center",
+    textTransform: "uppercase",
   },
 });
