@@ -4,6 +4,7 @@ import type {
   PlanJournalConsistencySnapshot,
   PlanJournalPeriod,
 } from "@/src/screens/private/plan/planJournalConsistencyMockData";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
@@ -29,7 +30,7 @@ export function JournalConsistencySection({
   activeSnapshot,
   periods,
   period,
-  deltaIsPositive,
+  deltaIsPositive: _deltaIsPositive,
   canGoToPreviousPeriod,
   canGoToNextPeriod,
   onSelectPeriod,
@@ -47,7 +48,18 @@ export function JournalConsistencySection({
     typeof activeSnapshot.consistencyBadge === "string"
       ? activeSnapshot.consistencyBadge.trim()
       : "";
-  const showBadge = !showPlaceholders && badgeText.length > 0;
+  const deltaPct = activeSnapshot.previousPeriodDeltaPercent;
+  const hasDelta = deltaPct != null && Number.isFinite(deltaPct);
+  const isDeltaZero = hasDelta && deltaPct === 0;
+  const isDeltaUp = hasDelta && deltaPct > 0;
+  const showBadge =
+    !showPlaceholders && (badgeText.length > 0 || hasDelta);
+
+  const badgeLabel =
+    badgeText ||
+    `${Math.abs(deltaPct ?? 0)}% ${
+      deltaLabelFormatter?.(period) ?? period.deltaLabel
+    }`;
 
   return (
     <View style={styles.topRow}>
@@ -71,8 +83,27 @@ export function JournalConsistencySection({
         </Text>
         {showBadge ? (
           <View style={styles.deltaBadge}>
-            <Text style={styles.deltaText} numberOfLines={1}>
-              {badgeText}
+            {isDeltaZero ? (
+              <View style={styles.deltaNeutralDot} />
+            ) : (
+              <AntDesign
+                name={isDeltaUp ? "caret-up" : "caret-down"}
+                size={14}
+                color={
+                  isDeltaUp
+                    ? Colors.light.green
+                    : Colors.light.graylightshade
+                }
+              />
+            )}
+            <Text
+              style={[
+                styles.deltaText,
+                !isDeltaUp && styles.deltaTextNegative,
+              ]}
+              numberOfLines={1}
+            >
+              {badgeLabel}
             </Text>
           </View>
         ) : null}

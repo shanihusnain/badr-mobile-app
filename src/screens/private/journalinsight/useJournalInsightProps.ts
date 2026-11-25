@@ -92,7 +92,7 @@ export function useJournalInsightProps({
     period,
     setPeriod: handleSelectPeriod,
     activeSnapshot,
-    deltaIsPositive: (activeSnapshot.previousPeriodDeltaPercent ?? 0) >= 0,
+    deltaIsPositive: (activeSnapshot.previousPeriodDeltaPercent ?? 0) > 0,
     canGoToPreviousPeriod,
     canGoToNextPeriod,
     handlePreviousPeriodRange,

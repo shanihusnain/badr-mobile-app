@@ -52,7 +52,7 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.lightgreen,
+    backgroundColor: Colors.light.dullWhiteOpacity,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -60,8 +60,11 @@ export const journalConsistencySectionStyles = StyleSheet.create({
     alignSelf: "flex-start",
     maxWidth: "100%",
   },
-  deltaBadgeNegative: {
-    backgroundColor: Colors.light.dullWhiteOpacity,
+  deltaNeutralDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.graylightshade,
   },
   deltaText: {
     color: Colors.light.green,

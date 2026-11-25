@@ -43,7 +43,7 @@ export type PlanJournalConsistencySnapshot = {
   consistencyPercent: number | null;
   /** Null while insights are loading. */
   previousPeriodDeltaPercent: number | null;
-  /** API `consistency.badge` — shown in the delta chip when present. */
+  /** API `consistency.badge.label` — shown in the delta chip when present. */
   consistencyBadge?: string | null;
   journalingHabits?: PlanJournalHabit[];
 };

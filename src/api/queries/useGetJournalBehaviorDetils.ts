@@ -70,7 +70,11 @@ export type BehaviorDetailApiData = {
     completedDays: number;
     trackedDays: number;
     hasComparison: boolean;
-    badge: string | null;
+    badge: {
+      direction: "UP" | "DOWN" | (string & {});
+      changePct: number;
+      label: string;
+    } | null;
   };
   message: string;
   /** Present for weekly windows; null for M / 3M / 6M. */

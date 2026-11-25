@@ -4,6 +4,10 @@ import type {
   BehaviorDetailApiData,
   BehaviorDetailContentBlock,
 } from "@/src/api/queries/useGetJournalBehaviorDetils";
+import {
+  consistencyBadgeToDeltaPercent,
+  normalizeConsistencyBadge,
+} from "@/src/utils/consistencyBadge";
 import type { PlanJournalConsistencySnapshot } from "../plan/planJournalConsistencyMockData";
 import type {
   BehaviorDetailChartBar,
@@ -174,12 +178,21 @@ export function mapBehaviorDetailToView(
 
   return {
     title: data.title?.trim() || fallbackTitle,
-    snapshot: {
-      dateRangeLabel: data.window?.label ?? "---",
-      consistencyPercent: data.consistency?.pct ?? null,
-      previousPeriodDeltaPercent: null,
-      consistencyBadge: data.consistency?.badge ?? null,
-    },
+    snapshot: (() => {
+      const hasComparison = data.consistency?.hasComparison ?? false;
+      const badge = hasComparison
+        ? normalizeConsistencyBadge(data.consistency?.badge)
+        : null;
+      return {
+        dateRangeLabel: data.window?.label ?? "---",
+        consistencyPercent: data.consistency?.pct ?? null,
+        previousPeriodDeltaPercent: consistencyBadgeToDeltaPercent(
+          badge,
+          hasComparison,
+        ),
+        consistencyBadge: badge?.label ?? null,
+      };
+    })(),
     periodView,
     content: {
       heroImage: resolveHeroImage(data),

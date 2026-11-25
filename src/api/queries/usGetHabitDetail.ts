@@ -45,7 +45,11 @@ export type HabitDetailData = {
     completedDays: number;
     trackedDays: number;
     hasComparison: boolean;
-    badge: string | null;
+    badge: {
+      direction: "UP" | "DOWN" | (string & {});
+      changePct: number;
+      label: string;
+    } | null;
     behaviorCount: number;
   };
   headline: string;

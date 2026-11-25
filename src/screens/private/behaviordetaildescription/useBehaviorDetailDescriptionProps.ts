@@ -92,7 +92,7 @@ export function useBehaviorDetailDescriptionProps({
     period,
     setPeriod: handleSelectPeriod,
     activeSnapshot: mapped.snapshot,
-    deltaIsPositive: (mapped.snapshot.previousPeriodDeltaPercent ?? 0) >= 0,
+    deltaIsPositive: (mapped.snapshot.previousPeriodDeltaPercent ?? 0) > 0,
     canGoToPreviousPeriod,
     canGoToNextPeriod,
     handlePreviousPeriodRange,

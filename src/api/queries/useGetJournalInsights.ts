@@ -24,7 +24,11 @@ export type JournalInsightsData = {
   consistency: {
     pct: number;
     tier: string;
-    badge: string | null;
+    badge: {
+      direction: "UP" | "DOWN" | (string & {});
+      changePct: number;
+      label: string;
+    } | null;
     behaviorCount: number;
     completedDays: number;
     trackedDays: number;

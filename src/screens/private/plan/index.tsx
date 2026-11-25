@@ -1,6 +1,10 @@
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { useGetJournalInsights } from "@/src/api/queries/useGetJournalInsights";
+import {
+  consistencyBadgeToDeltaPercent,
+  normalizeConsistencyBadge,
+} from "@/src/utils/consistencyBadge";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -83,11 +87,19 @@ export default function PlanScreen() {
       };
     }
 
+    const hasComparison = journalInsights.consistency.hasComparison;
+    const badge = hasComparison
+      ? normalizeConsistencyBadge(journalInsights.consistency.badge)
+      : null;
+
     return {
       dateRangeLabel: journalInsights.window.label,
       consistencyPercent: journalInsights.consistency.pct,
-      previousPeriodDeltaPercent: activeSnapshot.previousPeriodDeltaPercent,
-      consistencyBadge: journalInsights.consistency.badge,
+      previousPeriodDeltaPercent: consistencyBadgeToDeltaPercent(
+        badge,
+        hasComparison,
+      ),
+      consistencyBadge: badge?.label ?? null,
       journalingHabits: journalInsights.categories.map((category) => ({
         id: category.key,
         name: category.title,
@@ -144,7 +156,7 @@ export default function PlanScreen() {
           periods={PERIODS}
           period={period}
           deltaIsPositive={
-            (journalSnapshot.previousPeriodDeltaPercent ?? 0) >= 0
+            (journalSnapshot.previousPeriodDeltaPercent ?? 0) > 0
           }
           canGoToPreviousPeriod={canGoToPreviousPeriod}
           canGoToNextPeriod={canGoToNextPeriod}

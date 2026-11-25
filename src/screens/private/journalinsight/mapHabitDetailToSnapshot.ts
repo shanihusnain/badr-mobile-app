@@ -1,4 +1,8 @@
 import type { HabitDetailData } from "@/src/api/queries/usGetHabitDetail";
+import {
+  consistencyBadgeToDeltaPercent,
+  normalizeConsistencyBadge,
+} from "@/src/utils/consistencyBadge";
 import type { JournalInsightSnapshot } from "./journalInsightMockData";
 
 function mapDayStatus(
@@ -71,11 +75,18 @@ export function mapHabitDetailToSnapshot(
     };
   });
 
+  const badge = data.consistency.hasComparison
+    ? normalizeConsistencyBadge(data.consistency.badge)
+    : null;
+
   return {
     dateRangeLabel: data.window.label,
     consistencyPercent: data.consistency.pct,
-    previousPeriodDeltaPercent: null,
-    consistencyBadge: data.consistency.badge,
+    previousPeriodDeltaPercent: consistencyBadgeToDeltaPercent(
+      badge,
+      data.consistency.hasComparison,
+    ),
+    consistencyBadge: badge?.label ?? null,
     summary: {
       behaviorCount: data.consistency.behaviorCount ?? behaviors.length,
       headerTitle: data.headline,
