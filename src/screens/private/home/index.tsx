@@ -1438,6 +1438,7 @@ export default function HomeScreen() {
               <Tabs
                 key={tabKey}
                 label={label}
+                tabStyle={styles.myDayFilterTab}
                 onPress={() => {
                   setSelectedDashboardTab(tabKey);
                   setIsDashboardExpanded(false);

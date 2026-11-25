@@ -655,9 +655,9 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   dashboardText: {
-    fontFamily: fonts.primary.medium || "SF Pro Text",
-    fontWeight: "500",
-    fontSize: 18,
+    fontFamily: fonts.primary.semiBold || "SF Pro Text",
+    fontWeight: "600",
+    fontSize: 16,
     lineHeight: 20,
     letterSpacing: 0,
     color: Colors.light.white,
@@ -931,6 +931,17 @@ export const styles = StyleSheet.create({
   fastingCalendarTabsScroll: {
     marginTop: 0,
     marginBottom: 0,
+  },
+  fastingCalendarTabsContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingLeft: 0,
+    paddingRight: 0,
+    width: "100%",
+  },
+  fastingViewTab: {
+    paddingHorizontal: 16,
   },
   fastingGoalTotalCard: {
     flexDirection: "row",
