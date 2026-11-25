@@ -27,7 +27,7 @@ export type TodayGoalProgressEntry = {
 };
 
 /** How many progress cards to show before "Show More". */
-export const TODAY_GOALS_PROGRESS_PREVIEW_COUNT = 2;
+export const TODAY_GOALS_PROGRESS_PREVIEW_COUNT = 5;
 
 /**
  * Placeholder data covering common logging combinations.

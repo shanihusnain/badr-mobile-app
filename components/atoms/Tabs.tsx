@@ -1,6 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 
 export const Tabs = ({
@@ -8,11 +8,13 @@ export const Tabs = ({
   onPress,
   selectedTab,
   bgColor,
+  tabStyle,
 }: {
   label: string;
   onPress: () => void;
   selectedTab: string;
   bgColor?: string;
+  tabStyle?: StyleProp<ViewStyle>;
 }) => {
   const isSelected = selectedTab === label;
 
@@ -29,6 +31,7 @@ export const Tabs = ({
             ? Colors.light.green
             : (bgColor ?? Colors.light.greybuttonBackground),
         },
+        tabStyle,
       ]}
       onPress={onPress}
     >

@@ -1034,7 +1034,7 @@ export default function HomeScreen() {
 
         {/* Badr Logo */}
         <View style={styles.badrLogoContainer}>
-          <BadarNameLogo size={32} />
+          <BadarNameLogo size={26} />
         </View>
 
         {/* Upcoming prayer card */}
@@ -1215,6 +1215,7 @@ export default function HomeScreen() {
         ) : null}
 
         {/* Log menstruation */}
+       {isFemaleUser && (
         <TouchableOpacity
           activeOpacity={isFemaleUser ? 0.8 : 1}
           disabled={!isFemaleUser}
@@ -1239,6 +1240,7 @@ export default function HomeScreen() {
             </Text>
           </View>
         </TouchableOpacity>
+       )  }
 
         {/* Customize journal — only when home API sends customizeJournalCard */}
         {customizeJournalCard != null ? (
@@ -1271,7 +1273,7 @@ export default function HomeScreen() {
         ) : null}
         {/* My Day */}
 
-        <View style={[styles.dashboardSection]}>
+        <View style={[styles.dashboardSection, styles.myDaySection]}>
           <Text style={styles.dashboardText}>
             {myDayDetails?.title?.trim() || t("homeScreen.myDay")}
           </Text>
@@ -1312,6 +1314,7 @@ export default function HomeScreen() {
                   key={filter.key}
                   label={filter.label}
                   onPress={() => setSelectedDayTab(filter.key)}
+                  tabStyle={styles.myDayFilterTab}
                   selectedTab={
                     myDayFilters.find((item) => item.key === selectedDayTab)
                       ?.label ?? selectedDayTab
