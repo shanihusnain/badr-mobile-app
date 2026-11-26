@@ -895,7 +895,7 @@ export const styles = StyleSheet.create({
     marginBottom: HOME_SECTION_GAP,
     paddingVertical: 17,
     paddingHorizontal: 12,
-    gap: HOME_SECTION_GAP,
+    gap: 14,
   },
   fastingCalendarSectionHeader: {
     flexDirection: "row",
@@ -1330,6 +1330,7 @@ export const styles = StyleSheet.create({
   timeSpentTitle: {
     color: Colors.light.white,
     fontSize: 16,
+    lineHeight: 19,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
@@ -1340,9 +1341,19 @@ export const styles = StyleSheet.create({
   },
   timeSpentPercentText: {
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: 28,
+    lineHeight: 28,
     fontWeight: "600",
     color: Colors.light.white,
+    transform: [{ translateY: 7 }],
+  },
+  timeSpentPercentSymbol: {
+    fontFamily: "SF Pro Text",
+    fontSize: 16,
+    lineHeight: 16,
+    fontWeight: "600",
+    letterSpacing: 0,
+    textTransform: "uppercase",
   },
   timeSpentPeriodToggle: {
     flexDirection: "row",
@@ -1354,7 +1365,7 @@ export const styles = StyleSheet.create({
   },
   timeSpentPeriodButton: {
     borderRadius: 6,
-    paddingHorizontal: 40,
+    paddingHorizontal: 54,
     paddingVertical: 8,
   },
   timeSpentPeriodButtonSelected: {
@@ -1379,13 +1390,13 @@ export const styles = StyleSheet.create({
     alignItems: "stretch",
     justifyContent: "space-between",
     gap: 10,
-    marginTop: 12,
+    marginTop: 10,
   },
   timeSpentNavSection: {
     flex: 1,
     minWidth: 0,
     alignItems: "flex-end",
-    gap: 8,
+    gap: 20,
   },
   timeSpentNavSectionExpanded: {
     flex: 1,
@@ -1407,14 +1418,15 @@ export const styles = StyleSheet.create({
   timeSpentTotalCaption: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 11,
+    lineHeight: 11,
+    fontWeight: "400",
     marginTop: 2,
   },
   timeSpentTotalValue: {
     color: Colors.light.green,
-    fontFamily: fonts.primary.semiBold,
-    fontSize: 24,
+    fontFamily: fonts.primary.bold,
+    fontSize: 22,
     fontWeight: "600",
   },
   timeSpentChartSection: {
