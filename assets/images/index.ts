@@ -56,6 +56,12 @@ import shukarprayerdetailimage from "./shukarprayerdetailimage.jpg";
 import quranrecitationbysurahbackgroundimage from "./quranrecitationbysurahbackgroundimage.jpg";
 import BadrTreeImage from "./badrtreeimage.png";
 import streakImage from "./streakimage.png";
+import tutorialPersonalizeNotifications from "./tutorial-personalize-notifications.png";
+import tutorialSetupJournal from "./tutorial-setup-journal.png";
+import tutorialForgeSupportTeam from "./tutorial-forge-support-team.png";
+import tutorialPrepareGoalCycle from "./tutorial-prepare-goal-cycle.png";
+import tutorialMonthlyProgress from "./tutorial-monthly-progress.png";
+import tutorialViewIbadat from "./tutorial-view-ibadat.png";
 export {
   Icon,
   BadrTreeImage,
@@ -114,4 +120,10 @@ export {
   volunteeringservicesbottomsheetimage,
   sadaqahjariyahbottomsheetimage,
   streakImage,
+  tutorialPersonalizeNotifications,
+  tutorialSetupJournal,
+  tutorialForgeSupportTeam,
+  tutorialPrepareGoalCycle,
+  tutorialMonthlyProgress,
+  tutorialViewIbadat,
 };

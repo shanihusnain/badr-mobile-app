@@ -28,7 +28,6 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 
 export default function MoreScreen() {
   const router = useRouter();
-
   const { mutateAsync: logoutMutation, isPending: loggingOut } = useLogout();
   const { signOut } = useAuth();
   console.log("is logging out", loggingOut);
@@ -73,6 +72,10 @@ export default function MoreScreen() {
 
   const handleAbout = () => {
     router.push("/(private)/about");
+  };
+
+  const handleTutorial = () => {
+    router.push("/(private)/tutorials");
   };
 
   const DATA = [
@@ -141,6 +144,7 @@ export default function MoreScreen() {
       key: "tutorial",
       title: "TUTORIAL",
       icon: <TutorialIcon size={24} color={Colors.light.subtext} />,
+      onPress: handleTutorial,
     },
     {
       type: "item",

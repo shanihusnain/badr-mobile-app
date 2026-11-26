@@ -2,14 +2,14 @@ import React from "react";
 import { ScrollView, Text } from "react-native";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { notificationsStyles as styles } from "./style";
-import { useSharedValue } from "react-native-reanimated";
 import NotificationItemCard from "./components/NotificationItemCard";
+import { useSettingsBoolean } from "@/src/hooks/useSettingsBoolean";
 
 export default function NotificationsScreen() {
-  const dailyGoalEnabled = useSharedValue(true);
-  const missedCheckInEnabled = useSharedValue(true);
-  const countdownEnabled = useSharedValue(true);
-  const journalingEnabled = useSharedValue(true);
+  const dailyGoal = useSettingsBoolean("dailyGoalSummary", true);
+  const missedCheckIns = useSettingsBoolean("missedCheckIns", true);
+  const countdown = useSettingsBoolean("countdownAlert", true);
+  const journaling = useSettingsBoolean("journalingReminder", true);
 
   const notifications = [
     {
@@ -17,46 +17,38 @@ export default function NotificationsScreen() {
       description: (
         <>
           <Text style={styles.boldText}>Badr</Text> provides a daily summary of
-          your progress\n toward your monthly goals.
+          your progress toward your monthly goals.
         </>
       ),
-      value: dailyGoalEnabled,
-      onToggle: () => {
-        dailyGoalEnabled.value = !dailyGoalEnabled.value;
-      },
+      value: dailyGoal.value,
+      onToggle: dailyGoal.toggle,
     },
     {
       title: "MISSED CHECK-INS",
       description:
-        "Get notified when you don't log progress toward\nyour goals for over 3 days.",
-      value: missedCheckInEnabled,
-      onToggle: () => {
-        missedCheckInEnabled.value = !missedCheckInEnabled.value;
-      },
+        "Get notified when you don't log progress toward your goals for over 3 days.",
+      value: missedCheckIns.value,
+      onToggle: missedCheckIns.toggle,
     },
     {
       title: "COUNTDOWN ALERT",
       description:
-        "Get notified as your monthly goal cycle nears\nits end, helping you stay on track before time\nruns out.",
-      value: countdownEnabled,
-      onToggle: () => {
-        countdownEnabled.value = !countdownEnabled.value;
-      },
+        "Get notified as your monthly goal cycle nears its end, helping you stay on track before time runs out.",
+      value: countdown.value,
+      onToggle: countdown.toggle,
     },
     {
       title: "JOURNALING REMINDER",
       description:
-        "We notify you if you miss filling out your daily\njournal, encouraging consistent reflection.",
-      value: journalingEnabled,
-      onToggle: () => {
-        journalingEnabled.value = !journalingEnabled.value;
-      },
+        "We notify you if you miss filling out your daily journal, encouraging consistent reflection.",
+      value: journaling.value,
+      onToggle: journaling.toggle,
     },
   ];
 
   return (
     <BlackScreenWrapper>
-      {/* <ScrollView style={styles.content}>
+      <ScrollView style={styles.content}>
         {notifications.map((item) => (
           <NotificationItemCard
             key={item.title}
@@ -66,18 +58,7 @@ export default function NotificationsScreen() {
             onToggle={item.onToggle}
           />
         ))}
-      </ScrollView> */}
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold",
-          textAlign: "center",
-          marginTop: 100,
-          color: "white",
-        }}
-      >
-        Coming soon...
-      </Text>
+      </ScrollView>
     </BlackScreenWrapper>
   );
 }

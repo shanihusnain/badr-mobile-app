@@ -226,6 +226,65 @@ export default function PrivateLayout() {
           }}
         />
         <Stack.Screen
+          name="aboutdocument"
+          options={({ route }) => {
+            const document =
+              (route.params as { document?: string } | undefined)?.document ??
+              "privacy";
+            const title =
+              document === "terms" ? "TERMS OF USE" : "PRIVACY POLICY";
+            return {
+              headerShown: true,
+              header: ({ navigation }) => (
+                <HeaderWithCrossTitleDynamicIcon
+                  title={title}
+                  navigation={navigation}
+                  iconName="chevron-left"
+                />
+              ),
+            };
+          }}
+        />
+        <Stack.Screen
+          name="tutorials"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="GETTING STARTED"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="opensourcelicenses/index"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title="OPEN SOURCE LICENSES"
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="opensourcelicenses/[index]"
+          options={{
+            headerShown: true,
+            header: ({ navigation }) => (
+              <HeaderWithCrossTitleDynamicIcon
+                title=""
+                navigation={navigation}
+                iconName="chevron-left"
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
           name="badarmembership"
           options={{
             headerShown: true,
