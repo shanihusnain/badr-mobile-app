@@ -63,6 +63,7 @@ export default function PrivateLayout() {
           name="streakcounter/[date]"
           options={{
             headerShown: true,
+            headerTransparent: true,
             header: () => (
               <HeaderWithInfoIcon title={t("streakCounter.title")} />
             ),

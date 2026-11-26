@@ -1,15 +1,17 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import BackButton from "./Backbutton";
-import { Text } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
-import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-export const HeaderWithInfoIcon = ({ title }: { title: string }) => {
-  const { t } = useTranslation();
+export const HeaderWithInfoIcon = ({
+  title,
+  backgroundColor = "transparent",
+}: {
+  title: string;
+  backgroundColor?: string;
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -18,6 +20,7 @@ export const HeaderWithInfoIcon = ({ title }: { title: string }) => {
         styles.headerRow,
         {
           paddingTop: insets.top + 10,
+          backgroundColor,
         },
       ]}
     >
@@ -39,7 +42,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    backgroundColor: Colors.light.blackBackground,
     paddingHorizontal: 16,
   },
   headerLeft: {

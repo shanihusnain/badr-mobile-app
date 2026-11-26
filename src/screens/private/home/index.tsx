@@ -321,7 +321,7 @@ export default function HomeScreen() {
   const namazBottomSheetRef = useRef<BottomSheet>(null);
   const goldenBottomSheetRef = useRef<BottomSheet>(null);
   const dashboardSheetRef = useRef<BottomSheet>(null);
-  const timeSpentSheetRef = useRef<BottomSheet>(null);
+  const [isTimeSpentOpen, setIsTimeSpentOpen] = useState(false);
   const yesterdayJournalSheetRef = useRef<BottomSheet>(null);
   const yesterdayJournalPromptShownRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -1504,7 +1504,10 @@ export default function HomeScreen() {
         <FastingOverviewCalendarSection date={todayDateKey} />
         <TopSpace top={16} />
         <TimeSpentOverview
-          onExpandPress={() => timeSpentSheetRef.current?.expand()}
+          onExpandPress={() => {
+            setIsTimeSpentOpen(true);
+            handleBottomSheetChange("timeSpent", 0);
+          }}
           selectedDate={todayDateKey}
           showChartHint={false}
         />
@@ -1518,12 +1521,12 @@ export default function HomeScreen() {
         isOpen={isNamazSheetOpen}
       />
       <TimeSpentBottomSheet
-        ref={timeSpentSheetRef}
+        visible={isTimeSpentOpen}
         selectedDate={todayDateKey}
         onClose={() => {
-          timeSpentSheetRef.current?.close();
+          setIsTimeSpentOpen(false);
+          handleBottomSheetChange("timeSpent", -1);
         }}
-        onChange={(index) => handleBottomSheetChange("timeSpent", index)}
       />
       <DashboardCustomizeBottomSheet
         ref={dashboardSheetRef}

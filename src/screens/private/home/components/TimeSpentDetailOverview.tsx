@@ -43,6 +43,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [cycleOffset, setCycleOffset] = useState(0);
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   useEffect(() => {
     setCurrentEndDate(selectedDate);
@@ -66,6 +67,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
 
   useEffect(() => {
     setSelectedBarIndex(null);
+    setHintDismissed(false);
   }, [selectedPeriod, currentEndDate, weekOffset, cycleOffset, selectedTab]);
 
   const totalHours = useMemo(
@@ -121,6 +123,12 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
     return t("homeScreen.timeSpentMonthSummary").replace("{{time}}", formatted);
   }, [timeSpentData?.description, selectedPeriod, totalHours, t]);
 
+  const showDeltaChip = Boolean(timeSpentData?.badge?.label);
+  const deltaIsPositive = timeSpentData?.badge?.direction === "UP";
+
+  const showChartHint =
+    !hintDismissed && selectedBarIndex === null && Boolean(chartData.length);
+
   const maxBarHours = Math.max(...chartData.map((item) => item.hours), 0);
   const yMax = Math.max(15, Math.ceil(maxBarHours / 5) * 5);
   const yTicks = [0, Math.round(yMax / 3), Math.round((yMax * 2) / 3), yMax];
@@ -165,9 +173,31 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
   return (
     <View>
       <View style={styles.timeSpentDetailPercentRow}>
-        <Text style={styles.timeSpentPercentText}>
-          {timeSpentData?.percentLabel ?? "0%"}
-        </Text>
+        <View>
+          <Text style={styles.timeSpentPercentText}>
+            {timeSpentData?.percentLabel ?? "0%"}
+          </Text>
+          <View style={styles.deltaSlot}>
+            {showDeltaChip ? (
+              <View style={styles.deltaBadge}>
+                <AntDesign
+                  name={deltaIsPositive ? "caret-up" : "caret-down"}
+                  size={14}
+                  color={
+                    deltaIsPositive
+                      ? Colors.light.green
+                      : Colors.light.graylightshade
+                  }
+                />
+                <Text style={styles.deltaText} numberOfLines={1}>
+                  {timeSpentData?.badge.label}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.deltaBadgePlaceholder} />
+            )}
+          </View>
+        </View>
         <View style={styles.timeSpentPeriodToggle}>
           {(["week", "month"] as const).map((period) => {
             const isSelected = selectedPeriod === period;
@@ -244,10 +274,29 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
 
       <TopSpace top={16} />
       <View style={styles.timeSpentNavRowContainer}>
+        {showChartHint ? (
+          <View style={styles.timeSpentChartHint}>
+            <View style={styles.timeSpentChartHintBubble}>
+              <View style={styles.timeSpentChartHintBubbleInner}>
+                <Text style={styles.timeSpentChartHintText}>
+                  {timeSpentData?.tooltip?.text ?? t("homeScreen.tapBarHint")}
+                </Text>
+                <Pressable onPress={() => setHintDismissed(true)} hitSlop={8}>
+                  <Text style={styles.timeSpentChartHintAction}>
+                    {timeSpentData?.tooltip?.button ?? t("homeScreen.okGotIt")}
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={styles.timeSpentChartHintPointerRow}>
+                <View style={styles.timeSpentChartHintPointer} />
+              </View>
+            </View>
+          </View>
+        ) : null}
         <View
           style={[
             styles.timeSpentNavSection,
-            styles.timeSpentNavSectionExpanded,
+            !showChartHint && styles.timeSpentNavSectionExpanded,
           ]}
         >
           <View style={styles.timeSpentNavRow}>
@@ -308,6 +357,24 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
           {timeSpentData?.note ?? t("homeScreen.timeSpentDisclaimer")}
         </Text>
       </View>
+
+      {selectedBarIndex !== null && chartData.length > 0 ? (
+        <View style={styles.timeSpentDetailDotsRow}>
+          {chartData.map((item, index) => (
+            <Pressable
+              key={`${item.xLabel}-${index}`}
+              onPress={() => handleBarPress(index)}
+              hitSlop={6}
+              style={[
+                styles.timeSpentDetailDot,
+                index === selectedBarIndex
+                  ? styles.timeSpentDetailDotActive
+                  : styles.timeSpentDetailDotInactive,
+              ]}
+            />
+          ))}
+        </View>
+      ) : null}
 
       <TopSpace top={24} />
       <View style={styles.timeSpentCategoryList}>
