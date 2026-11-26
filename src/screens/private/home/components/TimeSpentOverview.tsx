@@ -167,7 +167,10 @@ export function TimeSpentOverview({
       <View style={styles.timeSpentPercentRow}>
         <View>
           <Text style={styles.timeSpentPercentText}>
-            {timeSpentData?.percentLabel}
+            {timeSpentData?.percentLabel?.replace(/%$/, "")}
+            {timeSpentData?.percentLabel?.endsWith("%") ? (
+              <Text style={styles.timeSpentPercentSymbol}>%</Text>
+            ) : null}
           </Text>
 
           <View style={styles.deltaSlot}>
@@ -306,17 +309,6 @@ export function TimeSpentOverview({
         />
       )}
 
-      <View style={styles.timeSpentDisclaimerRow}>
-        <AntDesign
-          name="info-circle"
-          size={14}
-          color={Colors.light.grey}
-          style={styles.timeSpentDisclaimerIcon}
-        />
-        <Text style={styles.timeSpentDisclaimerText}>
-          {timeSpentData?.note ?? t("homeScreen.timeSpentDisclaimer")}
-        </Text>
-      </View>
       <TopSpace top={24} />
       {isChartLoading ? null : (
         <View style={styles.timeSpentCategoryList}>

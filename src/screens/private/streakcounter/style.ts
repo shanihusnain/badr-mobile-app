@@ -38,9 +38,9 @@ const createStyles = (scale: number = 1) => {
     streakSublabel: {
       fontFamily: fonts.primary.medium,
       fontWeight: "500",
-      fontSize: s(14),
+      fontSize: s(16),
       color: Colors.light.white,
-      letterSpacing: 0.5,
+      letterSpacing: 0.4,
       textAlign: "center",
     },
     statsGrid: {
@@ -116,7 +116,7 @@ const createStyles = (scale: number = 1) => {
       fontFamily: fonts.primary.semiBold,
       fontWeight: "600",
       fontSize: s(11),
-      lineHeight: s(14),
+      lineHeight: s(11),
       letterSpacing: 0,
       fontVariant: ["small-caps"],
       color: Colors.light.grey || "#8e8e93",
@@ -126,11 +126,11 @@ const createStyles = (scale: number = 1) => {
     dayColumn: {
       flex: 1,
       alignItems: "center",
-      gap: s(6),
+      gap: s(9),
     },
     dayCircle: {
-      width: s(27),
-      height: s(27),
+      width: s(24),
+      height: s(24),
       borderRadius: s(12),
       borderWidth: s(1.5),
       borderColor: Colors.light.grey,
