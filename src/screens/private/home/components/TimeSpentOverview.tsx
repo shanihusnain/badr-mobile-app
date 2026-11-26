@@ -172,7 +172,7 @@ export function TimeSpentOverview({
       </View>
       <TopSpace top={16} />
       <View style={styles.timeSpentPercentRow}>
-        <View>
+        <View style={styles.timeSpentPercentBlock}>
           <Text style={styles.timeSpentPercentText}>
             {timeSpentData?.percentLabel?.replace(/%$/, "")}
             {timeSpentData?.percentLabel?.endsWith("%") ? (

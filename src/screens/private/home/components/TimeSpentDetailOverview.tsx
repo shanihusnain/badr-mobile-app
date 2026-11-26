@@ -190,7 +190,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
   return (
     <View>
       <View style={styles.timeSpentDetailPercentRow}>
-        <View>
+        <View style={styles.timeSpentPercentBlock}>
           <Text style={styles.timeSpentPercentText}>
             {timeSpentData?.percentLabel ?? "0%"}
           </Text>

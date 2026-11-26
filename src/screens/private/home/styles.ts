@@ -931,14 +931,16 @@ export const styles = StyleSheet.create({
   fastingCalendarTabsScroll: {
     marginTop: 0,
     marginBottom: 0,
+    // Bleed past section padding so tabs can scroll edge-to-edge.
+    marginHorizontal: -12,
   },
   fastingCalendarTabsContent: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingLeft: 0,
-    paddingRight: 0,
-    width: "100%",
+    // Match section padding for first/last tab inset; do not set width
+    // or content is locked to the viewport and cannot scroll horizontally.
+    paddingHorizontal: 12,
   },
   fastingViewTab: {
     paddingHorizontal: 16,
@@ -1338,6 +1340,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 12,
+  },
+  timeSpentPercentBlock: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   timeSpentPercentText: {
     fontFamily: fonts.primary.semiBold,
@@ -1356,24 +1363,21 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   timeSpentPeriodToggle: {
-    minHeight: 47,
+    minHeight: 40,
     flexDirection: "row",
     alignItems: "center",
     padding: 3,
     backgroundColor: Colors.light.blackBackground,
     borderRadius: 8,
-    alignSelf: "flex-start",
+    flexShrink: 0,
   },
   timeSpentPeriodButton: {
-    alignSelf: "stretch",
+    minWidth: 44,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 6,
-    paddingHorizontal: 54,
+    paddingHorizontal: 50,
     paddingVertical: 8,
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
   },
   timeSpentPeriodButtonSelected: {
     backgroundColor: Colors.light.greybuttonBackground,
