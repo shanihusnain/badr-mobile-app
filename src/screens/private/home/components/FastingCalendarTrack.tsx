@@ -4,6 +4,7 @@ import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import type { PlannedFastMarker } from "../plannedFasts";
 import { styles } from "../styles";
 import { FastingCycleDates } from "./FastingCycleDates";
+import { FastingGoalTotalCard } from "./FastingGoalTotalCard";
 import { FastingLegendCard } from "./FastingLegendCard";
 import type { FastingLegendEntry } from "../fastingLegend";
 import { TopSpace } from "@/components/atoms/TopSpace";
@@ -35,6 +36,9 @@ export function FastingCalendarTrack({
   windowEndDate,
   rangeLabel,
   hijriRangeLabel,
+  completedLabel = "COMPLETED",
+  completedCount = 0,
+  completedUnit,
   footnote,
   hasCalendar = true,
 }: FastingCalendarTrackProps) {
@@ -44,6 +48,14 @@ export function FastingCalendarTrack({
 
   return (
     <View style={styles.fastingCalendarTrack}>
+      {variant === "progress" ? (
+        <FastingGoalTotalCard
+          label={completedLabel}
+          count={completedCount}
+          unit={completedUnit}
+          variant="completed"
+        />
+      ) : null}
       <TopSpace top={-6} />
       <FastingCycleDates
         startDate={windowStartDate}

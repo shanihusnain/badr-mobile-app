@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
   },
   deltaText: {
     color: Colors.light.white,
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
   },
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.light.calendarBg,
     borderRadius: 2,
-    paddingHorizontal: 3,
+    paddingHorizontal: 7.5,
     paddingVertical: 4,
     height: 24,
     marginTop: 24,
@@ -1020,8 +1020,8 @@ export const styles = StyleSheet.create({
   },
   fastingLegendCardClose: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: 6,
+    right: 5,
     zIndex: 2,
   },
   fastingLegendLayout: {
@@ -1356,6 +1356,7 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   timeSpentPeriodToggle: {
+    minHeight: 47,
     flexDirection: "row",
     alignItems: "center",
     padding: 3,
@@ -1364,7 +1365,11 @@ export const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   timeSpentPeriodButton: {
-    paddingHorizontal: 50,
+    alignSelf: "stretch",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+    paddingHorizontal: 54,
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: "center",

@@ -25,7 +25,12 @@ export function FastingLegendCard({
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         activeOpacity={0.7}
       >
-        <Ionicons name="close" size={14} color={Colors.light.grey} />
+        <Ionicons
+          name="close"
+          size={18}
+          color={Colors.light.white}
+          style={{ fontWeight: "900" }}
+        />
       </TouchableOpacity>
       {variant === "planned" ? (
         <FastingPlannedLegend entries={legendEntries} />
