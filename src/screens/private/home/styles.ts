@@ -1359,10 +1359,10 @@ export const styles = StyleSheet.create({
     minHeight: 47,
     flexDirection: "row",
     alignItems: "center",
-    padding: 4,
+    padding: 3,
     backgroundColor: Colors.light.blackBackground,
-    borderRadius: 6,
-    justifyContent: "center",
+    borderRadius: 8,
+    alignSelf: "flex-start",
   },
   timeSpentPeriodButton: {
     alignSelf: "stretch",
@@ -1371,17 +1371,22 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 54,
     paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
   },
   timeSpentPeriodButtonSelected: {
     backgroundColor: Colors.light.greybuttonBackground,
   },
   timeSpentPeriodButtonUnselected: {
-    backgroundColor: Colors.light.blackBackground,
+    backgroundColor: "transparent",
   },
   timeSpentPeriodButtonText: {
     fontFamily: fonts.primary.medium,
     fontSize: 14,
+    lineHeight: 18,
     fontWeight: "500",
+    textAlign: "center",
   },
   timeSpentPeriodButtonTextSelected: {
     color: Colors.light.green,
@@ -1448,12 +1453,20 @@ export const styles = StyleSheet.create({
     minWidth: 148,
     justifyContent: "flex-end",
     alignSelf: "stretch",
+    position: "relative",
   },
   timeSpentChartHintBubble: {
+    position: "absolute",
+    top: 40,
+    left: 30,
+    zIndex: 2,
+    alignItems: "center",
+  },
+  timeSpentChartHintBubbleInner: {
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: Colors.light.dullestWhite,
+    backgroundColor: Colors.light.greybuttonBackground,
     alignItems: "center",
     gap: 8,
   },
@@ -1474,17 +1487,17 @@ export const styles = StyleSheet.create({
   },
   timeSpentChartHintPointerRow: {
     alignItems: "center",
+    marginTop: -1,
   },
   timeSpentChartHintPointer: {
     width: 0,
     height: 0,
-    marginTop: -1,
     borderLeftWidth: 7,
     borderRightWidth: 7,
     borderTopWidth: 8,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: Colors.light.dullestWhite,
+    borderTopColor: Colors.light.greybuttonBackground,
   },
   timeSpentChartContainer: {
     height: 240,
@@ -1620,7 +1633,6 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: Colors.light.dullestWhite,
   },
   timeSpentDetailSummaryText: {
     color: Colors.light.grey,
@@ -1636,5 +1648,23 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  timeSpentDetailDotsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 16,
+  },
+  timeSpentDetailDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  timeSpentDetailDotActive: {
+    backgroundColor: Colors.light.green,
+  },
+  timeSpentDetailDotInactive: {
+    backgroundColor: Colors.light.dullestWhite,
   },
 });

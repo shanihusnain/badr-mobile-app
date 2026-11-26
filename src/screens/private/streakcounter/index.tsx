@@ -5,6 +5,7 @@ import {
   useWindowDimensions,
   type LayoutChangeEvent,
 } from "react-native";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import createStyles from "./style";
 import { useTranslation } from "react-i18next";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
@@ -31,6 +32,7 @@ function clampScale(raw: number) {
 export default function StreakCounter({ date }: { date?: string }) {
   const { i18n } = useTranslation();
   const lng = i18n.language;
+  const headerHeight = useHeaderHeight();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [contentSize, setContentSize] = useState({
@@ -49,7 +51,6 @@ export default function StreakCounter({ date }: { date?: string }) {
   const styles = useMemo(() => createStyles(scale), [scale]);
 
   const heroGlowSize = 300 * scale;
-  const heroFlashSize = 120 * scale;
   const weekFlashSize = 18 * scale;
   const milestoneFlashSize = 34 * scale;
   const milestoneGlowSize = 80 * scale;
@@ -95,11 +96,18 @@ export default function StreakCounter({ date }: { date?: string }) {
   return (
     <BlackScreenWrapper edges={["bottom"]}>
       <View style={{ flex: 1 }} onLayout={onContentLayout}>
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: headerHeight }]}>
           {/* Main Center Hero Section */}
           <View style={styles.heroSection}>
             <View style={{ alignItems: "center", justifyContent: "center" }}>
-              <View style={{ position: "absolute" }}>
+              {/* Same amber radial as before — shifted up so it continues under the transparent header */}
+              <View
+                style={{
+                  position: "absolute",
+                  top: -headerHeight * 0.65,
+                }}
+                pointerEvents="none"
+              >
                 <Svg
                   height={heroGlowSize}
                   width={heroGlowSize}

@@ -22,12 +22,15 @@ type Props = {
   onExpandPress?: () => void;
   selectedDate: string;
   showChartHint: boolean;
+  /** Hide the card expand chevron (used on the full-screen Time Spent view). */
+  showExpandControl?: boolean;
 };
 
 export function TimeSpentOverview({
   onExpandPress,
   selectedDate,
   showChartHint,
+  showExpandControl = true,
 }: Props) {
   const { t, i18n } = useTypedTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">(
@@ -151,17 +154,21 @@ export function TimeSpentOverview({
           <TimeSpentMoreTabDashboardIcon size={30} color="#A0A0A0" />
           <Text style={styles.timeSpentTitle}>{t("homeScreen.timeSpent")}</Text>
         </View>
-        <Pressable
-          onPress={onExpandPress}
-          disabled={!onExpandPress}
-          hitSlop={8}
-        >
-          <Entypo
-            name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-            size={24}
-            color={Colors.light.white}
-          />
-        </Pressable>
+        {showExpandControl ? (
+          <Pressable
+            onPress={onExpandPress}
+            disabled={!onExpandPress}
+            hitSlop={8}
+          >
+            <Entypo
+              name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+              size={24}
+              color={Colors.light.white}
+            />
+          </Pressable>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
       <TopSpace top={16} />
       <View style={styles.timeSpentPercentRow}>
@@ -231,17 +238,19 @@ export function TimeSpentOverview({
         {showChartHint ? (
           <View style={styles.timeSpentChartHint}>
             <View style={styles.timeSpentChartHintBubble}>
-              <Text style={styles.timeSpentChartHintText}>
-                {timeSpentData?.tooltip?.text ?? t("homeScreen.tapBarHint")}
-              </Text>
-              <Pressable onPress={() => setHintDismissed(true)} hitSlop={8}>
-                <Text style={styles.timeSpentChartHintAction}>
-                  {timeSpentData?.tooltip?.button ?? t("homeScreen.okGotIt")}
+              <View style={styles.timeSpentChartHintBubbleInner}>
+                <Text style={styles.timeSpentChartHintText}>
+                  {timeSpentData?.tooltip?.text ?? t("homeScreen.tapBarHint")}
                 </Text>
-              </Pressable>
-            </View>
-            <View style={styles.timeSpentChartHintPointerRow}>
-              <View style={styles.timeSpentChartHintPointer} />
+                <Pressable onPress={() => setHintDismissed(true)} hitSlop={8}>
+                  <Text style={styles.timeSpentChartHintAction}>
+                    {timeSpentData?.tooltip?.button ?? t("homeScreen.okGotIt")}
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={styles.timeSpentChartHintPointerRow}>
+                <View style={styles.timeSpentChartHintPointer} />
+              </View>
             </View>
           </View>
         ) : null}

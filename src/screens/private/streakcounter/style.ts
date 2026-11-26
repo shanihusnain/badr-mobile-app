@@ -10,7 +10,6 @@ const createStyles = (scale: number = 1) => {
       flex: 1,
       backgroundColor: Colors.light.blackBackground,
       paddingHorizontal: s(2),
-      paddingTop: s(8),
       paddingBottom: s(12),
     },
     loadingContainer: {
@@ -23,6 +22,7 @@ const createStyles = (scale: number = 1) => {
       alignItems: "center",
       marginVertical: s(16),
       flexShrink: 1,
+      overflow: "visible",
     },
     streakNumber: {
       fontFamily: fonts.primary.bold,
