@@ -1536,28 +1536,30 @@ export const styles = StyleSheet.create({
   timeSpentXAxisDayLabel: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 9,
-    lineHeight: 11,
+    fontSize: 10,
+    lineHeight: 10,
     textAlign: "center",
   },
   timeSpentXAxisDateLabelWeek: {
-    color: Colors.light.grey,
+     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 9,
-    lineHeight: 11,
+    fontSize: 10,
+    lineHeight: 10,
+    fontWeight: "400",
     marginTop: 1,
     textAlign: "center",
   },
   timeSpentXAxisDateLabelMonth: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.medium,
-    fontSize: 9,
-    lineHeight: 11,
+    fontSize: 10,
+    lineHeight: 10,
     textAlign: "center",
   },
   timeSpentXAxisDayLabelSelected: {
     color: Colors.light.white,
     fontWeight: "600",
+    
   },
   timeSpentXAxisDateLabelWeekSelected: {
     color: Colors.light.green,
