@@ -199,7 +199,7 @@ export default function TutorialsScreen() {
                 <Image
                   source={image}
                   style={styles.taskImage}
-                  contentFit="fill"
+                  contentFit="cover"
                 />
               ) : (
                 <View

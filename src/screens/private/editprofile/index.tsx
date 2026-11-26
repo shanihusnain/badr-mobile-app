@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
-  Text,
   ScrollView,
   Pressable,
   Image,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { useForm } from "react-hook-form";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -20,40 +20,142 @@ import CustomDropdown from "@/components/atoms/CustomDropdown";
 import CustomDatePicker from "@/components/atoms/CustomDatePicker";
 import CustomTextInput from "@/components/atoms/CustomTextInput";
 import { useCreateAccountProps } from "@/src/screens/auth/createaccount/useCreateAccountProps";
+import { useGetMe } from "@/src/api/queries/useGetMe";
+import { useUpdateProfile } from "@/src/api/mutations/useUpdateProfile";
+import { useUploadAvatar } from "@/src/api/mutations/useUploadAvatar";
+import { useAuth } from "@/provider/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
+
+type EditProfileForm = {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dob: string;
+  country: string;
+  gender: string;
+};
+
+const normalizeDob = (value?: string | null) => {
+  if (!value) return "";
+  return value.includes("T") ? value.slice(0, 10) : value;
+};
+
+const genderFromApi = (value?: string | null) => {
+  const normalized = (value ?? "").toUpperCase();
+  if (normalized === "MALE") return "Male";
+  if (normalized === "FEMALE") return "Female";
+  if (value === "Male" || value === "Female") return value;
+  return "";
+};
+
+const genderToApi = (value: string): "MALE" | "FEMALE" | undefined => {
+  if (value === "Male") return "MALE";
+  if (value === "Female") return "FEMALE";
+  return undefined;
+};
+
+const extractRemoteAvatarUrl = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as Record<string, unknown>;
+  const data = root.data as Record<string, unknown> | undefined;
+  const user = data?.user as Record<string, unknown> | undefined;
+  const candidates = [
+    user?.avatarUrl,
+    data?.avatarUrl,
+    data?.url,
+    root.avatarUrl,
+  ];
+  for (const value of candidates) {
+    if (typeof value === "string" && value.startsWith("http")) return value;
+  }
+  return null;
+};
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user: authUser, updateUser } = useAuth();
+  const { data: meUser, isLoading: isMeLoading } = useGetMe();
+  const { mutateAsync: updateProfile, isPending: isUpdating } =
+    useUpdateProfile();
+  const { mutateAsync: uploadAvatar, isPending: isUploadingAvatar } =
+    useUploadAvatar();
+
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [localImageUri, setLocalImageUri] = useState<string | null>(null);
   const [lockDobDropdownScroll, setLockDobDropdownScroll] = useState(false);
 
   const { genders, countries } = useCreateAccountProps();
-  const { control, watch } = useForm({
+  const { control, watch, reset, handleSubmit } = useForm<EditProfileForm>({
     defaultValues: {
-      username: "Layla9",
-      firstName: "Layla",
-      lastName: "Najia",
-      email: "layla.najia@gmail.com",
-      dob: "17/06/1984",
-      country: "Qatar",
-      gender: "Female",
+      username: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      dob: "",
+      country: "",
+      gender: "",
     },
   });
 
-  const [username, firstName, lastName, email, dob, watchedCountry, watchedGender] = watch([
+  const profile = (meUser ?? authUser) as
+    | (Record<string, unknown> & {
+        id?: string;
+        username?: string;
+        email?: string;
+        avatarUrl?: string | null;
+        dateOfBirth?: string | null;
+        gender?: string | null;
+        country?: string | null;
+      })
+    | null
+    | undefined;
+
+  useEffect(() => {
+    if (!profile) return;
+    reset({
+      username: profile.username ?? "",
+      firstName:
+        typeof profile.firstName === "string" ? profile.firstName : "",
+      lastName: typeof profile.lastName === "string" ? profile.lastName : "",
+      email: profile.email ?? "",
+      dob: normalizeDob(
+        profile.dateOfBirth ??
+          (typeof profile.dob === "string" ? profile.dob : null),
+      ),
+      country: profile.country ?? "",
+      gender: genderFromApi(profile.gender),
+    });
+    if (
+      typeof profile.avatarUrl === "string" &&
+      profile.avatarUrl.startsWith("http")
+    ) {
+      setProfileImage(profile.avatarUrl);
+    }
+  }, [profile, reset]);
+
+  const [username, email, dob, watchedCountry, watchedGender] = watch([
     "username",
-    "firstName",
-    "lastName",
     "email",
     "dob",
     "country",
     "gender",
   ]);
 
+  const isFormComplete = useMemo(
+    () =>
+      (username ?? "").trim().length > 0 &&
+      (email ?? "").trim().length > 0 &&
+      (dob ?? "").trim().length > 0 &&
+      (watchedCountry ?? "").trim().length > 0 &&
+      (watchedGender ?? "").trim().length > 0,
+    [username, email, dob, watchedCountry, watchedGender],
+  );
+
   const pickCameraImage = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissionResult.granted === false) {
-      return;
-    }
+    if (!permissionResult.granted) return;
 
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
@@ -62,26 +164,78 @@ export default function EditProfileScreen() {
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setProfileImage(uri);
+      setLocalImageUri(uri);
     }
   };
 
-  const handleBack = () => {
-    router.back();
+  const onSave = async (data: EditProfileForm) => {
+    const userId = profile?.id ?? authUser?.id;
+    if (!userId) return;
+
+    const gender = genderToApi(data.gender);
+    if (!gender) return;
+
+    try {
+      let avatarUrl =
+        typeof profile?.avatarUrl === "string" &&
+        profile.avatarUrl.startsWith("http")
+          ? profile.avatarUrl
+          : null;
+
+      if (localImageUri) {
+        const uploadResult = await uploadAvatar({
+          imageUri: localImageUri,
+          userId,
+        });
+        const remoteAvatarUrl = extractRemoteAvatarUrl(uploadResult);
+        if (remoteAvatarUrl) {
+          avatarUrl = remoteAvatarUrl;
+        }
+      }
+
+      const response = await updateProfile({
+        userId,
+        username: data.username.trim(),
+        email: data.email.trim(),
+        gender,
+        dob: data.dob,
+        country: data.country,
+      });
+
+      const savedUser = response?.data?.user;
+      const nextUser = {
+        ...(authUser ?? profile ?? {}),
+        ...(savedUser ?? {}),
+        id: userId,
+        username: savedUser?.username ?? data.username.trim(),
+        email: savedUser?.email ?? data.email.trim().toLowerCase(),
+        gender,
+        dateOfBirth: data.dob,
+        country: data.country,
+        avatarUrl: avatarUrl ?? authUser?.avatarUrl ?? null,
+      };
+
+      await updateUser(nextUser);
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      router.back();
+    } catch {
+      // Toast handled in mutations
+    }
   };
 
-  const isFormComplete =
-    (username ?? "").trim().length > 0 &&
-    (firstName ?? "").trim().length > 0 &&
-    (lastName ?? "").trim().length > 0 &&
-    (email ?? "").trim().length > 0 &&
-    (dob ?? "").trim().length > 0 &&
-    (watchedCountry ?? "").trim().length > 0 &&
-    (watchedGender ?? "").trim().length > 0;
+  if (isMeLoading && !profile) {
+    return (
+      <BlackScreenWrapper>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <LoadingComponent size="large" />
+        </View>
+      </BlackScreenWrapper>
+    );
+  }
 
-  const handleSave = () => {
-    router.back();
-  };
+  const isSaving = isUpdating || isUploadingAvatar;
 
   return (
     <BlackScreenWrapper>
@@ -89,9 +243,6 @@ export default function EditProfileScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        
-        
-
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -207,8 +358,14 @@ export default function EditProfileScreen() {
           <View style={styles.saveButtonContainer}>
             <PrimaryButton
               text="SAVE"
-              onPress={handleSave}
-              style={isFormComplete ? undefined : { backgroundColor: Colors.light.inactivegreen }}
+              onPress={handleSubmit(onSave)}
+              disabled={!isFormComplete || isSaving}
+              isLoading={isSaving}
+              style={
+                isFormComplete && !isSaving
+                  ? undefined
+                  : { backgroundColor: Colors.light.inactivegreen }
+              }
             />
           </View>
         </ScrollView>

@@ -55,8 +55,21 @@ export default function AboutScreen() {
   const handleItemPress = (key: string) => {
     if (key === "OPEN_SOURCE_LICENSES") {
       router.push("/(private)/opensourcelicenses");
+      return;
     }
-    // Privacy / Terms screens can be wired from the same about payload next.
+    if (key === "PRIVACY_POLICY") {
+      router.push({
+        pathname: "/(private)/aboutdocument",
+        params: { document: "privacy" },
+      });
+      return;
+    }
+    if (key === "TERMS_OF_USE") {
+      router.push({
+        pathname: "/(private)/aboutdocument",
+        params: { document: "terms" },
+      });
+    }
   };
 
   return (

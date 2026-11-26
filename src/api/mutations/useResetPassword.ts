@@ -1,53 +1,56 @@
 import { getApiErrorMessage, showToast } from "@/src/config/toastConfig";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { router } from "expo-router";
 import { api } from "../index";
+import { clearPendingPasswordReset } from "@/src/utils/pendingPasswordReset";
 
 export type ResetPasswordPayload = {
   email: string;
   code: string;
   newPassword: string;
   confirmNewPassword: string;
+  /** Where to go after success. Defaults to login (forgot-password flow). */
+  redirectTo?: "login" | "myaccount" | "none";
 };
 
 const resetPassword = async (payload: ResetPasswordPayload) => {
-  console.log("[reset-password] payload", payload);
-  try {
-    const response = await api.post("api/auth/reset-password", {
-      email: payload.email,
-      code: payload.code,
-      newPassword: payload.newPassword,
-      confirmNewPassword: payload.confirmNewPassword,
-    });
-    console.log("[reset-password] response", response.data);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.log("[reset-password] error", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-    } else {
-      console.log("[reset-password] error", error);
-    }
-    throw error; // must rethrow or React Query treats this as success
-  }
+  const response = await api.post("api/auth/reset-password", {
+    email: payload.email,
+    code: payload.code,
+    newPassword: payload.newPassword,
+    confirmNewPassword: payload.confirmNewPassword,
+  });
+  return { data: response.data, redirectTo: payload.redirectTo ?? "login" };
 };
 
 export const useResetPassword = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: resetPassword,
     mutationKey: ["reset-password"],
-    onSuccess: (data: any) => {
-      showToast("success", data?.message ?? "Password updated successfully");
+    onSuccess: (result) => {
+      clearPendingPasswordReset();
+      showToast(
+        "success",
+        result?.data?.message ?? "Password updated successfully",
+      );
+      if (result.redirectTo === "none") return;
+      if (result.redirectTo === "myaccount") {
+        router.replace("/(private)/myaccount");
+        return;
+      }
       setTimeout(() => {
         router.replace("/(auth)/login");
       }, 2000);
     },
     onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        console.log("[reset-password] error", {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+      }
       showToast("error", getApiErrorMessage(error, "Password reset failed"));
     },
   });

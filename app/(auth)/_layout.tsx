@@ -3,6 +3,7 @@ import { router, Stack } from "expo-router";
 import Header from "@/components/Header";
 import { PublicRoute } from "@/provider/PublicRoute";
 import { Colors } from "@/constants/theme";
+import { clearPendingPasswordReset } from "@/src/utils/pendingPasswordReset";
 
 const transparentAuthScreenOptions = {
   headerShown: true,
@@ -44,9 +45,13 @@ export default function AuthLayout() {
               route,
             }: {
               options: { title?: string };
-              route: { params?: { fromsignup?: string } };
+              route: {
+                params?: { fromsignup?: string; fromChangePassword?: string };
+              };
             }) => {
               const fromSignup = route.params?.fromsignup === "true";
+              const fromChangePassword =
+                route.params?.fromChangePassword === "true";
               return (
                 <Header
                   title={options?.title ?? ""}
@@ -55,6 +60,11 @@ export default function AuthLayout() {
                   onBackPress={() => {
                     if (fromSignup) {
                       router.replace("/(auth)/createaccount");
+                      return;
+                    }
+                    if (fromChangePassword) {
+                      clearPendingPasswordReset();
+                      router.replace("/(private)/changepassword");
                       return;
                     }
                     router.replace("/(auth)/forgotpassword");

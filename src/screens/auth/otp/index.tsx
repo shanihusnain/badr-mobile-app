@@ -26,11 +26,17 @@ import { useTranslation } from "react-i18next";
 import { useVerifyOtp } from "@/src/api/mutations/useVerifyOtp";
 import { useResendOtp } from "@/src/api/mutations/useResendOtp";
 import { useForgotPasswordOtpValidation } from "@/src/api/mutations/useForgotPasswordOtpValidation";
+import { useResetPassword } from "@/src/api/mutations/useResetPassword";
 import { useAuth } from "@/provider/useAuth";
+import {
+  clearPendingPasswordReset,
+  getPendingPasswordReset,
+} from "@/src/utils/pendingPasswordReset";
 
 type OtpScreenParams = {
   fromsignup?: string | string[];
   email?: string | string[];
+  fromChangePassword?: string | string[];
 };
 
 const getParam = (value?: string | string[]) =>
@@ -40,8 +46,9 @@ export default function OtpScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<OtpScreenParams>();
   const fromsignup = getParam(params.fromsignup);
+  const fromChangePassword = getParam(params.fromChangePassword) === "true";
   const { t } = useTranslation();
-  const { updateUser, user: authUser, isAuthenticated } = useAuth();
+  const { updateUser, user: authUser } = useAuth();
   const email =
     getParam(params.email)?.trim() ||
     authUser?.email?.trim() ||
@@ -52,6 +59,10 @@ export default function OtpScreen() {
     mutateAsync: forgotPasswordOtpValidation,
     isPending: isForgotPasswordOtpValidationPending,
   } = useForgotPasswordOtpValidation();
+  const {
+    mutateAsync: resetPassword,
+    isPending: isResetPasswordPending,
+  } = useResetPassword();
   const { mutateAsync: resendOtp } = useResendOtp();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(60);
@@ -71,12 +82,17 @@ export default function OtpScreen() {
     navigate();
   };
 
-  // Hardware / gesture back: same destinations as header (createaccount / forgotpassword).
+  // Hardware / gesture back: same destinations as header.
   disableBackPreventionRef.current = usePreventRemove(blockBackNav, () => {
     if (isLeavingVerifyRef.current) return;
     allowLeaveAndNavigate(() => {
       if (fromsignup === "true") {
         router.replace("/(auth)/createaccount");
+        return;
+      }
+      if (fromChangePassword) {
+        clearPendingPasswordReset();
+        router.replace("/(private)/changepassword");
         return;
       }
       router.replace("/(auth)/forgotpassword");
@@ -185,6 +201,26 @@ export default function OtpScreen() {
         allowLeaveAndNavigate(() => {
           router.replace("/(private)/greetingsscreen");
         });
+      } else if (fromChangePassword) {
+        const pending = getPendingPasswordReset();
+        if (
+          !pending ||
+          pending.source !== "change-password" ||
+          pending.email !== email
+        ) {
+          setError(t("validations.passwordRequired"));
+          return;
+        }
+        await resetPassword({
+          email,
+          code,
+          newPassword: pending.newPassword,
+          confirmNewPassword: pending.confirmNewPassword,
+          redirectTo: "none",
+        });
+        allowLeaveAndNavigate(() => {
+          router.replace("/(private)/myaccount");
+        });
       } else {
         allowLeaveAndNavigate(() => {
           router.push({
@@ -207,6 +243,11 @@ export default function OtpScreen() {
         router.replace("/(auth)/createaccount");
         return;
       }
+      if (fromChangePassword) {
+        clearPendingPasswordReset();
+        router.replace("/(private)/changepassword");
+        return;
+      }
       router.replace("/(auth)/forgotpassword");
     });
   };
@@ -216,9 +257,11 @@ export default function OtpScreen() {
       title:
         fromsignup === "true"
           ? t("otpScreen.verifyEmailTitle")
-          : t("otpScreen.forgotPasswordTitle"),
+          : fromChangePassword
+            ? t("otpScreen.verifyEmailTitle")
+            : t("otpScreen.forgotPasswordTitle"),
     });
-  }, [navigation, fromsignup, t]);
+  }, [navigation, fromsignup, fromChangePassword, t]);
 
   return (
     <View style={styles.container}>
@@ -294,9 +337,15 @@ export default function OtpScreen() {
                       text={getBtnTitle()}
                       onPress={handleVerify}
                       disabled={
-                        isPending || isForgotPasswordOtpValidationPending
+                        isPending ||
+                        isForgotPasswordOtpValidationPending ||
+                        isResetPasswordPending
                       }
-                      isLoading={isPending || isForgotPasswordOtpValidationPending}
+                      isLoading={
+                        isPending ||
+                        isForgotPasswordOtpValidationPending ||
+                        isResetPasswordPending
+                      }
                     />
                   </View>
                 </ScrollView>

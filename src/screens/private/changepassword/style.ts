@@ -37,6 +37,13 @@ export const changePasswordStyles = StyleSheet.create({
         fontSize: 14,
         textTransform: "uppercase",
     },
+    helperText: {
+        color: Colors.light.subtext,
+        fontFamily: fonts.primary.regular,
+        fontSize: 13,
+        lineHeight: 20,
+        marginBottom: 20,
+    },
     inputGroup: {
         marginBottom: 16,
     },

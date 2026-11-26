@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import React, { useMemo } from "react";
+import { View, Text, ScrollView } from "react-native";
 import { Colors } from "@/constants/theme";
 import { myAccountStyles as styles } from "./style";
 import { useRouter } from "expo-router";
@@ -8,19 +8,14 @@ import MyAccountListItem from "./components/MyAccountListItem";
 import {
   CalendarIcon,
   PaymentIcon,
-  WalletIcon,
-  ReferFriendIcon,
-  JournalBookIcon,
-  InsightIcon,
   InBoxArrow,
-  DocumentLockIcon,
   ReferFriendTabIcon,
   RedeemGiftIcon,
   ProfileInformationIcon,
   EmailIcon,
-  ChangePasswordIcon
+  ChangePasswordIcon,
 } from "@/assets/icons";
-import RedeemGiftExtensionRoute from "@/app/(private)/redeemgiftextension";
+import { useAuth } from "@/provider/useAuth";
 
 type ListItem = {
   title: string;
@@ -62,31 +57,31 @@ const MEMBERSHIP_ITEMS: ListItem[] = [
   },
 ];
 
-const PERSONAL_ITEMS: ListItem[] = [
-  {
-    title: "PROFILE INFORMATION",
-    icon: <ProfileInformationIcon Color={Colors.light.subtext} size={24} />,
-    route: "/(private)/editprofile",
-  },
-  {
-    title: "EMAIL",
-    subtitle: "layla.najia@gmail.com",
-    icon: <EmailIcon color={Colors.light.subtext} size={24} />,
-    route: "/(private)/changeemailid",
-  },
-  {
-    title: "CHANGE PASSWORD",
-    icon: <ChangePasswordIcon color={Colors.light.subtext} size={24} />,
-    route: "/(private)/changepassword",
-  },
-];
-
 export default function MyAccountScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  const handleClose = () => {
-    router.back();
-  };
+  const personalItems = useMemo<ListItem[]>(
+    () => [
+      {
+        title: "PROFILE INFORMATION",
+        icon: <ProfileInformationIcon Color={Colors.light.subtext} size={24} />,
+        route: "/(private)/editprofile",
+      },
+      {
+        title: "EMAIL",
+        subtitle: user?.email?.trim() || undefined,
+        icon: <EmailIcon color={Colors.light.subtext} size={24} />,
+        route: "/(private)/changeemailid",
+      },
+      {
+        title: "CHANGE PASSWORD",
+        icon: <ChangePasswordIcon color={Colors.light.subtext} size={24} />,
+        route: "/(private)/changepassword",
+      },
+    ],
+    [user?.email],
+  );
 
   const handleItemPress = (item: ListItem) => {
     if (item.route) {
@@ -106,13 +101,16 @@ export default function MyAccountScreen() {
 
   return (
     <BlackScreenWrapper>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.container}>
           <Text style={styles.sectionTitle}>MEMBERSHIP</Text>
           {MEMBERSHIP_ITEMS.map((item, index) => renderItem(item, index))}
 
           <Text style={styles.sectionTitle}>PERSONAL INFORMATION</Text>
-          {PERSONAL_ITEMS.map((item, index) => renderItem(item, index + 100))}
+          {personalItems.map((item, index) => renderItem(item, index + 100))}
         </View>
       </ScrollView>
     </BlackScreenWrapper>

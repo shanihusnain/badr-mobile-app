@@ -2,21 +2,23 @@ import type { ImageSourcePropType } from "react-native";
 import {
   BeforeJournalCustomization,
   hometabcard,
+  tawbahprayerbottomsheetimage,
   tutorialForgeSupportTeam,
   tutorialMonthlyProgress,
   tutorialPersonalizeNotifications,
   tutorialPrepareGoalCycle,
   tutorialSetupJournal,
-  tutorialViewIbadat,
 } from "@/assets/images";
 import type { TutorialTaskKey } from "@/src/api/queries/useGetTutorials";
 
-/** Figma card exports that already include title typography. */
+/**
+ * Figma card exports that already include title typography in the image.
+ * VIEW_IBADAT_DETAILS uses a photo background + overlaid title instead.
+ * Chart cards (week/month) are drawn with TutorialChartCard so bg colors match.
+ */
 export const TUTORIAL_TASKS_WITH_BAKED_TITLE = new Set<string>([
   "PERSONALIZE_NOTIFICATIONS",
   "SET_UP_JOURNAL",
-  "VIEW_IBADAT_DETAILS",
-  "MONTHLY_PROGRESS",
   "FORGE_SUPPORT_TEAM",
   "PREPARE_NEXT_CYCLE",
 ]);
@@ -27,8 +29,11 @@ export const TUTORIAL_CHART_KEYS = new Set<string>([
   "MONTHLY_PROGRESS",
 ]);
 
-/** Rendered with SVG (avoids broken screenshot crops). */
-export const TUTORIAL_SVG_CHART_KEYS = new Set<string>(["WEEK_IN_REVIEW"]);
+/** Rendered with SVG so week/month share the same card background. */
+export const TUTORIAL_SVG_CHART_KEYS = new Set<string>([
+  "WEEK_IN_REVIEW",
+  "MONTHLY_PROGRESS",
+]);
 
 /** Local art — prefer API imageUrl when present. */
 export const TUTORIAL_TASK_FALLBACK_IMAGE: Partial<
@@ -36,7 +41,7 @@ export const TUTORIAL_TASK_FALLBACK_IMAGE: Partial<
 > = {
   PERSONALIZE_NOTIFICATIONS: tutorialPersonalizeNotifications,
   SET_UP_JOURNAL: tutorialSetupJournal,
-  VIEW_IBADAT_DETAILS: tutorialViewIbadat,
+  VIEW_IBADAT_DETAILS: tawbahprayerbottomsheetimage,
   MONTHLY_PROGRESS: tutorialMonthlyProgress,
   FORGE_SUPPORT_TEAM: tutorialForgeSupportTeam,
   PREPARE_NEXT_CYCLE: tutorialPrepareGoalCycle,
@@ -48,12 +53,13 @@ export function resolveTaskImage(
   key: string,
   remoteUrl?: string | null,
 ): ImageSourcePropType | { uri: string } | null {
+  // Prefer designed local cards (full-bleed photo + title) when available —
+  // API imageUrl is often a raw photo that leaves grey padding in the card.
+  const local = TUTORIAL_TASK_FALLBACK_IMAGE[key as TutorialTaskKey];
+  if (local) return local;
   const trimmed = remoteUrl?.trim();
   if (trimmed) return { uri: trimmed };
-  return (
-    TUTORIAL_TASK_FALLBACK_IMAGE[key as TutorialTaskKey] ??
-    BeforeJournalCustomization
-  );
+  return BeforeJournalCustomization;
 }
 
 export function resolveVideoThumbnail(
