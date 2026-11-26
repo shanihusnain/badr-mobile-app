@@ -157,5 +157,5 @@ export function resolveGoalVisibleCount(
       ? Math.max(0, Math.round(data.visibleCount))
       : 7;
   const timeSpentCount = countTimeSpentWidgets(data?.widgets);
-  return Math.max(0, raw - timeSpentCount);
+  return Math.min(5, Math.max(0, raw - timeSpentCount));
 }

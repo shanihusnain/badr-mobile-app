@@ -1008,7 +1008,11 @@ export const CalendarGrid = ({
                   mode === "white_days_achievement"
                     ? styles.cycleStartDayHijri
                     : mode === "planned_progress"
-                      ? [styles.dayHijri, hijriStyle]
+                      ? [
+                          styles.dayHijri,
+                          styles.plannedProgressDayHijri,
+                          hijriStyle,
+                        ]
                       : [styles.dayHijri, textStyle]
                 }
               >
@@ -1235,8 +1239,8 @@ const styles = StyleSheet.create({
   },
   missedWarningIcon: {
     position: "absolute",
-    bottom: -2,
-    right: -6,
+    bottom: 0,
+    right: -4,
     zIndex: 3,
   },
   dawoodMissedWarningOutside: {
@@ -1292,6 +1296,11 @@ const styles = StyleSheet.create({
   /** Today only — background, no size/spacing change (mirrors cycleStartMarkerSelected). */
   plannedProgressTodayMarker: {
     backgroundColor: Colors.light.calendarTodayBg,
+    minHeight: 54,
+    borderRadius: 2,
+  },
+  plannedProgressDayHijri: {
+    marginTop: 4,
   },
   cycleStartWeekdayLabel: {
     color: Colors.light.white,
