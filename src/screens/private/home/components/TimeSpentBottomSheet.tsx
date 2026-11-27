@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   card: {
-    backgroundColor: Colors.light.calendarBg,
+    backgroundColor: "#213144",
     borderRadius: 10,
     padding: 12,
   },

@@ -1463,14 +1463,16 @@ export const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     left: 30,
+    width: "82%",
     zIndex: 2,
     alignItems: "center",
   },
   timeSpentChartHintBubbleInner: {
-    borderRadius: 10,
+    width: "100%",
+    borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: Colors.light.greybuttonBackground,
+    backgroundColor: "#2F4054",
     alignItems: "center",
     gap: 8,
   },
@@ -1501,7 +1503,7 @@ export const styles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: Colors.light.greybuttonBackground,
+    borderTopColor: "#2F4054",
   },
   timeSpentChartContainer: {
     height: 240,
@@ -1513,6 +1515,14 @@ export const styles = StyleSheet.create({
     top: 12,
     bottom: 8,
     zIndex: 4,
+  },
+  timeSpentZeroAxisLabel: {
+    position: "absolute",
+    left: 8,
+    color: Colors.light.grey,
+    fontFamily: fonts.primary.regular,
+    fontSize: 10,
+    lineHeight: 12,
   },
   timeSpentXAxisContainerWeek: {
     height: 36,
@@ -1638,14 +1648,21 @@ export const styles = StyleSheet.create({
   timeSpentDetailSummaryBox: {
     borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 0,
+  },
+  timeSpentDetailDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
   },
   timeSpentDetailSummaryText: {
-    color: Colors.light.grey,
+    color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: 20,
+    textAlign: "left",
   },
   timeSpentDetailTabsScroll: {
     flexGrow: 0,
@@ -1654,6 +1671,13 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  timeSpentDetailTab: {
+    minWidth: 64,
+  },
+  timeSpentDetailDeltaBadge: {
+    borderRadius: 4,
+    paddingHorizontal: 8,
   },
   timeSpentDetailDotsRow: {
     flexDirection: "row",

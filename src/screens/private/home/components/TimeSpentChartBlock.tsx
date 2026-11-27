@@ -336,6 +336,16 @@ export function TimeSpentChartBlock({
         {hasGraphData && barCenterXs.length > 0 ? (
           <BarHitAreas barCenterXs={barCenterXs} onBarPress={onBarPress} />
         ) : null}
+        {chartBounds ? (
+          <Text
+            style={[
+              styles.timeSpentZeroAxisLabel,
+              { top: chartBounds.bottom - 7 },
+            ]}
+          >
+            0
+          </Text>
+        ) : null}
       </View>
 
       <XAxisLabels
