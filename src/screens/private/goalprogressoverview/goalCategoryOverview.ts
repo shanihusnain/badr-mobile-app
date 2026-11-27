@@ -1,5 +1,20 @@
 import { Colors } from "@/constants/theme";
-import { getGoalsByCategory, GoalData } from "../home/components/goalsData";
+import {
+  getGoalById,
+  type GoalData,
+  type GoalId,
+} from "../home/components/goalsData";
+import type { GoalCycleCategoryGoal } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
+import type { GoalCycleCategorySummary } from "@/src/api/queries/useGetGoalCycleCategories";
+import {
+  formatDailyProgressGoalSubtitle,
+  formatDailyProgressGoalTitle,
+  getFastingGoalsDataKey,
+  getSadaqahGoalsDataKey,
+  goalTypeToGoalId,
+  toUiIbadahCategory,
+  type UiIbadahCategory,
+} from "@/src/utils/goalCycleCategoryMap";
 
 export type GoalCategorySlug = "prayer" | "quran" | "fasting" | "sadaqah";
 
@@ -12,16 +27,23 @@ const SLUG_TO_CATEGORY: Record<GoalCategorySlug, GoalCategory> = {
   sadaqah: "SADAQAH",
 };
 
+export type CategoryProgressGoalRow = {
+  id: GoalId;
+  title: string;
+  count: string;
+  label: string;
+  percentage: string;
+  progressColor: string;
+  titleFontSize?: number;
+};
+
 export type CategoryProgressOverview = {
   slug: GoalCategorySlug;
   category: GoalCategory;
-  goals: GoalData[];
+  goals: CategoryProgressGoalRow[];
   goalsCount: number;
   averagePercentage: number;
   progressColor: string;
-  notStarted: number;
-  inProgress: number;
-  completed: number;
 };
 
 export const CATEGORY_ICON_COLOR: Record<GoalCategory, string> = {
@@ -30,9 +52,6 @@ export const CATEGORY_ICON_COLOR: Record<GoalCategory, string> = {
   FASTING: Colors.light.green,
   SADAQAH: Colors.light.ringSadaqah,
 };
-
-export const parseGoalPercentage = (percentage: string): number =>
-  Number.parseInt(percentage.replace("%", ""), 10) || 0;
 
 export const isGoalCategorySlug = (value: string): value is GoalCategorySlug =>
   value in SLUG_TO_CATEGORY;
@@ -52,45 +71,113 @@ export const getProgressMessageTier = (
   return "promising";
 };
 
-export const getCategoryProgressOverview = (
-  slug: string,
-): CategoryProgressOverview | null => {
-  if (!isGoalCategorySlug(slug)) return null;
+export function resolveCategorySlug(value: string): GoalCategorySlug | null {
+  const normalized = value.trim().toLowerCase();
+  if (isGoalCategorySlug(normalized)) return normalized;
+  const ui = toUiIbadahCategory(normalized);
+  if (!ui) return null;
+  const entry = (
+    Object.entries(SLUG_TO_CATEGORY) as [GoalCategorySlug, GoalCategory][]
+  ).find(([, category]) => category === ui);
+  return entry?.[0] ?? null;
+}
 
+export function findCategorySummary(
+  summaries: GoalCycleCategorySummary[] | undefined,
+  slug: GoalCategorySlug,
+): GoalCycleCategorySummary | null {
+  if (!summaries?.length) return null;
+  return (
+    summaries.find((item) => item.category?.toLowerCase() === slug) ?? null
+  );
+}
+
+type MapGoalsOptions = {
+  slug: GoalCategorySlug;
+  goals: GoalCycleCategoryGoal[];
+  progressColor: string;
+  translateGoalsDataTitle?: (key: string) => string;
+};
+
+export function mapCategoryGoalsToRows({
+  slug,
+  goals,
+  progressColor,
+  translateGoalsDataTitle,
+}: MapGoalsOptions): CategoryProgressGoalRow[] {
+  return goals.flatMap((goal) => {
+    const goalId = goalTypeToGoalId(slug, goal.goalType);
+    const target = goal.target ?? 0;
+    if (!goalId || target <= 0) return [];
+
+    const goalsDataKey =
+      getFastingGoalsDataKey(goal.goalType) ??
+      getSadaqahGoalsDataKey(goal.goalType);
+    const translated =
+      goalsDataKey && translateGoalsDataTitle
+        ? translateGoalsDataTitle(goalsDataKey).trim()
+        : "";
+    const title =
+      translated || formatDailyProgressGoalTitle(goalId, goal.displayName);
+    const { subtitleCount, subtitleLabel } =
+      formatDailyProgressGoalSubtitle(goal);
+
+    return [
+      {
+        id: goalId,
+        title,
+        count: subtitleCount,
+        label: subtitleLabel,
+        percentage: `${Math.round(goal.completedPct ?? 0)}%`,
+        progressColor,
+        titleFontSize: getGoalById(goalId)?.titleFontSize,
+      },
+    ];
+  });
+}
+
+export function buildCategoryProgressOverview(params: {
+  slug: GoalCategorySlug;
+  summary: GoalCycleCategorySummary | null;
+  goals: GoalCycleCategoryGoal[];
+  translateGoalsDataTitle?: (key: string) => string;
+}): CategoryProgressOverview {
+  const { slug, summary, goals, translateGoalsDataTitle } = params;
   const category = SLUG_TO_CATEGORY[slug];
-  const goals = getGoalsByCategory(category);
-  const goalsCount = goals.length;
+  const progressColor = CATEGORY_ICON_COLOR[category];
+  const rows = mapCategoryGoalsToRows({
+    slug,
+    goals,
+    progressColor,
+    translateGoalsDataTitle,
+  });
+
+  const goalsCount =
+    summary?.totalGoals && summary.totalGoals > 0
+      ? summary.totalGoals
+      : rows.length;
 
   const averagePercentage =
-    goalsCount > 0
-      ? Math.round(
-          goals.reduce(
-            (sum, goal) => sum + parseGoalPercentage(goal.percentage),
-            0,
-          ) / goalsCount,
-        )
-      : 0;
-
-  let notStarted = 0;
-  let inProgress = 0;
-  let completed = 0;
-
-  goals.forEach((goal) => {
-    const value = parseGoalPercentage(goal.percentage);
-    if (value >= 100) completed += 1;
-    else if (value === 0) notStarted += 1;
-    else inProgress += 1;
-  });
+    summary?.completedPct != null
+      ? Math.round(summary.completedPct)
+      : rows.length > 0
+        ? Math.round(
+            rows.reduce(
+              (sum, row) =>
+                sum + (Number.parseInt(row.percentage.replace("%", ""), 10) || 0),
+              0,
+            ) / rows.length,
+          )
+        : 0;
 
   return {
     slug,
     category,
-    goals,
+    goals: rows,
     goalsCount,
     averagePercentage,
-    progressColor: goals[0]?.progressColor ?? Colors.light.green,
-    notStarted,
-    inProgress,
-    completed,
+    progressColor,
   };
-};
+}
+
+export type { UiIbadahCategory };

@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { BlackScreenWrapper } from "@/components/atoms/BlackScreenWrapper";
 import { StyleSheet, Text, TextStyle, View, ScrollView } from "react-native";
 import { TaperedCircleBorder } from "@/components/atoms/TaperedCircleBorder";
+import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Colors } from "@/constants/theme";
 import { TopSpace } from "@/components/atoms/TopSpace";
 import { fonts } from "@/assets/fonts";
@@ -19,11 +21,15 @@ import {
   OVERVIEW_FASTING_TRACK_TABS,
 } from "@/src/screens/private/home/components/FastingOverviewCalendarSection";
 import { GoalData } from "@/src/screens/private/home/components/goalsData";
+import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCategories";
+import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 import {
+  buildCategoryProgressOverview,
   CATEGORY_ICON_COLOR,
-  getCategoryProgressOverview,
+  findCategorySummary,
   getProgressMessageTier,
-  GoalCategorySlug,
+  resolveCategorySlug,
+  type GoalCategorySlug,
 } from "./goalCategoryOverview";
 
 type TextPart = { text: string; bold: boolean };
@@ -74,6 +80,13 @@ const CATEGORY_LABEL_KEYS: Record<
   sadaqah: "goalProgressOverview.categorySadaqah",
 };
 
+const SLUG_TO_CATEGORY: Record<GoalCategorySlug, GoalData["category"]> = {
+  prayer: "PRAYER",
+  quran: "QURAN",
+  fasting: "FASTING",
+  sadaqah: "SADAQAH",
+};
+
 const renderCategoryIcon = (category: GoalData["category"], color: string) => {
   switch (category) {
     case "PRAYER":
@@ -94,18 +107,61 @@ interface GoalProgressOverViewProps {
 }
 
 export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const formatNumber = useLocaleNumber();
-  const overview = getCategoryProgressOverview(goal);
 
-  if (!overview) {
+  const slug = resolveCategorySlug(goal ?? "");
+  const category = slug ? SLUG_TO_CATEGORY[slug] : null;
+
+  const { data: categorySummaries = [], isLoading: isCategoriesLoading } =
+    useGetGoalCycleCategories({ enabled: !!slug });
+  const { data: categoryGoals, isLoading: isCategoryGoalsLoading } =
+    useGetGoalCycleCategoryGoals(slug, { enabled: !!slug });
+
+  const summary = useMemo(
+    () => (slug ? findCategorySummary(categorySummaries, slug) : null),
+    [categorySummaries, slug],
+  );
+
+  const isLoading = !!slug && (isCategoriesLoading || isCategoryGoalsLoading);
+
+  const overview = useMemo(() => {
+    if (!slug || !category || isLoading) return null;
+
+    return buildCategoryProgressOverview({
+      slug,
+      summary,
+      goals: categoryGoals?.goals ?? [],
+      translateGoalsDataTitle: (key) =>
+        i18n.t(`goalsData.${key}.title`, { defaultValue: "" }),
+    });
+  }, [
+    category,
+    categoryGoals?.goals,
+    i18n,
+    isLoading,
+    slug,
+    summary,
+  ]);
+
+  if (!slug) {
     return (
       <BlackScreenWrapper>
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
             {t("goalProgressOverview.notFound")}
           </Text>
+        </View>
+      </BlackScreenWrapper>
+    );
+  }
+
+  if (isLoading || !overview) {
+    return (
+      <BlackScreenWrapper>
+        <View style={styles.loadingState}>
+          <LoadingComponent size="large" />
         </View>
       </BlackScreenWrapper>
     );
@@ -150,6 +206,7 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
             size={220}
             style={{ alignSelf: "center" }}
             borderColor={Colors.light.dullWhiteOpacity}
+            variant="illuminated"
           >
             <Text style={styles.goalsCountText}>{goalsCountLabel}</Text>
 
@@ -222,6 +279,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
+  },
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyStateText: {
     color: Colors.light.subtext,
