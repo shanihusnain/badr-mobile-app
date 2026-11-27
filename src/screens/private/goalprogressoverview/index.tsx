@@ -9,9 +9,6 @@ import { fonts } from "@/assets/fonts";
 import { useTranslation } from "react-i18next";
 import { useLocaleNumber } from "@/hooks/useLocaleNumber";
 import { useRouter } from "expo-router";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   DetailedIbadahsProgressCard,
   getDetailedIbadahIcon,
@@ -25,7 +22,6 @@ import { useGetGoalCycleCategories } from "@/src/api/queries/useGetGoalCycleCate
 import { useGetGoalCycleCategoryGoals } from "@/src/api/queries/useGetGoalCycleCategoryGoals";
 import {
   buildCategoryProgressOverview,
-  CATEGORY_ICON_COLOR,
   findCategorySummary,
   getProgressMessageTier,
   resolveCategorySlug,
@@ -85,21 +81,6 @@ const SLUG_TO_CATEGORY: Record<GoalCategorySlug, GoalData["category"]> = {
   quran: "QURAN",
   fasting: "FASTING",
   sadaqah: "SADAQAH",
-};
-
-const renderCategoryIcon = (category: GoalData["category"], color: string) => {
-  switch (category) {
-    case "PRAYER":
-      return <FontAwesome6 name="person-praying" size={18} color={color} />;
-    case "QURAN":
-      return <Ionicons name="book" size={18} color={color} />;
-    case "FASTING":
-      return <MaterialCommunityIcons name="food-off" size={18} color={color} />;
-    case "SADAQAH":
-      return <FontAwesome6 name="hand-holding-heart" size={18} color={color} />;
-    default:
-      return null;
-  }
 };
 
 interface GoalProgressOverViewProps {
@@ -184,8 +165,6 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
     messageParams,
   );
 
-  const categoryIconColor = CATEGORY_ICON_COLOR[overview.category];
-
   const handleGoalPress = (goalId: string) => {
     router.push({
       pathname: "/goalprogressloggingscreen/[goalId]",
@@ -233,16 +212,13 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
           {overview.goals.map((goalItem) => (
             <DetailedIbadahsProgressCard
               key={goalItem.id}
+              category={overview.category}
               title={goalItem.title}
               subtitleCount={goalItem.count}
               subtitleLabel={goalItem.label}
               centerIconOnMultiLine={overview.category === "QURAN"}
-              icon={
-                overview.category === "PRAYER" || overview.category === "QURAN"
-                  ? getDetailedIbadahIcon(goalItem.id, Colors.light.white)
-                  : renderCategoryIcon(overview.category, categoryIconColor)
-              }
-              iconBgColor={categoryIconColor + "22"}
+              icon={getDetailedIbadahIcon(goalItem.id, Colors.light.white)}
+              iconBgColor={Colors.light.ibadahIconCircleBg}
               percentage={goalItem.percentage}
               progressColor={goalItem.progressColor}
               onPress={() => handleGoalPress(goalItem.id)}
