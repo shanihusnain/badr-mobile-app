@@ -22,7 +22,6 @@ import { styles } from "../styles";
 import { TimeSpentCategoryRow } from "./TimeSpentCategoryRow";
 import { TimeSpentChartBlock } from "./TimeSpentChartBlock";
 import { useGetHomeScreenTimeSpent } from "@/src/api/queries/useGetHomeScreenTimeSpent";
-import { ExclamationWithcircle } from "@/assets/icons";
 
 const TAB_TO_CATEGORY: Record<TimeSpentTab, string> = {
   All: "ALL",
@@ -196,7 +195,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
           </Text>
           <View style={styles.deltaSlot}>
             {showDeltaChip ? (
-              <View style={styles.deltaBadge}>
+              <View style={[styles.deltaBadge, styles.timeSpentDetailDeltaBadge]}>
                 <AntDesign
                   name={deltaIsPositive ? "caret-up" : "caret-down"}
                   size={14}
@@ -248,12 +247,43 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
         </View>
       </View>
 
-      <TopSpace top={12} />
+      <TopSpace top={8} />
+      <View style={styles.timeSpentDetailDateRow}>
+        <Pressable
+          onPress={onPreviousPeriod}
+          disabled={!canGoPrevious || isChartLoading}
+          hitSlop={8}
+          style={{ opacity: canGoPrevious && !isChartLoading ? 1 : 0.3 }}
+        >
+          <Entypo
+            name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
+            size={18}
+            color={Colors.light.white}
+          />
+        </Pressable>
+        <Text style={styles.timeSpentNavLabel}>
+          {timeSpentData?.rangeLabel ?? periodRangeLabel}
+        </Text>
+        <Pressable
+          onPress={onNextPeriod}
+          disabled={!canGoNext || isChartLoading}
+          hitSlop={8}
+          style={{ opacity: canGoNext && !isChartLoading ? 1 : 0.3 }}
+        >
+          <Entypo
+            name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
+            size={18}
+            color={Colors.light.white}
+          />
+        </Pressable>
+      </View>
+
+      <TopSpace top={6} />
       <View style={styles.timeSpentDetailSummaryBox}>
         <Text style={styles.timeSpentDetailSummaryText}>{summaryText}</Text>
       </View>
 
-      <TopSpace top={16} />
+      <TopSpace top={8} />
       <ScrollView
         horizontal
         style={styles.timeSpentDetailTabsScroll}
@@ -276,6 +306,7 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
             <Tabs
               key={tab}
               label={translatedTabLabel}
+              tabStyle={styles.timeSpentDetailTab}
               selectedTab={
                 selectedTab === tab ? translatedTabLabel : selectedTab
               }
@@ -316,37 +347,6 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
             !showChartHint && styles.timeSpentNavSectionExpanded,
           ]}
         >
-          <View style={styles.timeSpentNavRow}>
-            <Pressable
-              onPress={onPreviousPeriod}
-              disabled={!canGoPrevious || isChartLoading}
-              hitSlop={8}
-              style={{
-                opacity: canGoPrevious && !isChartLoading ? 1 : 0.3,
-              }}
-            >
-              <Entypo
-                name={i18n.language === "ar" ? "chevron-right" : "chevron-left"}
-                size={18}
-                color={Colors.light.white}
-              />
-            </Pressable>
-            <Text style={styles.timeSpentNavLabel}>
-              {timeSpentData?.rangeLabel ?? periodRangeLabel}
-            </Text>
-            <Pressable
-              onPress={onNextPeriod}
-              disabled={!canGoNext || isChartLoading}
-              hitSlop={8}
-              style={{ opacity: canGoNext && !isChartLoading ? 1 : 0.3 }}
-            >
-              <Entypo
-                name={i18n.language === "ar" ? "chevron-left" : "chevron-right"}
-                size={18}
-                color={Colors.light.white}
-              />
-            </Pressable>
-          </View>
           <View style={styles.timeSpentTotalBlock}>
             <Text style={styles.timeSpentTotalCaption}>
               {t("homeScreen.timeSpentTitle")}
@@ -377,13 +377,6 @@ export function TimeSpentDetailOverview({ selectedDate = "" }: Props) {
             yMax={yMax}
             yTicks={yTicks}
           />
-
-          <View style={styles.timeSpentDisclaimerRow}>
-            <ExclamationWithcircle />
-            <Text style={styles.timeSpentDisclaimerText}>
-              {timeSpentData?.note ?? t("homeScreen.timeSpentDisclaimer")}
-            </Text>
-          </View>
 
           {selectedBarIndex !== null && chartData.length > 0 ? (
             <View style={styles.timeSpentDetailDotsRow}>
