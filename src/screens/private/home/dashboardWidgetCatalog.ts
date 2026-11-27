@@ -207,4 +207,5 @@ export const DASHBOARD_CUSTOMIZE_FALLBACK_TABS: {
   { key: DashboardCategoryType.QURAN, label: "Quran" },
   { key: DashboardCategoryType.FASTING, label: "Fasting" },
   { key: DashboardCategoryType.SADAQAH, label: "Sadaqah" },
+  { key: DashboardCategoryType.TIME_SPENT, label: "Time Spent" },
 ];

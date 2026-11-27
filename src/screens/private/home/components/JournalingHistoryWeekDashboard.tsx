@@ -177,10 +177,10 @@ const styles = StyleSheet.create({
   },
   dayItemTodayBackground: {
     position: "absolute",
-    top: -12,
-    right: -4,
+    top: -7,
+    right: -8,
     bottom: -14,
-    left: -4,
+    left: -8,
     backgroundColor: Colors.light.dayProgressCardBg,
     borderRadius: 8,
   },
