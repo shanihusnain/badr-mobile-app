@@ -31,22 +31,23 @@ import { FontAwesome } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/Feather";
 import { useTypedTranslation } from "@/i18next/useTypedTranslation";
 import { CalendarWarning } from "@/assets/icons";
+import { ms, s } from "@/src/utils/responsive";
 
-const RING_SIZE = 24;
-const COMPLETED_DOT_SIZE = 18;
+const RING_SIZE = ms(24);
+const COMPLETED_DOT_SIZE = ms(18);
 /**
  * Shared day footprint for cycle-window calendars (fasting goals).
  * Matches cycle_start cell size so grids stay visually consistent.
  * cycle_start still uses its own style overrides and never reads RING_SIZE.
  */
-const DAY_CELL_WIDTH = 36;
-const DAY_CELL_HEIGHT = 48;
+const DAY_CELL_WIDTH = ms(36);
+const DAY_CELL_HEIGHT = ms(48);
 /**
  * Marker slot for Gregorian digit + ring/dot.
  * Independent of RING_SIZE so ring scaling does not shift day/Hijri layout.
  */
-const DAY_MARKER_SLOT_WIDTH = 28;
-const DAY_MARKER_SLOT_HEIGHT = 24;
+const DAY_MARKER_SLOT_WIDTH = ms(28);
+const DAY_MARKER_SLOT_HEIGHT = ms(24);
 
 const ringStyle: ViewStyle = {
   width: RING_SIZE,
@@ -997,7 +998,7 @@ export const CalendarGrid = ({
                 ds === cycleRestartDate ? (
                   <Feather
                     name="refresh-ccw"
-                    size={12}
+                    size={ms(12)}
                     color={Colors.light.ringDawood}
                     style={styles.cycleRestartIcon}
                   />
@@ -1124,30 +1125,30 @@ const styles = StyleSheet.create({
   cycleGrid: {
     // Match cycle_start padding so fasting goal grids share the same chrome.
     backgroundColor: Colors.light.calendarBg,
-    paddingTop: 12,
+    paddingTop: ms(12),
     paddingBottom: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: ms(16),
   },
   // ── Cycle Start mode (Figma: Cycle Start Date frame) ────────────────
   // Intentionally replaces base cycleGrid padding (do not stack with paddingVertical).
   cycleStartGrid: {
     backgroundColor: Colors.light.calendarBg,
-    paddingTop: 12,
+    paddingTop: ms(12),
     paddingBottom: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: ms(16),
   },
   calendarFooter: {
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: ms(12),
+    paddingBottom: ms(16),
   },
   dobFooter: {
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingTop: ms(24),
+    paddingBottom: ms(16),
   },
   cycleStartFooter: {
-    paddingTop: 12,
-    paddingBottom: 20,
-    paddingHorizontal: 4,
+    paddingTop: ms(12),
+    paddingBottom: ms(20),
+    paddingHorizontal: ms(4),
   },
   weekdayHeader: {
     flexDirection: "row",
@@ -1156,10 +1157,10 @@ const styles = StyleSheet.create({
   weekdayLabel: {
     flex: 1,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: ms(12),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    marginBottom: 8,
+    marginBottom: ms(8),
     fontWeight: "400",
   },
   weekRow: {
@@ -1187,18 +1188,18 @@ const styles = StyleSheet.create({
     height: DAY_CELL_HEIGHT,
     paddingVertical: 0,
     borderRadius: 0,
-    marginBottom: 7,
+    marginBottom: ms(7),
   },
   /** DOB: shorter rows (same width), tighter vertical gap */
   dobDayCell: {
-    height: 44,
-    marginBottom: 2,
+    height: s(44),
+    marginBottom: ms(2),
   },
   dobPaddingDayCell: {
-    height: 40,
+    height: s(40),
   },
   dobWeekdayLabel: {
-    marginBottom: 4,
+    marginBottom: ms(4),
   },
   dayMarkerWrap: {
     width: DAY_MARKER_SLOT_WIDTH,
@@ -1240,27 +1241,27 @@ const styles = StyleSheet.create({
   missedWarningIcon: {
     position: "absolute",
     bottom: 0,
-    right: -4,
+    right: ms(-4),
     zIndex: 3,
   },
   dawoodMissedWarningOutside: {
     position: "absolute",
-    bottom: -2,
-    right: -8,
+    bottom: ms(-2),
+    right: ms(-8),
     zIndex: 3,
   },
   cycleRestartIcon: {
     position: "absolute",
-    bottom: -4,
-    right: -14,
+    bottom: ms(-4),
+    right: ms(-14),
     zIndex: 4,
   },
   dayGregorian: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    lineHeight: 14,
+    lineHeight: ms(14),
     textAlign: "center",
   },
   dayGregorianAboveDot: {
@@ -1268,56 +1269,56 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   dayHijri: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: Colors.light.grey,
     marginTop: 0,
-    lineHeight: 12,
+    lineHeight: ms(12),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",
   },
   dobSelectedMarker: {
     backgroundColor: Colors.light.calendarTodayBg,
-    borderRadius: 5,
-    paddingHorizontal: 2,
-    paddingVertical: 1,
+    borderRadius: ms(5),
+    paddingHorizontal: ms(2),
+    paddingVertical: ms(1),
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 20,
+    minWidth: ms(20),
   },
   /** Same chrome every fasting day (mirrors cycleStartMarker). */
   plannedProgressDayMarker: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
-    borderRadius: 4,
-    minWidth: 15,
+    paddingHorizontal: ms(4),
+    borderRadius: ms(4),
+    minWidth: ms(15),
   },
   /** Today only — background, no size/spacing change (mirrors cycleStartMarkerSelected). */
   plannedProgressTodayMarker: {
     backgroundColor: Colors.light.calendarTodayBg,
-    minHeight: 54,
-    borderRadius: 2,
+    minHeight: s(54),
+    borderRadius: ms(2),
   },
   plannedProgressDayHijri: {
-    marginTop: 4,
+    marginTop: ms(4),
   },
   cycleStartWeekdayLabel: {
     color: Colors.light.white,
-    marginBottom: 8,
-    fontSize: 12,
+    marginBottom: ms(8),
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
   cycleStartDayPressable: {
-    width: 36,
+    width: ms(36),
   },
   cycleStartDayCell: {
-    width: 36,
-    height: 52,
+    width: ms(36),
+    height: s(52),
     paddingVertical: 0,
     borderRadius: 0,
-    marginBottom: 7,
+    marginBottom: ms(7),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
@@ -1325,17 +1326,17 @@ const styles = StyleSheet.create({
   cycleStartMarker: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: ms(4),
 
-    borderRadius: 4,
-    minWidth: 15,
+    borderRadius: ms(4),
+    minWidth: ms(15),
   },
   cycleStartMarkerSelected: {
     backgroundColor: Colors.light.calendarTodayBg,
   },
   cycleStartDayGregorian: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: ms(12),
+    lineHeight: ms(20),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     color: Colors.light.white,
@@ -1346,16 +1347,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   cycleStartDayHijri: {
-    fontSize: 10,
-    marginTop: 8,
-    lineHeight: 14,
+    fontSize: ms(10),
+    marginTop: ms(8),
+    lineHeight: ms(14),
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     textAlign: "center",
   },
   cycleStartPaddingDayCell: {
-    width: 36,
-    height: 52,
+    width: ms(36),
+    height: s(52),
   },
 });

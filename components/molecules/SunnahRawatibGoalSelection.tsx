@@ -18,6 +18,7 @@ import { GoalSelectionOpenCloseButton } from "./GoalSelectionOpenCloseButton";
 import { Divider } from "../atoms/Divider";
 import { SwitchButton } from "../atoms/SwitchButton";
 import { useAuth } from "@/provider/useAuth";
+import { ms } from "@/src/utils/responsive";
 
 function RadioOption({
   selected,
@@ -247,11 +248,11 @@ export default function SunnahRawatibGoalSelection({
           {user.gender === "FEMALE" ? (
             <Text
               style={{
-                fontSize: 10,
+                fontSize: ms(10),
                 fontFamily: fonts.primary.regular,
                 fontWeight: "400",
                 color: Colors.light.white,
-                marginBottom: 20,
+                marginBottom: ms(20),
                 opacity: 0.6,
               }}
             >
@@ -414,32 +415,32 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
+    borderRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(16),
+    paddingBottom: ms(16),
     marginVertical: 0,
   },
   expandedContent: {
     width: "100%",
-    paddingTop: 12,
-    paddingBottom: 6,
+    paddingTop: ms(12),
+    paddingBottom: ms(6),
   },
   sliderGroup: {
     width: "100%",
     // Track → next label ≈ Figma (~35px) with compact slider.
-    marginBottom: 20,
-    paddingRight: 10,
+    marginBottom: ms(20),
+    paddingRight: ms(10),
   },
   sliderHeading: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: ms(16),
     alignSelf: "flex-start",
     textAlign: "left",
-    // marginBottom: 14,
+    // marginBottom: ms(14),
   },
   sliderHeadingParen: {
     fontFamily: fonts.primary.regular,
@@ -447,7 +448,7 @@ const styles = StyleSheet.create({
   },
   // Match Before Asr switchRow → radios gap.
   headingAboveRadios: {
-    marginBottom: 14,
+    marginBottom: ms(14),
   },
   slider: {
     // Keep CustomSlider 112% bleed — do not force width: "100%".
@@ -460,8 +461,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    gap: 12,
-    marginBottom: 14,
+    gap: ms(12),
+    marginBottom: ms(14),
   },
   switchHeading: {
     flex: 1,
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    gap: 20,
+    gap: ms(20),
     // No extra margin — CustomSlider compact paddingTop (28) matches header→slider gap.
     marginBottom: 0,
     width: "100%",
@@ -490,40 +491,40 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   radioOuter: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: ms(14),
+    height: ms(14),
+    borderRadius: ms(7),
     borderWidth: 1,
     borderColor: Colors.light.grey,
     backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: ms(8),
   },
   radioOuterSelected: {
     borderColor: Colors.light.grey,
   },
   radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
     backgroundColor: Colors.light.green,
   },
   radioText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
-    lineHeight: 16,
+    lineHeight: ms(16),
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
-    lineHeight: 20,
+    lineHeight: ms(20),
     marginTop: 0,
-    marginBottom: 32,
+    marginBottom: ms(32),
     letterSpacing: 0.1,
     textAlign: "center",
   },
@@ -538,7 +539,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },

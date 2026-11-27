@@ -23,6 +23,7 @@ import { styles } from "./style";
 import { useTranslation } from "react-i18next";
 import { useValidations } from "@/src/validations/useValidations";
 import { useForgotPassword } from "@/src/api/mutations/useForgotPassword";
+import { ms } from "@/src/utils/responsive";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export default function ForgotPasswordScreen() {
                         errors.email?.message ? [errors.email.message] : []
                       }
                       autoCapitalize="none"
-                      leftIcon={<EmailAddressMailIcon />}
+                      leftIcon={<EmailAddressMailIcon size={ms(20)} />}
                       inputStyle={styles.emailInput}
                       containerStyle={styles.emailContainer}
                     />

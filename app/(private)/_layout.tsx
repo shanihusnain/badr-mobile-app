@@ -9,6 +9,7 @@ import { HeaderWithCrossTitleDynamicIcon } from "@/components/atoms/HeaderWithCr
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
 import { CrossHeader } from "@/components/atoms/CrossHeader";
 import { JournalFillingHeader } from "@/components/atoms/JournalFillingHeader";
+import { ms } from "@/src/utils/responsive";
 
 export default function PrivateLayout() {
   const { t } = useTranslation();
@@ -37,7 +38,13 @@ export default function PrivateLayout() {
             header: () => (
               <Header
                 title={t("monthlyGoalPlanner.title")}
-                extraTopPadding={12}
+                fontSize={ms(14)}
+                lineHeight={ms(18)}
+                extraTopPadding={ms(12)}
+                horizontalPadding={ms(16)}
+                topPadding={ms(10)}
+                sideSlotWidth={ms(40)}
+                titleHorizontalMargin={ms(8)}
               />
             ),
           }}
@@ -49,8 +56,14 @@ export default function PrivateLayout() {
             header: () => (
               <Header
                 title={t("monthlyGoalPlanner.title")}
-                extraTopPadding={12}
-                extraBottomPadding={12}
+                fontSize={ms(14)}
+                lineHeight={ms(18)}
+                extraTopPadding={ms(12)}
+                extraBottomPadding={ms(12)}
+                horizontalPadding={ms(16)}
+                topPadding={ms(10)}
+                sideSlotWidth={ms(40)}
+                titleHorizontalMargin={ms(8)}
               />
             ),
           }}

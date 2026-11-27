@@ -3,6 +3,7 @@ import { TaperedCircleBorder } from "./TaperedCircleBorder";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useEffect, useState } from "react";
+import { s } from "@/src/utils/responsive";
 
 export const LoadingComponent = ({
   size,
@@ -19,8 +20,10 @@ export const LoadingComponent = ({
     return () => clearInterval(interval);
   }, []);
 
-  const ringSize = size === "small" ? 20 : size === "medium" ? 60 : 100;
-  const fontSize = size === "small" ? 10 : size === "medium" ? 14 : 28;
+  const ringSize =
+    size === "small" ? s(20) : size === "medium" ? s(60) : s(100);
+  const fontSize =
+    size === "small" ? s(10) : size === "medium" ? s(14) : s(28);
 
   return (
     <View

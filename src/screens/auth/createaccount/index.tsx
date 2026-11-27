@@ -34,6 +34,7 @@ import { useUpdateProfile } from "@/src/api/mutations/useUpdateProfile";
 import { useAuth } from "@/provider/useAuth";
 import { useUploadAvatar } from "@/src/api/mutations/useUploadAvatar";
 import { normalizeWeekendDays } from "@/src/utils/needsSocialProfileCompletion";
+import { ms } from "@/src/utils/responsive";
 
 type FormScrollView = KeyboardAwareScrollView & {
   scrollToPosition: (x: number, y: number, animated?: boolean) => void;
@@ -463,7 +464,7 @@ export default function CreateAccountScreen() {
     // After the menu mounts, lift the country block above the keyboard.
     requestAnimationFrame(() => {
       setTimeout(() => {
-        const y = Math.max(0, countryAnchorY.current - 24);
+        const y = Math.max(0, countryAnchorY.current - ms(24));
         scrollRef.current?.scrollToPosition(0, y, true);
       }, 80);
     });
@@ -471,11 +472,11 @@ export default function CreateAccountScreen() {
 
   const countryExtraScroll = countryMenuOpen
     ? Platform.OS === "ios"
-      ? 280
-      : 320
+      ? ms(280)
+      : ms(320)
     : Platform.OS === "ios"
-      ? 20
-      : 100;
+      ? ms(20)
+      : ms(100);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -501,10 +502,10 @@ export default function CreateAccountScreen() {
           {image ? (
             <Image source={{ uri: image }} style={styles.avatarImage} />
           ) : (
-            <ProfileInformationIcon Color={Colors.light.white} />
+            <ProfileInformationIcon Color={Colors.light.white} size={ms(24)} />
           )}
           <View style={styles.cameraIconContainer}>
-            <AntDesign name="camera" size={14} color={Colors.light.white} />
+            <AntDesign name="camera" size={ms(14)} color={Colors.light.white} />
           </View>
         </TouchableOpacity>
 
@@ -516,7 +517,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="name"
         />
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         {!isSocialFlow ? (
           <>
@@ -531,7 +532,7 @@ export default function CreateAccountScreen() {
               secureTextEntry={!showPassword}
               onToggleEye={onPasswordToggle}
             />
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
 
             <CustomTextInput
               label={t("createAccountScreen.confirmPasswordLabel")}
@@ -548,7 +549,7 @@ export default function CreateAccountScreen() {
               secureTextEntry={!showConfirmPassword}
               onToggleEye={onConfirmPasswordToggle}
             />
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
           </>
         ) : null}
 
@@ -561,7 +562,7 @@ export default function CreateAccountScreen() {
           name="email"
           autoCapitalize="none"
         />
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         <CustomDropdown
           label={t("createAccountScreen.genderLabel")}
@@ -582,7 +583,7 @@ export default function CreateAccountScreen() {
           errors={errors.dob?.message ? [errors.dob.message] : []}
           onDropdownOpenChange={setLockFormScroll}
         />
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         <View
           onLayout={(event) => {
@@ -607,7 +608,7 @@ export default function CreateAccountScreen() {
             onDropdownOpenChange={handleCountryMenuOpenChange}
           />
         </View>
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         <CustomDropdown
           label={t("createAccountScreen.dateViewLabel")}
@@ -620,7 +621,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="dateView"
         />
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         <CustomDropdown
           label={t("createAccountScreen.weekendDaysLabel")}
@@ -633,7 +634,7 @@ export default function CreateAccountScreen() {
           control={control}
           name="week"
         />
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
 
         <View style={styles.btnWrapper}>
           <PrimaryButton

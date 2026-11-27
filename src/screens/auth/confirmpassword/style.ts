@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { Colors } from "@/constants/theme";
+import { ms, s } from "@/src/utils/responsive";
 
 const createStyles = () =>
   StyleSheet.create({
@@ -20,15 +20,15 @@ const createStyles = () =>
 
     imageSection: {
       flex: 1,
-      minHeight: hp(35),
+      minHeight: s(284),
     },
 
     bottomSheet: {
-      height: hp(50),
-      marginTop: -20,
+      height: s(406),
+      marginTop: ms(-20),
       backgroundColor: Colors.light.blackBackground,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      borderTopLeftRadius: ms(20),
+      borderTopRightRadius: ms(20),
       overflow: "hidden",
     },
 
@@ -37,9 +37,9 @@ const createStyles = () =>
     },
 
     bottomSheetContent: {
-      paddingHorizontal: 10,
-      paddingTop: hp(3),
-      paddingBottom: hp(4),
+      paddingHorizontal: ms(10),
+      paddingTop: ms(24),
+      paddingBottom: ms(32),
     },
 
     formWrapper: {
@@ -49,9 +49,9 @@ const createStyles = () =>
     },
 
     buttonWrapper: {
-      marginTop: hp(8),
+      marginTop: ms(65),
       width: "100%",
-      marginBottom: hp(4),
+      marginBottom: ms(32),
       alignItems: "center",
     },
   });

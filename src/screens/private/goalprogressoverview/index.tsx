@@ -27,6 +27,7 @@ import {
   resolveCategorySlug,
   type GoalCategorySlug,
 } from "./goalCategoryOverview";
+import { ms, s } from "@/src/utils/responsive";
 
 type TextPart = { text: string; bold: boolean };
 
@@ -182,7 +183,7 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
           <TaperedCircleBorder
             percentage={`${overview.averagePercentage}%`}
             progressColor={overview.progressColor}
-            size={220}
+            size={s(220)}
             style={{ alignSelf: "center" }}
             borderColor={Colors.light.dullWhiteOpacity}
             variant="illuminated"
@@ -196,18 +197,18 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
               <Text style={styles.percentSymbol}>%</Text>
             </View>
           </TaperedCircleBorder>
-          <TopSpace top={30} />
+          <TopSpace top={ms(30)} />
           <Text style={styles.headline}>{headline}</Text>
-          <TopSpace top={10} />
+          <TopSpace top={ms(10)} />
           <Text style={styles.description}>
             {renderTextWithBoldDigits(description, styles.description)}
           </Text>
         </View>
-        <TopSpace top={26} />
+        <TopSpace top={ms(26)} />
         <Text style={styles.sectionTitle}>
           {t("progressLogging.myProgress")}
         </Text>
-        <TopSpace top={16} />
+        <TopSpace top={ms(16)} />
         <View style={styles.goalsList}>
           {overview.goals.map((goalItem) => (
             <DetailedIbadahsProgressCard
@@ -228,7 +229,7 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
         </View>
         {overview.slug === "fasting" ? (
           <>
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
             <FastingOverviewCalendarSection
               trackTabs={OVERVIEW_FASTING_TRACK_TABS}
             />
@@ -241,20 +242,20 @@ export const GoalProgressOverView = ({ goal }: GoalProgressOverViewProps) => {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 32,
+    paddingBottom: ms(32),
   },
   card: {
-    paddingHorizontal: 10,
-    paddingTop: 50,
-    paddingBottom: 34,
-    borderRadius: 10,
+    paddingHorizontal: ms(10),
+    paddingTop: ms(50),
+    paddingBottom: ms(34),
+    borderRadius: ms(10),
     backgroundColor: Colors.light.darkgrey,
   },
   emptyState: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: ms(24),
   },
   loadingState: {
     flex: 1,
@@ -264,12 +265,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     textAlign: "center",
   },
   goalsCountText: {
     fontWeight: "400",
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
     color: Colors.light.white,
     textAlign: "center",
@@ -277,24 +278,24 @@ const styles = StyleSheet.create({
   headline: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.white,
   },
   description: {
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.white,
     opacity: 0.9,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   boldDigits: {
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
     opacity: 1,
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.white,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   percentTextContainer: {
     flexDirection: "row",
@@ -303,23 +304,23 @@ const styles = StyleSheet.create({
   },
   percentText: {
     fontWeight: "400",
-    fontSize: 60,
+    fontSize: s(60),
     fontFamily: fonts.primary.regular,
     color: Colors.light.white,
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 30,
+    fontSize: s(30),
     fontWeight: "400",
   },
   sectionTitle: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: 18,
+    fontSize: ms(18),
     color: Colors.light.white,
   },
   goalsList: {
-    paddingBottom: 8,
+    paddingBottom: ms(8),
   },
 });

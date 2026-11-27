@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   LayoutAnimation,
 } from "react-native";
+import { ms } from "@/src/utils/responsive";
 import { Feather } from "@expo/vector-icons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import moment from "moment-hijri";
@@ -133,7 +134,7 @@ export default function ProphetDawoodFastGoalSelection({
         </Text>
         <Feather
           name={isOpen ? "chevron-up" : "chevron-down"}
-          size={18}
+          size={ms(18)}
           color={Colors.light.white}
           style={styles.icon}
         />
@@ -185,12 +186,12 @@ export default function ProphetDawoodFastGoalSelection({
               dawoodStartDay={selectedStartDay}
             />
           </View>
-          <TopSpace top={16} />
+          <TopSpace top={ms(16)} />
           {/* Advisory Text */}
           <View style={styles.advisoryContainer}>
             <EvilIcons
               name="exclamation"
-              size={24}
+              size={ms(24)}
               color={Colors.light.grey}
               style={styles.advisoryIcon}
             />
@@ -233,8 +234,8 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: ms(12),
+    padding: ms(16),
     marginVertical: 0,
   },
   headerRow: {
@@ -246,37 +247,37 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
-    lineHeight: 20,
-    marginRight: 8,
+    lineHeight: ms(20),
+    marginRight: ms(8),
   },
   icon: {
-    marginLeft: 4,
-    marginTop: -3,
+    marginLeft: ms(4),
+    marginTop: ms(-3),
   },
   divider: {
     height: 1,
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     width: "100%",
-    marginTop: 12,
+    marginTop: ms(12),
   },
   expandedContent: {
-    marginTop: 16,
+    marginTop: ms(16),
     alignItems: "center",
     width: "100%",
-    paddingBottom: 6,
+    paddingBottom: ms(6),
   },
   calendarWrapper: {
     width: "100%",
-    marginHorizontal: -16,
+    marginHorizontal: ms(-16),
   },
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
-    marginBottom: 16,
+    gap: ms(20),
+    marginBottom: ms(16),
     width: "100%",
   },
   radioOption: {
@@ -284,91 +285,91 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   radioOuter: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: ms(14),
+    height: ms(14),
+    borderRadius: ms(7),
     borderWidth: 1,
     borderColor: Colors.light.grey,
     backgroundColor: Colors.light.calendarBg,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 7,
+    marginRight: ms(7),
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
     backgroundColor: Colors.light.green,
   },
   radioText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
-    marginLeft: -1,
+    marginLeft: ms(-1),
   },
   dateLabel: {
     alignItems: "center",
     backgroundColor: Colors.light.calendarBg,
-    paddingVertical: 10,
+    paddingVertical: ms(10),
     width: "100%",
   },
   dateLabelText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
   islamicDateText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginTop: 4,
+    marginTop: ms(4),
   },
   advisoryContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
     width: "100%",
-    marginBottom: 10,
-    paddingHorizontal: 4,
+    marginBottom: ms(10),
+    paddingHorizontal: ms(4),
   },
   advisoryIcon: {
-    marginRight: 6,
+    marginRight: ms(6),
   },
   advisoryText: {
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
-    lineHeight: 16,
+    lineHeight: ms(16),
     textAlign: "left",
     opacity: 0.5,
   },
   valueText: {
     color: Colors.light.ringDawood,
     fontFamily: fonts.primary.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
-    marginTop: 12,
-    marginBottom: 25,
+    marginTop: ms(12),
+    marginBottom: ms(25),
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: ms(22),
   },
   whiteText: {
     color: Colors.light.white,
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 6,
+    marginTop: ms(6),
     alignItems: "center",
   },
   saveButton: {
     width: "100%",
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },

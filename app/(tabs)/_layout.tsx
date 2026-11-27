@@ -10,7 +10,7 @@ import {
   PlanTabIcon,
 } from "@/assets/icons";
 import { ProtectedRoute } from "@/provider/ProtectedRoute";
-import { Platform } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 export default function TabLayout() {
   return (
@@ -26,10 +26,10 @@ export default function TabLayout() {
             borderTopWidth: 0,
             elevation: 0,
             shadowOpacity: 0,
-            height: 70,
+            height: ms(70),
           },
           tabBarItemStyle: {
-            paddingTop: 2,
+            paddingTop: ms(2),
           },
           headerStyle: {
             backgroundColor: Colors.light.background,
@@ -42,7 +42,9 @@ export default function TabLayout() {
           options={{
             title: "Home",
             headerShown: false,
-            tabBarIcon: ({ color }) => <HomeTabIcon size={21} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <HomeTabIcon size={ms(21)} color={color} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -50,7 +52,9 @@ export default function TabLayout() {
           options={{
             title: "Plan",
             headerShown: false,
-            tabBarIcon: ({ color }) => <PlanTabIcon size={20} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <PlanTabIcon size={ms(20)} color={color} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -61,7 +65,7 @@ export default function TabLayout() {
             // leaving learnmorescreen on the nested stack. Reset to index on blur.
             popToTopOnBlur: true,
             tabBarIcon: ({ color }) => (
-              <ConnectTabIcon size={20} color={color} />
+              <ConnectTabIcon size={ms(20)} color={color} />
             ),
           }}
         />
@@ -70,7 +74,9 @@ export default function TabLayout() {
           options={{
             title: "More",
 
-            tabBarIcon: ({ color }) => <MoreTabIcon size={20} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <MoreTabIcon size={ms(20)} color={color} />
+            ),
           }}
         />
       </Tabs>

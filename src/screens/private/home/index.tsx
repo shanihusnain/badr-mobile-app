@@ -106,7 +106,7 @@ import {
   toDateKey,
 } from "@/src/screens/private/journalfilling/journalFillingDateUtils";
 import WarningModal from "@/components/atoms/WarningModal";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { ms, s } from "@/src/utils/responsive";
 import {
   useGetDashboardDataForDate,
   type HomeDailyContentItem,
@@ -913,7 +913,7 @@ export default function HomeScreen() {
                 <TaperedCircleBorder
                   percentage={category.percentage}
                   borderColor={Colors.light.grey}
-                  size={hp(4)}
+                  size={s(32)}
                   variant="illuminated"
                 >
                   <View />
@@ -1110,11 +1110,11 @@ export default function HomeScreen() {
               <TaperedCircleBorder
                 percentage={category.percentage}
                 borderColor={Colors.light.grey}
-                size={80 * (SCREEN_CARD_WIDTH / 320)}
-                percentageFontSize={17}
+                size={s(80)}
+                percentageFontSize={ms(17)}
                 variant="illuminated"
               />
-              <TopSpace top={3} />
+              <TopSpace top={ms(3)} />
               <View style={styles.categoryLabelWrapper}>
                 <View style={styles.categoryLabelInner}>
                   <View style={styles.categoryLabelChevronSlot} />

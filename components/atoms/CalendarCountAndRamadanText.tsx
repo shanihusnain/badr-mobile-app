@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 export const CalendarCountAndRamadanText = ({
   fastCount,
@@ -29,7 +30,7 @@ export const CalendarCountAndRamadanText = ({
 };
 const styles = StyleSheet.create({
   count: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: ms(5),
     alignSelf: "center",
   },
 });

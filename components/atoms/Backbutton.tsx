@@ -4,6 +4,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Colors } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
+import { ms } from "@/src/utils/responsive";
 
 interface BackButtonProps {
   onPress?: () => void;
@@ -39,7 +40,7 @@ export default function BackButton({ onPress, bgcolor }: BackButtonProps) {
     >
       <Feather
         name={isRtl ? "chevron-right" : "chevron-left"}
-        size={24}
+        size={ms(24)}
         color={Colors.light.white}
       />
     </TouchableOpacity>
@@ -47,9 +48,9 @@ export default function BackButton({ onPress, bgcolor }: BackButtonProps) {
 }
 const styles = StyleSheet.create({
   backButtonContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: ms(30),
+    height: ms(30),
+    borderRadius: ms(15),
     backgroundColor: Colors.light.buttonBackground,
     justifyContent: "center",
     alignItems: "center",

@@ -20,7 +20,7 @@ import { TickIconWithCircle } from "@/assets/icons/TickIconWithCircle";
 import { WhiteTick } from "@/assets/icons";
 import { setPendingOnboardingRoute } from "@/src/storage/onboardingRouteStorage";
 import { router } from "expo-router";
-import { ms } from "@/src/utils/responsive";
+import { ms, s } from "@/src/utils/responsive";
 import { getMe, useGetMe } from "@/src/api/queries/useGetMe";
 import { getGoalCycleById } from "@/src/api/queries/useGetGoalCycleById";
 
@@ -49,17 +49,7 @@ const StepRow = ({
       )}
       <Text style={styles.stepTitle}>{item.title}</Text>
     </View>
-    <View
-      style={{
-        width: 16,
-        height: 16,
-        borderRadius: 16,
-        borderWidth: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: Colors.light.white,
-      }}
-    >
+    <View style={styles.stepTick}>
       <WhiteTick />
     </View>
   </Pressable>
@@ -126,19 +116,19 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "1",
       title: t("monthlyGoalPlanner.card1Title"),
       description: t("monthlyGoalPlanner.card1Desc"),
-      icon: <GreenArrowFilledIcon size={34} color={Colors.light.green} />,
+      icon: <GreenArrowFilledIcon size={s(34)} color={Colors.light.green} />,
     },
     {
       id: "2",
       title: t("monthlyGoalPlanner.card2Title"),
       description: t("monthlyGoalPlanner.card2Desc"),
-      icon: <MagnifierIcon size={34} color={Colors.light.green} />,
+      icon: <MagnifierIcon size={s(34)} color={Colors.light.green} />,
     },
     {
       id: "3",
       title: t("monthlyGoalPlanner.card3Title"),
       description: t("monthlyGoalPlanner.card3Desc"),
-      icon: <BookMarkIcon size={34} color={Colors.light.green} />,
+      icon: <BookMarkIcon size={s(34)} color={Colors.light.green} />,
     },
     {
       id: "4",
@@ -152,7 +142,7 @@ export const MonthlyGoalPlannerScreen = () => {
       description: t("monthlyGoalPlanner.card5Desc"),
       icon: (
         <MonthlyGoalPlannerComittedCardIcon
-          size={34}
+          size={s(34)}
           color={Colors.light.green}
         />
       ),
@@ -161,7 +151,9 @@ export const MonthlyGoalPlannerScreen = () => {
       id: "6",
       title: t("monthlyGoalPlanner.card6Title"),
       description: t("monthlyGoalPlanner.card6Desc"),
-      icon: <MonthlyGoalPlannerPlanIcon size={36} color={Colors.light.green} />,
+      icon: (
+        <MonthlyGoalPlannerPlanIcon size={s(36)} color={Colors.light.green} />
+      ),
     },
   ];
 

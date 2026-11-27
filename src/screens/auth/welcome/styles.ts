@@ -1,7 +1,8 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { Platform, StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+
+import { ms, s } from "@/src/utils/responsive";
 
 export const styles = StyleSheet.create({
   background: {
@@ -12,8 +13,8 @@ export const styles = StyleSheet.create({
 
   safeArea: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: ms(20),
+    paddingTop: ms(20),
   },
 
   overlay: {
@@ -24,32 +25,32 @@ export const styles = StyleSheet.create({
   brandContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 24,
+    marginBottom: ms(24),
     zIndex: 1,
   },
 
   moonImage: {
-    width: 80,
-    height: 80,
-    marginBottom: 28,
+    width: s(80),
+    height: s(80),
+    marginBottom: ms(28),
   },
 
   container: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
-    paddingBottom: 40,
+    padding: ms(20),
+    paddingBottom: ms(40),
   },
 
   heroText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.heavy,
-    fontSize: 32,
+    fontSize: ms(32),
     fontWeight: "bold",
-    letterSpacing: Platform.OS === "ios" ? 1 : 1.5,
+    letterSpacing: Platform.OS === "ios" ? ms(1) : ms(1.5),
     textAlign: "left",
     flex: 1,
-    lineHeight: 45,
+    lineHeight: ms(45),
     zIndex: 1,
   },
 });

@@ -1,10 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { View, Text, StyleSheet } from "react-native";
 import { fonts } from "@/assets/fonts";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { ms, s } from "@/src/utils/responsive";
 
 export type ContainerCardData = {
   id: number;
@@ -55,25 +52,25 @@ export const ContainerCard = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.welcomeCardHome,
-    borderRadius: 16,
-    padding: wp(3),
+    borderRadius: ms(16),
+    padding: ms(12),
     justifyContent: "center",
-    minHeight: 160,
+    minHeight: s(160),
   },
   title: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: ms(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    marginBottom: hp(1.2),
-    lineHeight: 20,
+    marginBottom: ms(10),
+    lineHeight: ms(20),
   },
   content: {
     color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 20,
+    lineHeight: ms(20),
     letterSpacing: 0.1,
   },
   highlightedText: {

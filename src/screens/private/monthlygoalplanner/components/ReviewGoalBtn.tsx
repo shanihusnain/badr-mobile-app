@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -26,7 +27,7 @@ export const ReviewGoalBtn = ({
         <Text style={styles.reviewHeaderText}>{reviewItem.label}</Text>
         <Feather
           name={reviewExpanded ? "chevron-up" : "chevron-down"}
-          size={24}
+          size={ms(24)}
           color={Colors.light.white}
         />
       </Pressable>
@@ -35,22 +36,22 @@ export const ReviewGoalBtn = ({
 };
 const styles = StyleSheet.create({
   reviewHeader: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingHorizontal: ms(15),
+    paddingVertical: ms(8),
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 6,
+    borderRadius: ms(6),
   },
   reviewHeaderPressable: {
     flexDirection: "row",
     alignItems: "center",
   },
   reviewHeaderText: {
-    fontSize: 16,
+    fontSize: ms(16),
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flex: 1,
     letterSpacing: 0.1,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
 });

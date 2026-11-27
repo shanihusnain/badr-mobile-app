@@ -1,4 +1,5 @@
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { ms } from "@/src/utils/responsive";
 import { LayoutAnimation, View } from "react-native";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { Counter } from "../Counter";
@@ -87,7 +88,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
     <View
       style={[
         globalStyles.goalSelectionWrapper,
-        { paddingBottom: isOpen ? 16 : 14 },
+        { paddingBottom: isOpen ? ms(16) : ms(14) },
       ]}
     >
       <GoalSelectionOpenCloseButton
@@ -97,7 +98,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
       />
       {isOpen && (
         <>
-          <TopSpace top={24} />
+          <TopSpace top={ms(24)} />
           <View
             style={{
               flexDirection: "row",
@@ -129,7 +130,7 @@ export const KafarahForBreakingFastsOrOAthSelector = ({
           </View>
           {onSave ? (
             <>
-              <TopSpace top={16} />
+              <TopSpace top={ms(16)} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {

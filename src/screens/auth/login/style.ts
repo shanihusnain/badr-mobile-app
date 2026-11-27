@@ -1,7 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { ms, s } from "@/src/utils/responsive";
 
 export const styles = StyleSheet.create({
   container: {
@@ -22,23 +22,23 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: hp(2),
-    paddingBottom: hp(2),
+    paddingHorizontal: ms(20),
+    paddingTop: ms(16),
+    paddingBottom: ms(16),
   },
 
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "600",
     textAlign: "center",
     flex: 1,
-    lineHeight: 18,
+    lineHeight: ms(18),
   },
 
   placeholder: {
-    width: 40,
+    width: s(40),
   },
 
   keyboardAvoidingView: {
@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
 
   imageSection: {
     flex: 1,
-    minHeight: hp(35),
+    minHeight: s(284),
   },
 
   imageTapArea: {
@@ -56,11 +56,11 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheet: {
-    height: hp(46),
-    marginTop: -20,
+    height: s(374),
+    marginTop: ms(-20),
     backgroundColor: Colors.light.blackBackground,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: ms(20),
+    borderTopRightRadius: ms(20),
     overflow: "hidden",
   },
 
@@ -69,37 +69,37 @@ export const styles = StyleSheet.create({
   },
 
   bottomSheetContent: {
-    paddingHorizontal: 16,
-    paddingTop: hp(2),
-    paddingBottom: hp(4),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(16),
+    paddingBottom: ms(32),
   },
 
   forgotPasswordContainer: {
     alignSelf: "flex-end",
-    marginTop: hp(1.5),
+    marginTop: ms(12),
   },
 
   forgotPasswordText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: 14,
-    marginRight: 8,
+    lineHeight: ms(14),
+    marginRight: ms(8),
   },
 
   primaryButton: {
     width: "90%",
-    minHeight: 40,
-    borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
+    minHeight: s(40),
+    borderRadius: ms(6),
+    paddingTop: ms(10),
+    paddingBottom: ms(10),
+    paddingHorizontal: ms(8),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.light.green,
-    borderWidth: 1.5,
+    borderWidth: ms(1.5),
     borderColor: Colors.light.green,
-    marginBottom: 10,
+    marginBottom: ms(10),
     alignSelf: "center",
   },
 
@@ -108,8 +108,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    marginTop: hp(5),
-    //marginBottom: hp(7),
+    marginTop: ms(41),
+    //marginBottom: ms(57),
   },
 
   line: {
@@ -121,14 +121,14 @@ export const styles = StyleSheet.create({
 
   orloginText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
-    marginHorizontal: 10,
+    marginHorizontal: ms(10),
   },
   socialLoginButtonsContainer: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12,
+    gap: ms(12),
     alignSelf: "center",
   },
 });

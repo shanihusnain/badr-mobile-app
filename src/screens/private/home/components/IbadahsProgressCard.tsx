@@ -7,6 +7,7 @@ import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
 } from "@/src/utils/figmaTypography";
+import { ms, s } from "@/src/utils/responsive";
 
 type Props = {
   title: string;
@@ -66,7 +67,7 @@ export const IbadahsProgressCard = ({
         <TaperedCircleBorder
           percentage={loading ? "0%" : percentage}
           borderColor={Colors.light.ringTrackEmpty}
-          size={64}
+          size={s(64)}
           variant="illuminated"
         >
           <View style={styles.percentTextContainer}>
@@ -93,11 +94,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.ibadahProgressCardBg,
-    borderRadius: 12,
+    borderRadius: ms(12),
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 18,
+    paddingHorizontal: ms(16),
+    paddingVertical: ms(16),
+    marginBottom: ms(18),
   },
   leftSection: {
     flexDirection: "row",
@@ -105,27 +106,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: ms(32),
+    height: ms(32),
+    borderRadius: ms(16),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: ms(12),
   },
   iconPlaceholder: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 11,
+    fontSize: ms(11),
   },
   textWrapper: {
     justifyContent: "center",
   },
   title: {
-    marginBottom: 2,
+    marginBottom: ms(2),
     // Prior style: fontSize 15 only (no lineHeight).
     ...getFigmaForcedSmallCapsTextStyle({
-      fontSize: 15,
+      fontSize: ms(15),
       letterSpacing: 0,
       color: Colors.light.white,
     }),
@@ -134,14 +135,14 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     opacity: 0.9,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
   },
   rightSection: {
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
-    width: 40,
-    height: 40,
+    marginRight: ms(10),
+    width: ms(40),
+    height: ms(40),
     overflow: "visible",
   },
   percentTextContainer: {
@@ -152,13 +153,13 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: "500",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 8,
+    fontSize: ms(8),
     marginLeft: 0.8,
   },
 });

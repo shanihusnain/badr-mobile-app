@@ -1,6 +1,8 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet } from "react-native";
+
 export const globalStyles = StyleSheet.create({
   rowCenter: {
     flexDirection: "row",
@@ -10,9 +12,9 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     backgroundColor: "#2F4053",
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: ms(6),
+    paddingHorizontal: ms(16),
+    paddingVertical: ms(14),
     // Vertical gap is owned by GoalPlannerSheet (12 under card / 20 between items).
     marginVertical: 0,
   },
@@ -20,16 +22,16 @@ export const globalStyles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 18,
+    fontSize: ms(18),
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: ms(24),
     letterSpacing: 0.4,
   },
   greenCTA: {
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: ms(17),
     color: Colors.light.green,
-    lineHeight: 22,
+    lineHeight: ms(22),
   },
 });

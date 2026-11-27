@@ -33,6 +33,7 @@ import {
   type QuranSurahOption,
 } from "@/src/utils/quranGoalMap";
 import { getJuzVerseMetadata } from "@/src/screens/private/goalprogressloggingscreen/quranJuzVerseMap";
+import { ms } from "@/src/utils/responsive";
 
 type MetricName = "surah" | "juz" | "completion" | "hizb";
 
@@ -914,7 +915,7 @@ export const QuranRecitationGoalSelection = ({
     <View
       style={[
         globalStyles.goalSelectionWrapper,
-        { paddingBottom: isOpen ? 6 : 10 },
+        { paddingBottom: isOpen ? ms(6) : ms(10) },
       ]}
     >
       <GoalSelectionOpenCloseButton
@@ -925,7 +926,7 @@ export const QuranRecitationGoalSelection = ({
       {isOpen && (
         <View style={styles.openContent}>
           <Divider />
-          <TopSpace top={10} />
+          <TopSpace top={ms(10)} />
           {(variant === "memorization" || variant === "others") && (
             <Text style={styles.selectMoreText}>
               You can select more than one.
@@ -1041,23 +1042,23 @@ export const QuranRecitationGoalSelection = ({
 const styles = StyleSheet.create({
   openContent: {
     width: "100%",
-    paddingBottom: 6,
+    paddingBottom: ms(6),
   },
   metricsScrollArea: {
     width: "100%",
   },
   saveFooter: {
     width: "100%",
-    paddingTop: 16,
+    paddingTop: ms(16),
     backgroundColor: Colors.light.calendarBg,
   },
   selectMoreText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     opacity: 0.85,
-    marginBottom: 12,
+    marginBottom: ms(12),
     alignSelf: "flex-start",
   },
 });

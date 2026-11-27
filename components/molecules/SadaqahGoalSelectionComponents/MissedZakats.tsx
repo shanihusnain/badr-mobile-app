@@ -8,6 +8,7 @@ import { useGoalSelectionOpenState } from "@/hooks/useGoalSelectionOpenState";
 import { useDiscardUnsavedOnCollapse } from "@/hooks/useDiscardUnsavedOnCollapse";
 import { GoalSelectionOpenCloseButton } from "../GoalSelectionOpenCloseButton";
 import { globalStyles } from "@/src/globalstyles/globalstyles";
+import { ms } from "@/src/utils/responsive";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -98,7 +99,7 @@ export const MissedZakats = ({
     <View
       style={[
         globalStyles.goalSelectionWrapper,
-        { paddingBottom: isOpen ? 16 : 14 },
+        { paddingBottom: isOpen ? ms(16) : ms(14) },
       ]}
     >
       <GoalSelectionOpenCloseButton
@@ -116,7 +117,7 @@ export const MissedZakats = ({
             onInputFocus={onInputFocus}
           />
 
-          <TopSpace top={16} />
+          <TopSpace top={ms(16)} />
           <Counter
             countTitle={countTitle}
             handleDecrease={() => applyCount(Math.max(0, draftCount - 1))}
@@ -127,7 +128,7 @@ export const MissedZakats = ({
           />
           {onSave ? (
             <>
-              <TopSpace top={16} />
+              <TopSpace top={ms(16)} />
               <GoalSelectionSaveButton
                 text={t("monthlyGoalPlanner.save")}
                 onPress={(markSaved, markFailed) => {

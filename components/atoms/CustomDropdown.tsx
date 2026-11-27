@@ -1,7 +1,13 @@
 import { fonts } from "@/assets/fonts";
 import { DownArrowIcon, MagnifyingGlassIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Controller } from "react-hook-form";
 import {
   Keyboard,
@@ -16,7 +22,7 @@ import {
 } from "react-native";
 // Use gesture-handler ScrollView for better nested scrolling inside FlatList / BottomSheet
 import { ScrollView } from "react-native-gesture-handler";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { ms, s } from "@/src/utils/responsive";
 
 interface Option {
   label: string;
@@ -267,7 +273,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             ]}
           >
             {searchable ? (
-              <View ref={searchBarRef} style={styles.searchBar} collapsable={false}>
+              <View
+                ref={searchBarRef}
+                style={styles.searchBar}
+                collapsable={false}
+              >
                 <MagnifyingGlassIcon />
                 <TextInput
                   ref={searchInputRef}
@@ -338,7 +348,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         )}
 
         {errors.length > 0 && (
-          <View style={{ marginTop: 5 }}>
+          <View style={{ marginTop: ms(5) }}>
             {errors.map((error, index) => (
               <Text key={index} style={styles.errorText}>
                 {error}
@@ -372,23 +382,23 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
     marginTop: 0,
     alignSelf: "flex-start",
   },
   trigger: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    height: 48,
+    borderRadius: ms(6),
+    paddingHorizontal: ms(12),
+    height: ms(48),
     width: "100%",
-    marginTop: hp(1),
+    marginTop: ms(8),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   triggerOpen: {
-    borderWidth: 1.5,
+    borderWidth: ms(1.5),
     borderColor: Colors.light.green,
   },
   triggerContent: {
@@ -396,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
-    gap: 8,
+    gap: ms(8),
     height: "100%",
   },
   triggerIconWrapper: {
@@ -406,13 +416,13 @@ const styles = StyleSheet.create({
   triggerText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
     flex: 1,
     // iOS + emoji flags sit high/low without an explicit line box.
     ...Platform.select({
       ios: {
-        lineHeight: 18,
-        paddingTop: 1,
+        lineHeight: ms(18),
+        paddingTop: ms(1),
       },
       android: {
         textAlignVertical: "center" as const,
@@ -424,11 +434,11 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: Colors.light.icon,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
     ...Platform.select({
       ios: {
-        lineHeight: 18,
-        paddingTop: 1,
+        lineHeight: ms(18),
+        paddingTop: ms(1),
       },
       android: {
         textAlignVertical: "center" as const,
@@ -438,57 +448,57 @@ const styles = StyleSheet.create({
     }),
   },
   optionIcon: {
-    fontSize: 14,
-    marginRight: 6,
+    fontSize: ms(14),
+    marginRight: ms(6),
   },
   iconWrapper: {
-    marginLeft: 10,
+    marginLeft: ms(10),
     marginRight: 0,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
   },
   menu: {
     backgroundColor: Colors.light.calendarBg,
-    borderRadius: 8,
-    marginTop: 10,
-    paddingVertical: 5,
-    maxHeight: 300,
+    borderRadius: ms(8),
+    marginTop: ms(10),
+    paddingVertical: ms(5),
+    maxHeight: s(300),
   },
   searchableMenu: {
-    borderRadius: 2,
-    marginTop: 12,
-    paddingTop: 10,
-    paddingBottom: 6,
+    borderRadius: ms(2),
+    marginTop: ms(12),
+    paddingTop: ms(10),
+    paddingBottom: ms(6),
   },
   menuScroll: {
-    maxHeight: 250,
+    maxHeight: s(250),
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: ms(10),
     backgroundColor: Colors.light.greybuttonBackground,
-    marginHorizontal: 12,
-    marginBottom: 6,
-    height: 48,
-    borderRadius: 6,
-    paddingHorizontal: 14,
+    marginHorizontal: ms(12),
+    marginBottom: ms(6),
+    height: ms(48),
+    borderRadius: ms(6),
+    paddingHorizontal: ms(14),
   },
   searchInput: {
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     paddingVertical: 0,
     margin: 0,
     backgroundColor: "transparent",
     ...Platform.select({
       ios: {
-        lineHeight: 18,
+        lineHeight: ms(18),
       },
       android: {
         textAlignVertical: "center" as const,
@@ -500,27 +510,27 @@ const styles = StyleSheet.create({
   emptySearchText: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
+    fontSize: ms(13),
     textAlign: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingVertical: ms(16),
+    paddingHorizontal: ms(12),
   },
   option: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: ms(10),
+    paddingHorizontal: ms(12),
   },
   optionText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 13,
-    marginLeft: 10,
+    fontSize: ms(13),
+    marginLeft: ms(10),
   },
   radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 10,
+    width: ms(18),
+    height: ms(18),
+    borderRadius: ms(10),
     borderWidth: 1,
     borderColor: Colors.light.grey,
     backgroundColor: Colors.light.buttonBackground,
@@ -528,14 +538,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
     backgroundColor: "#4CAF50",
   },
   errorText: {
     color: "red",
-    fontSize: 12,
+    fontSize: ms(12),
   },
 });
 

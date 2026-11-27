@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/theme";
 import { Pressable } from "react-native";
+import { ms, s } from "@/src/utils/responsive";
 
 export const SocialLoginButton = ({
   icon,
@@ -13,10 +14,10 @@ export const SocialLoginButton = ({
   return (
     <Pressable
       style={{
-        height: 40,
-        width: 40,
+        height: s(40),
+        width: s(40),
         backgroundColor: Colors.light.calendarBg,
-        borderRadius: 20,
+        borderRadius: ms(20),
         alignItems: "center",
         justifyContent: "center",
         opacity: disabled ? 0.5 : 1,

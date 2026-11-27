@@ -20,6 +20,7 @@ import GoalSelectionSaveButton from "@/components/molecules/GoalSelectionSaveBut
 import { useGetQuranGoalByType } from "@/src/api/queries/useGetQuranGoalByType";
 import { getHoursFromDetail } from "@/src/utils/quranGoalMap";
 import { useTranslation } from "react-i18next";
+import { ms } from "@/src/utils/responsive";
 
 const MAX_HOURS = 280;
 
@@ -264,7 +265,7 @@ export const QuranTimeSelection = ({
   const descriptionText = t(descriptionKey, { count: hoursCount });
 
   return (
-    <View style={[styles.container, { paddingBottom: isOpen ? 6 : 10 }]}>
+    <View style={[styles.container, { paddingBottom: isOpen ? ms(6) : ms(10) }]}>
       <GoalSelectionOpenCloseButton
         isOpen={isOpen}
         title={title}
@@ -273,15 +274,15 @@ export const QuranTimeSelection = ({
       {isOpen && (
         <View style={styles.openContent}>
           <Divider />
-          <TopSpace top={16} />
+          <TopSpace top={ms(16)} />
           {isLoading ? (
-            <View style={{ paddingVertical: 16, alignItems: "center" }}>
+            <View style={{ paddingVertical: ms(16), alignItems: "center" }}>
               <ActivityIndicator color={Colors.light.green} />
             </View>
           ) : (
             <>
               <Text style={styles.header}>Enter up to {MAX_HOURS} hours.</Text>
-              <TopSpace top={12} />
+              <TopSpace top={ms(12)} />
               <View style={styles.outerRow}>
                 <Pressable
                   onPress={() => hoursInputRef.current?.focus()}
@@ -373,7 +374,7 @@ export const QuranTimeSelection = ({
 
                 <Text style={styles.descriptionText}>{descriptionText}</Text>
               </View>
-              <TopSpace top={56} />
+              <TopSpace top={ms(56)} />
 
               <GoalSelectionSaveButton
                 text="Save"
@@ -414,32 +415,32 @@ export const QuranTimeSelection = ({
 const styles = StyleSheet.create({
   descriptionText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     textAlign: "center",
     letterSpacing: 0.1,
   },
   hoursInputPressable: {
-    borderRadius: 4,
+    borderRadius: ms(4),
   },
   hoursInput: {
     // Room for 3 digits (e.g. 280) without horizontal clip when unfocused.
-    width: 52,
-    minHeight: 32,
-    paddingTop: 4,
-    paddingRight: 4,
-    paddingBottom: 4,
-    paddingLeft: 4,
+    width: ms(52),
+    minHeight: ms(32),
+    paddingTop: ms(4),
+    paddingRight: ms(4),
+    paddingBottom: ms(4),
+    paddingLeft: ms(4),
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.35)",
     backgroundColor: "transparent",
-    borderRadius: 4,
+    borderRadius: ms(4),
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
@@ -452,17 +453,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    gap: 12,
+    gap: ms(12),
   },
   outerRow: {
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: ms(12),
     flexDirection: "row",
   },
   header: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: Colors.light.white,
     opacity: 0.8,
     fontWeight: "400",
@@ -476,17 +477,17 @@ const styles = StyleSheet.create({
   },
   openContent: {
     width: "100%",
-    paddingBottom: 6,
+    paddingBottom: ms(6),
   },
   textInput: {
     borderWidth: 1,
-    width: 60,
+    width: ms(60),
     alignItems: "center",
     textAlign: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: ms(8),
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
   },

@@ -17,17 +17,11 @@ import { BadarNameLogo } from "@/assets/icons";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
 import { Image } from "expo-image";
 import { streakImage } from "@/assets/images";
+import { getScale } from "@/src/utils/responsive";
 
-/** Figma artboard. */
-const DESIGN_WIDTH = 375;
 /** Content stack height under header on the 812-tall frame. */
 const DESIGN_CONTENT_HEIGHT = 700;
-const SCALE_MIN = 0.72;
-const SCALE_MAX = 1.12;
-
-function clampScale(raw: number) {
-  return Math.max(SCALE_MIN, Math.min(raw, SCALE_MAX));
-}
+const HEIGHT_SCALE_MIN = 0.72;
 
 export default function StreakCounter({ date }: { date?: string }) {
   const { i18n } = useTranslation();
@@ -41,11 +35,12 @@ export default function StreakCounter({ date }: { date?: string }) {
   });
 
   const scale = useMemo(() => {
-    const raw = Math.min(
-      contentSize.width / DESIGN_WIDTH,
+    const widthScale = getScale(contentSize.width);
+    const heightScale = Math.max(
+      HEIGHT_SCALE_MIN,
       contentSize.height / DESIGN_CONTENT_HEIGHT,
     );
-    return clampScale(raw);
+    return Math.min(widthScale, heightScale);
   }, [contentSize.height, contentSize.width]);
 
   const styles = useMemo(() => createStyles(scale), [scale]);

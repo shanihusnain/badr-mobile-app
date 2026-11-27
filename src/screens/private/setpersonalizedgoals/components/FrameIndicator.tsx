@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { Text, View } from "react-native";
 
 interface FrameIndicatorProps {
@@ -12,16 +13,16 @@ export const FrameIndicator = ({ total, active }: FrameIndicatorProps) => {
     <View
       style={{
         flexDirection: "row",
-        marginTop: 16,
+        marginTop: ms(16),
         alignItems: "baseline",
-        gap: 1,
+        gap: ms(1),
       }}
     >
       <Text
         style={{
           fontFamily: fonts.primary.bold,
           color: Colors.light.white,
-          fontSize: 12,
+          fontSize: ms(12),
         }}
       >
         {active}
@@ -30,7 +31,7 @@ export const FrameIndicator = ({ total, active }: FrameIndicatorProps) => {
         style={{
           fontFamily: fonts.primary.medium,
           color: Colors.light.icon,
-          fontSize: 10,
+          fontSize: ms(10),
         }}
       >
         /{total}

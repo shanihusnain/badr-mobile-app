@@ -11,6 +11,7 @@ import {
   ViewStyle,
   ActivityIndicator,
 } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 interface SecondaryButtonProps extends PressableProps {
   text: string;
@@ -79,27 +80,27 @@ export default function SecondaryButton({
 const styles = StyleSheet.create({
   button: {
     width: "100%",
-    minHeight: 40,
-    borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
+    minHeight: ms(40),
+    borderRadius: ms(6),
+    paddingTop: ms(10),
+    paddingBottom: ms(10),
+    paddingHorizontal: ms(8),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
-    borderWidth: 1.5,
+    borderWidth: ms(1.5),
     borderColor: Colors.light.background,
     alignSelf: "center",
   } satisfies ViewStyle,
   buttonCompact: {
-    paddingTop: 5,
-    paddingBottom: 5,
-    minHeight: 35,
+    paddingTop: ms(5),
+    paddingBottom: ms(5),
+    minHeight: ms(35),
   },
   buttonModal: {
-    paddingTop: 3,
-    paddingBottom: 3,
-    minHeight: 28,
+    paddingTop: ms(3),
+    paddingBottom: ms(3),
+    minHeight: ms(28),
   },
   buttonPressed: {
     opacity: 0.8,
@@ -108,13 +109,13 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontFamily: fonts.primary.regular,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
     letterSpacing: 0,
   },
   buttonTextModal: {
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: ms(13),
+    lineHeight: ms(16),
   },
   buttonWhite: {
     borderColor: Colors.light.background,

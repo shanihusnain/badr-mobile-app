@@ -21,6 +21,7 @@ import { useAuth } from "@/provider/useAuth";
 import { useGetMe } from "@/src/api/queries/useGetMe";
 import { TopSpace } from "../atoms/TopSpace";
 import { PRAYER_CYCLE_DAYS } from "@/src/utils/prayerCycleUtils";
+import { ms } from "@/src/utils/responsive";
 
 type QiyamDraft = {
   commitment: "every_night" | "flexible";
@@ -125,7 +126,7 @@ export default function QiyamalLaylGoalSelection({
                 The target number of Witr prayers will automatically adjust
                 if menstruation is logged from the home screen.
               </Text>
-              <TopSpace top={10} />
+              <TopSpace top={ms(10)} />
             </>
           ) : null}
           {/* STEP 1 */}
@@ -248,104 +249,104 @@ export default function QiyamalLaylGoalSelection({
 
 const styles = StyleSheet.create({
   expandedContent: {
-    marginTop: 10,
+    marginTop: ms(10),
     width: "100%",
-    paddingBottom: 6,
+    paddingBottom: ms(6),
   },
   stepBadge: {
     backgroundColor: Colors.light.darkgrey,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 5,
+    paddingHorizontal: ms(8),
+    paddingVertical: ms(3),
+    borderRadius: ms(5),
     alignSelf: "flex-start",
-    marginBottom: 6,
-    marginTop: 10,
+    marginBottom: ms(6),
+    marginTop: ms(10),
   },
   stepBadgeText: {
     color: "white",
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
   },
   stepTitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
-    lineHeight: 15,
-    marginBottom: 10,
+    fontSize: ms(12),
+    lineHeight: ms(15),
+    marginBottom: ms(10),
     // letterSpacing: 0.1,
   },
   sliderContainer: {
-    // marginTop: -9,
-    // marginBottom: -13,
-    paddingHorizontal: 10,
+    // marginTop: ms(-9),
+    // marginBottom: ms(-13),
+    paddingHorizontal: ms(10),
   },
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginVertical: 8,
+    marginVertical: ms(8),
     width: "100%",
-    paddingRight: 20,
+    paddingRight: ms(20),
   },
   radioOption: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingLeft: 8,
+    paddingLeft: ms(8),
   },
   radioOuter: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: ms(14),
+    height: ms(14),
+    borderRadius: ms(7),
     borderWidth: 1,
     borderColor: Colors.light.grey,
     backgroundColor: Colors.light.calendarBg,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 7,
+    marginRight: ms(7),
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 8,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(8),
     backgroundColor: Colors.light.green,
   },
   radioText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
   },
   greyDescription: {
     color: Colors.light.dullDescriptionText,
     fontFamily: fonts.primary.regular,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: ms(10),
+    lineHeight: ms(14),
     fontWeight: "400",
   },
   resultContainer: {
     width: "100%",
-    marginTop: 10,
+    marginTop: ms(10),
   },
   summaryTextBlock: {
     width: "100%",
     alignItems: "center",
     justifyContent: "flex-start",
-    marginBottom: 20,
+    marginBottom: ms(20),
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
-    lineHeight: 20,
+    lineHeight: ms(20),
     textAlign: "center",
   },
   greenCount: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
   },
   whiteText: {
@@ -354,11 +355,11 @@ const styles = StyleSheet.create({
   witrDescription: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: ms(10),
+    lineHeight: ms(15),
     textAlign: "left",
     alignSelf: "center",
-    marginTop: 8,
+    marginTop: ms(8),
     fontWeight: "400",
   },
   buttonContainer: {
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },

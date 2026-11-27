@@ -10,6 +10,7 @@ import {
 } from "expo-video";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ms, s } from "@/src/utils/responsive";
 import {
   Dimensions,
   Platform,
@@ -26,8 +27,8 @@ const PLACEHOLDER_VIDEO_SOURCE: VideoSource = require("@/assets/videos/tutorial-
 const TUTORIAL_DURATION_SEC = 45;
 
 /** Match BlackScreenWrapper padding so the player can span nearly full width. */
-const PARENT_HORIZONTAL_PADDING = 16;
-const SCREEN_SIDE_INSET = 8;
+const PARENT_HORIZONTAL_PADDING = ms(16);
+const SCREEN_SIDE_INSET = ms(8);
 const { width: WINDOW_WIDTH, height: WINDOW_HEIGHT } = Dimensions.get("window");
 const PLAYER_WIDTH = WINDOW_WIDTH - SCREEN_SIDE_INSET * 2;
 /** Tall portrait player — matches intro screen Figma. */
@@ -114,7 +115,7 @@ export const TutorialVideoPlayer = ({
           {!isPlaying && (
             <View style={styles.playCircle}>
               <View style={styles.playIconOffset}>
-                <TutorialPlayIcon size={28} />
+                <TutorialPlayIcon size={s(28)} />
               </View>
             </View>
           )}
@@ -122,7 +123,7 @@ export const TutorialVideoPlayer = ({
 
         <View style={styles.footer} pointerEvents="box-none">
           <View style={styles.durationRow}>
-            <TimePieceIcon />
+            <TimePieceIcon size={ms(11)} />
             <Text style={styles.durationText}>{durationLabel}</Text>
           </View>
 
@@ -137,7 +138,7 @@ export const TutorialVideoPlayer = ({
   );
 };
 
-const PLAY_SIZE = 64;
+const PLAY_SIZE = s(64);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -147,14 +148,14 @@ const styles = StyleSheet.create({
     maxHeight: PLAYER_HEIGHT,
     marginHorizontal: -(PARENT_HORIZONTAL_PADDING - SCREEN_SIDE_INSET),
     alignSelf: "center",
-    borderRadius: 18,
+    borderRadius: ms(18),
   },
   player: {
     flex: 1,
     width: "100%",
     height: "100%",
     minHeight: PLAYER_HEIGHT,
-    borderRadius: 18,
+    borderRadius: ms(18),
     overflow: "hidden",
     backgroundColor: Colors.light.calendarBg,
   },
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   playIconOffset: {
-    marginLeft: 3,
+    marginLeft: ms(3),
   },
   footer: {
     position: "absolute",
@@ -187,19 +188,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: ms(20),
+    paddingBottom: ms(20),
   },
   durationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: ms(6),
   },
   durationText: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 10,
-    lineHeight: 18,
+    fontSize: ms(10),
+    lineHeight: ms(18),
     letterSpacing: 0.4,
     textTransform: "uppercase",
     fontWeight: "400",
@@ -207,8 +208,8 @@ const styles = StyleSheet.create({
   skipText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
     letterSpacing: 0.4,
     textTransform: "uppercase",
     textDecorationLine: "underline",

@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import PrimaryButton from "@/components/atoms/Primary-button";
+import { ms } from "@/src/utils/responsive";
 import { KeyboardAwareListBottomPad } from "./KeyboardAwareListBottomPad";
 
 export type Tab =
@@ -261,18 +262,21 @@ export const GoalPlannerTabList = memo(function GoalPlannerTabList({
       onScrollToIndexFailed={onScrollToIndexFailed}
       ListEmptyComponent={
         isReviewWaitingForCycleDetail ? (
-          <View style={{ paddingVertical: 40, alignItems: "center" }}>
+          <View style={{ paddingVertical: ms(40), alignItems: "center" }}>
             <ActivityIndicator size="large" color={Colors.light.white} />
           </View>
         ) : activeTab === "quran" && !loadingQuranGoals ? (
-          <View style={{ paddingVertical: 24, alignItems: "center" }}>
+          <View style={{ paddingVertical: ms(24), alignItems: "center" }}>
             <Text style={styles.tabText}>
               {errorLoadingQuranGoals
                 ? "Failed to load Quran goals"
                 : "No Quran goals available"}
             </Text>
             {errorLoadingQuranGoals ? (
-              <Pressable onPress={onRefetchQuranGoals} style={{ marginTop: 12 }}>
+              <Pressable
+                onPress={onRefetchQuranGoals}
+                style={{ marginTop: ms(12) }}
+              >
                 <Text style={[styles.tabText, styles.tabTextActive]}>
                   Tap to retry
                 </Text>

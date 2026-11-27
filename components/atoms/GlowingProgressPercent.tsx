@@ -10,11 +10,12 @@ import {
   Text as SkiaText,
   useFont,
 } from "@shopify/react-native-skia";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet, Text } from "react-native";
 
-const PERCENT_FONT_SIZE = 18;
+const PERCENT_FONT_SIZE = ms(18);
 /** Extra canvas padding so the glyph blur is never clipped into a box. */
-const GLOW_PAD = 22;
+const GLOW_PAD = ms(22);
 
 type Props = {
   /** 0–100 — drives glow tint via getProgressGlow. */

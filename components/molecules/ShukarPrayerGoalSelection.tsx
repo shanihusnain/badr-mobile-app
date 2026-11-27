@@ -99,12 +99,12 @@ const styles = StyleSheet.create({
     marginTop: ms(16),
     alignItems: "center",
     width: "100%",
-    paddingBottom: 6,
+    paddingBottom: ms(6),
   },
   valueText: {
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
     marginTop: ms(-9),
     marginBottom: ms(25),
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
   },

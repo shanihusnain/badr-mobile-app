@@ -11,10 +11,10 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import moment from "moment-hijri";
 import DOBCalendar from "../molecules/DOBCalendar";
 import { TopSpace } from "./TopSpace";
+import { ms } from "@/src/utils/responsive";
 
 interface CustomDatePickerProps {
   label?: string;
@@ -109,11 +109,14 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             >
               {value ? formatStoredDate(String(value)) : placeholder}
             </Text>
-            <CreateAccountCalenderIcon width={20} color={Colors.light.white} />
+            <CreateAccountCalenderIcon
+              width={ms(20)}
+              color={Colors.light.white}
+            />
           </TouchableOpacity>
 
           {errors.length > 0 && (
-            <View style={{ marginTop: 5 }}>
+            <View style={{ marginTop: ms(5) }}>
               {errors.map((error, index) => (
                 <Text key={index} style={styles.errorText}>
                   {error}
@@ -123,7 +126,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           )}
           {show && (
             <>
-              <TopSpace top={8} />
+              <TopSpace top={ms(8)} />
               <DOBCalendar
                 value={value ? String(value) : undefined}
                 minimumAgeYears={minimumAgeYears}
@@ -157,16 +160,16 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    marginTop: hp(2),
+    fontSize: ms(12),
+    marginTop: ms(16),
     alignSelf: "flex-start",
   },
   container: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    height: 48,
-    marginTop: hp(1),
+    borderRadius: ms(6),
+    paddingHorizontal: ms(12),
+    height: ms(48),
+    marginTop: ms(8),
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
@@ -175,19 +178,19 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
     flex: 1,
   },
   calendarIcon: {
-    fontSize: 16,
+    fontSize: ms(16),
   },
   webWrapper: {
     width: "100%",
-    marginTop: hp(1),
+    marginTop: ms(8),
   },
   errorText: {
     color: "red",
-    fontSize: 12,
+    fontSize: ms(12),
   },
 });
 

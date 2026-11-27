@@ -144,7 +144,7 @@ export const GoalProgressCard = ({
         </Text>
       </Text>
 
-      <TopSpace top={4} />
+      <TopSpace top={ms(4)} />
 
       {/* Moon grows into the middle only — stats + card bottom padding stay intact. */}
       <View
@@ -183,18 +183,18 @@ export const GoalProgressCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: ms(12),
     backgroundColor: Colors.light.darkgrey,
     height: ms(CARD_HEIGHT),
-    paddingTop: CARD_PADDING,
-    paddingHorizontal: CARD_PADDING,
+    paddingTop: ms(CARD_PADDING),
+    paddingHorizontal: ms(CARD_PADDING),
     // Keep Day / Overall Progress clear of the card edge.
-    paddingBottom: CARD_PADDING,
+    paddingBottom: ms(CARD_PADDING),
   },
   currentDayText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: ms(16),
     textAlign: "center",
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   daysLeftText: {
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: 16,
+    fontSize: ms(16),
     color: Colors.light.white,
     opacity: 0.8,
     letterSpacing: 0.5,
@@ -224,15 +224,15 @@ const styles = StyleSheet.create({
   statLabel: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.white,
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: ms(4),
   },
   statValue: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: ms(18),
     color: Colors.light.white,
   },
 });

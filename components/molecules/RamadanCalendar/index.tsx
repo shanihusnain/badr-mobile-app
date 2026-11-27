@@ -6,6 +6,7 @@
 import { Colors } from "@/constants/theme";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ms } from "@/src/utils/responsive";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
@@ -193,7 +194,7 @@ export const RamadanCalendar = ({
             added to your fasting schedule. Dates already planned for other
             fasting goals are shown dimmed and cannot be selected.
           </Text>
-          <TopSpace top={16} />
+          <TopSpace top={ms(16)} />
 
           <CalendarCountAndRamadanText
             fastCount={missedDates.length}
@@ -224,32 +225,32 @@ const styles = StyleSheet.create({
 
   topBar: {
     backgroundColor: Colors.light.calendarBg,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderTopLeftRadius: ms(12),
+    borderTopRightRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingVertical: ms(12),
   },
 
   legendRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 10,
+    gap: ms(10),
     alignSelf: "center",
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: ms(6),
   },
   legendRing: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
@@ -259,55 +260,55 @@ const styles = StyleSheet.create({
   dateLabel: {
     alignItems: "center",
     backgroundColor: Colors.light.calendarBg,
-    paddingVertical: 10,
+    paddingVertical: ms(10),
   },
   dateLabelText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
   islamicDateText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginTop: 4,
+    marginTop: ms(4),
   },
 
   footer: {
     backgroundColor: Colors.light.calendarBg,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
+    borderBottomLeftRadius: ms(12),
+    borderBottomRightRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(16),
+    paddingBottom: ms(20),
   },
 
   description: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: Colors.light.grey,
-    lineHeight: 20,
+    lineHeight: ms(20),
     fontFamily: fonts.primary.regular,
   },
 
   count: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
   },
   saveBtn: {
-    marginTop: 20,
+    marginTop: ms(20),
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: ms(12),
+    paddingVertical: ms(14),
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: "700",
     fontFamily: fonts.primary.bold,
   },

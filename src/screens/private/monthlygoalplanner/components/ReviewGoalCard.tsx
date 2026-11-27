@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { formatReviewCurrencyAmount } from "@/src/utils/sadaqahGoalMap";
+import { ms } from "@/src/utils/responsive";
 
 type Props = {
   goal: any;
@@ -143,7 +144,7 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
           <View style={styles.appliedGoalLeftGroup}>
             <Text style={styles.appliedGoalTitleText}>{goal?.label}</Text>
             <Pressable onPress={() => handleEditPress(goal)}>
-              <Feather name="edit-2" size={14} color="white" />
+              <Feather name="edit-2" size={ms(14)} color="white" />
             </Pressable>
           </View>
           {rightNode}
@@ -267,46 +268,46 @@ export default function ReviewGoalCard({ goal, handleEditPress }: Props) {
 const styles = StyleSheet.create({
   appliedGoalContainer: {
     backgroundColor: Colors.light.greybuttonBackground,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    paddingVertical: ms(10),
+    paddingHorizontal: ms(15),
+    borderRadius: ms(6),
   },
   appliedGoalRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 8,
+    gap: ms(8),
   },
   appliedGoalLeftGroup: {
     flexDirection: "row",
     alignItems: "center",
     flexShrink: 1,
-    gap: 6,
+    gap: ms(6),
   },
   appliedGoalTitleText: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flexShrink: 1,
   },
   appliedGoalValueText: {
     color: Colors.light.green,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     letterSpacing: 0.1,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   chipRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: ms(8),
   },
   unitChip: {
     backgroundColor: Colors.light.progressBarEmpty,
-    padding: 2,
-    borderRadius: 4,
+    padding: ms(2),
+    borderRadius: ms(4),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
     color: Colors.light.green,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 10,
+    fontSize: ms(10),
     letterSpacing: 0.1,
   },
   subGoalWrapper: {
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 5,
+    paddingVertical: ms(5),
   },
   subGoalRowQuran: {
     flexDirection: "column",
@@ -333,8 +334,8 @@ const styles = StyleSheet.create({
   },
   subGoalText: {
     color: Colors.light.white,
-    fontSize: 12,
-    marginTop: 8,
+    fontSize: ms(12),
+    marginTop: ms(8),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     flexShrink: 1,
@@ -342,8 +343,8 @@ const styles = StyleSheet.create({
   },
   subGoalBracketText: {
     color: Colors.light.white,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: ms(12),
+    marginTop: ms(2),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     opacity: 0.9,
@@ -354,8 +355,8 @@ const styles = StyleSheet.create({
   },
   subGoalValueText: {
     color: Colors.light.white,
-    fontSize: 12,
-    marginTop: 8,
+    fontSize: ms(12),
+    marginTop: ms(8),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     opacity: 0.8,

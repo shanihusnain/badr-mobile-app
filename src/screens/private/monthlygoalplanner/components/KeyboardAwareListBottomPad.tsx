@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Keyboard, Platform, View } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 /**
  * Owns keyboard height locally so parent lists/sheets do not re-render on
@@ -27,7 +28,7 @@ export function KeyboardAwareListBottomPad() {
   }, []);
 
   const height =
-    Math.max(0, keyboardHeight) + (keyboardHeight > 0 ? 48 : 0);
+    Math.max(0, keyboardHeight) + (keyboardHeight > 0 ? ms(48) : 0);
   if (height <= 0) return null;
   return <View style={{ height }} />;
 }

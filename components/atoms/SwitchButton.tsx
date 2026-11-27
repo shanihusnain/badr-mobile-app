@@ -10,6 +10,7 @@ import Animated, {
   SharedValue,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
+import { ms } from "@/src/utils/responsive";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -30,8 +31,8 @@ const SWITCH_DIMENSIONS: Record<
   SwitchSize,
   { trackWidth: number; trackHeight: number; thumbSize: number }
 > = {
-  default: { trackWidth: 50, trackHeight: 20, thumbSize: 28 },
-  small: { trackWidth: 38, trackHeight: 14, thumbSize: 20 },
+  default: { trackWidth: ms(50), trackHeight: ms(20), thumbSize: ms(28) },
+  small: { trackWidth: ms(38), trackHeight: ms(14), thumbSize: ms(20) },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -133,9 +134,9 @@ const styles = StyleSheet.create({
   thumb: {
     position: "absolute",
     shadowColor: Colors.light.blackBackground,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: ms(2) },
     shadowOpacity: 0.25,
-    shadowRadius: 3,
+    shadowRadius: ms(3),
     elevation: 3,
   },
 });

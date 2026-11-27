@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet, View } from "react-native";
 
 export const Divider = () => {
@@ -9,6 +10,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.light.divider,
     width: "100%",
-    marginTop: 12,
+    marginTop: ms(12),
   },
 });

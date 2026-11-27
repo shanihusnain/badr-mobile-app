@@ -8,13 +8,14 @@ import {
   ViewStyle,
   StyleProp,
   StyleSheet,
+  Platform,
 } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { Controller } from "react-hook-form";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
 import { useTranslation } from "react-i18next";
 import { ConfirmPasswordEyeIcon, PasswordEyeIcon } from "@/assets/icons";
+import { ms } from "@/src/utils/responsive";
 interface CustomTextInputProps {
   label?: string;
   placeholder: string;
@@ -149,9 +150,12 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           {showEye && onToggleEye && (
             <TouchableOpacity onPress={onToggleEye} style={styles.rightIcon}>
               {secureTextEntry ? (
-                <ConfirmPasswordEyeIcon size={20} color={Colors.light.white} />
+                <ConfirmPasswordEyeIcon
+                  size={ms(20)}
+                  color={Colors.light.white}
+                />
               ) : (
-                <PasswordEyeIcon size={20} color={Colors.light.white} />
+                <PasswordEyeIcon size={ms(20)} color={Colors.light.white} />
               )}
             </TouchableOpacity>
           )}
@@ -185,61 +189,72 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     // Green color for success
     fontFamily: fonts.primary.semiBold,
-    fontSize: 11,
-    marginTop: hp(1),
+    fontSize: ms(11),
+    marginTop: ms(8),
   },
   errorMsg: {
     color: Colors.light.red,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 11,
-    marginTop: hp(1),
+    fontSize: ms(11),
+    marginTop: ms(8),
     alignSelf: "flex-start",
   },
   input: {
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    padding: 0,
+    fontSize: ms(12),
+    // Avoid height/lineHeight on single-line inputs — iOS shifts typed glyphs
+    // off the visual center relative to a centered leftIcon.
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     margin: 0,
     includeFontPadding: false,
+    textAlignVertical: "center",
+    ...Platform.select({
+      ios: {
+        // Optical nudge so custom fonts sit on the same axis as 20pt icons.
+        paddingTop: ms(1),
+      },
+      default: {},
+    }),
   },
   leftIcon: {
-    marginRight: 6,
+    marginRight: ms(6),
     justifyContent: "center",
     alignItems: "center",
   },
   rightIcon: {
-    marginLeft: 6,
+    marginLeft: ms(6),
     justifyContent: "center",
     alignItems: "center",
   },
   inputWrapper: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    height: 48,
-    marginTop: hp(1),
+    borderRadius: ms(6),
+    paddingHorizontal: ms(12),
+    height: ms(48),
+    marginTop: ms(8),
     flexDirection: "row",
     alignItems: "center",
   },
   multilineInputWrapper: {
     alignItems: "flex-start",
     justifyContent: "flex-start",
-    paddingVertical: hp(1.1),
+    paddingVertical: ms(9),
   },
   multilineTextInput: {
     textAlignVertical: "top",
-    paddingTop: hp(0.4),
-    paddingBottom: hp(0.4),
+    paddingTop: ms(3),
+    paddingBottom: ms(3),
   },
   label: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
     marginTop: 0,
     alignSelf: "flex-start",
-    marginRight: 14,
+    marginRight: ms(14),
   },
   wrapper: {
     width: "98%",

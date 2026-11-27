@@ -8,6 +8,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Colors } from "../../constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { useLocaleNumber } from "../../hooks/useLocaleNumber";
 
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -66,26 +67,26 @@ export default function CustomSlider({
   };
 
   // Base dimensions (will be scaled uniformly)
-  const baseTrackHeight = 8;
-  const baseRingSize = 9;
-  const baseThumbSize = 19; // White pointer thumb diameter
+  const baseTrackHeight = ms(8);
+  const baseRingSize = ms(9);
+  const baseThumbSize = ms(19); // White pointer thumb diameter
 
   // Scaled dimensions
   const trackHeight = baseTrackHeight * scale;
   const ringSize = baseRingSize * scale;
   const thumbSize = baseThumbSize * scale;
   // Compact hugs the thumb/track so stacked rows match Figma (no tall empty hit-area).
-  const sliderHeight = compact ? 28 : 50;
+  const sliderHeight = compact ? ms(28) : ms(50);
   // Keep chip + caret clearly above the thumb (same speech-bubble as non-compact).
-  const badgeTop = compact ? -24 : -11;
+  const badgeTop = compact ? ms(-24) : ms(-11);
 
   // Horizontal inset — room for thumb/badge at min/max.
   // Paired with container width 112% so the visible track aligns with card content edges.
-  const paddingX = 20;
+  const paddingX = ms(20);
   const trackOverlayWidth = width - paddingX * 2;
-  const badgeWidth = 32;
+  const badgeWidth = ms(32);
   const badgeHalf = badgeWidth / 2;
-  const badgeEdgeInset = 4;
+  const badgeEdgeInset = ms(4);
 
   // Use the continuous float value to calculate percentage for 60fps smooth tracking.
   // Clamp so values below the track min (e.g. 0 when disabled) stay at the left edge.
@@ -265,7 +266,7 @@ export default function CustomSlider({
 const styles = StyleSheet.create({
   container: {
     width: "112%",
-    marginVertical: 8,
+    marginVertical: ms(8),
     alignSelf: "center",
   },
 
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginVertical: 0,
     // Space for chip + caret above the thumb (must clear thumb so caret stays visible).
-    paddingTop: 28,
+    paddingTop: ms(28),
   },
 
   sliderWrapper: {
@@ -287,16 +288,16 @@ const styles = StyleSheet.create({
 
   badgeContainer: {
     position: "absolute",
-    width: 32,
+    width: ms(32),
     alignItems: "center",
     // Above thumb so the caret is never covered.
     zIndex: 20,
   },
 
   badge: {
-    width: 21,
-    height: 20,
-    borderRadius: 4,
+    width: ms(21),
+    height: ms(20),
+    borderRadius: ms(4),
     backgroundColor: Colors.light.darkgrey,
     justifyContent: "center",
     alignItems: "center",
@@ -304,22 +305,22 @@ const styles = StyleSheet.create({
 
   badgeText: {
     color: "white",
-    fontSize: 11,
+    fontSize: ms(11),
     fontWeight: "600",
   },
 
   badgeArrow: {
     width: 0,
     height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderTopWidth: 5,
+    borderLeftWidth: ms(5),
+    borderRightWidth: ms(5),
+    borderTopWidth: ms(5),
     borderStyle: "solid",
     backgroundColor: "transparent",
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
     borderTopColor: Colors.light.darkgrey,
-    marginTop: -1, // Slightly overlap the badge
+    marginTop: ms(-1), // Slightly overlap the badge
   },
 
   trackOverlay: {

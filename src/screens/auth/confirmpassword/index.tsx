@@ -25,6 +25,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import { useResetPassword } from "@/src/api/mutations/useResetPassword";
 import { PasswordLockIcon } from "@/assets/icons";
+import { ms, s } from "@/src/utils/responsive";
 
 export default function ConfirmPasswordScreen() {
   const { email, code }: { email: string; code: string } =
@@ -138,21 +139,21 @@ export default function ConfirmPasswordScreen() {
                       <View
                         style={{
                           width: "80%",
-                          minHeight: 40,
-                          borderRadius: 6,
-                          paddingVertical: 1,
-                          paddingHorizontal: 8,
+                          minHeight: s(40),
+                          borderRadius: ms(6),
+                          paddingVertical: ms(1),
+                          paddingHorizontal: ms(8),
                           flexDirection: "row",
                           justifyContent: "center",
                           alignItems: "center",
                           alignSelf: "center",
-                          gap: 8,
+                          gap: ms(8),
                           backgroundColor: Colors.light.darkgrey,
                         }}
                       >
                         <AntDesign
                           name="check-circle"
-                          size={18}
+                          size={ms(18)}
                           color={Colors.light.green}
                         />
                         <Text
@@ -160,8 +161,8 @@ export default function ConfirmPasswordScreen() {
                             color: Colors.light.white,
                             fontFamily: fonts.primary.medium,
                             fontWeight: "500",
-                            fontSize: 16,
-                            lineHeight: 20,
+                            fontSize: ms(16),
+                            lineHeight: ms(20),
                           }}
                         >
                           PASSWORD UPDATED!

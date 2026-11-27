@@ -39,6 +39,7 @@ import {
   clearPendingOnboardingRoute,
   setGoalOnboardingFinished,
 } from "@/src/storage/onboardingRouteStorage";
+import { ms } from "@/src/utils/responsive";
 import {
   tahiyyatalwudhubottomsheetimage,
   missedpastprayerbottomsheetimage,
@@ -5168,7 +5169,9 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             style={styles.list}
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: 48 + Math.max(insets.bottom, 20) },
+              {
+                paddingBottom: ms(48) + Math.max(insets.bottom, ms(20)),
+              },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -5202,7 +5205,7 @@ export const GoalPlannerSheet = ({ initialTab }: Props) => {
             errorLoadingQuranGoals={!!errorLoadingQuranGoals}
             canPressFooterPrimary={canPressFooterPrimary}
             isFooterLoading={isFinishingAndSaving}
-            footerBottomPad={Math.max(insets.bottom, 20)}
+            footerBottomPad={Math.max(insets.bottom, ms(20))}
             finishLabel={
               activeTab === "review"
                 ? t("monthlyGoalPlanner.finishAndSaveGoals")
@@ -5354,23 +5357,23 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   tabBarContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: ms(16),
     // Top spacing comes from Header `extraBottomPadding` on goalplanner.
-    paddingTop: 4,
-    paddingBottom: 10,
-    gap: 8,
+    paddingTop: ms(4),
+    paddingBottom: ms(10),
+    gap: ms(8),
     alignItems: "center",
   },
   tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
+    paddingHorizontal: ms(16),
+    paddingVertical: ms(8),
+    borderRadius: ms(4),
     backgroundColor: Colors.light.greybuttonBackground,
-    minHeight: 36,
+    minHeight: ms(36),
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    gap: 6,
+    gap: ms(6),
   },
   tabActive: {
     backgroundColor: Colors.light.green,
@@ -5380,10 +5383,10 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: Colors.light.dullWhite,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: ms(18),
     letterSpacing: 0.1,
     includeFontPadding: false,
     textAlign: "center",
@@ -5394,9 +5397,9 @@ const styles = StyleSheet.create({
   },
   // ── Category chip inside tabs
   tabChip: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: ms(6),
+    paddingVertical: ms(2),
+    borderRadius: ms(4),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -5408,10 +5411,10 @@ const styles = StyleSheet.create({
   },
   tabChipText: {
     color: Colors.light.dullWhite,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    lineHeight: 16,
+    lineHeight: ms(16),
     includeFontPadding: false,
     textAlign: "center",
     textAlignVertical: "center",
@@ -5426,30 +5429,30 @@ const styles = StyleSheet.create({
   // - 20 between cards (and between selection → next card)
   // - 12 between card → its selection panel
   goalListItem: {
-    marginBottom: 20,
+    marginBottom: ms(20),
   },
   goalSelectionBelowCard: {
-    marginTop: 12,
+    marginTop: ms(12),
   },
   reviewSection: {
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: ms(12),
+    gap: ms(12),
   },
   reviewGoalBlock: {
-    gap: 12,
+    gap: ms(12),
   },
   // ── Content
   content: {
-    paddingHorizontal: 16,
-    paddingBottom: 48,
-    paddingTop: 12,
+    paddingHorizontal: ms(16),
+    paddingBottom: ms(48),
+    paddingTop: ms(12),
   },
   // ── Cycle Start tab
   monthNav: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: ms(12),
+    gap: ms(12),
     alignSelf: "center",
   },
   monthNavCenter: {
@@ -5459,59 +5462,59 @@ const styles = StyleSheet.create({
   },
   rangeRow: {
     alignItems: "center",
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: ms(4),
+    marginBottom: ms(4),
   },
   rangeLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
     textAlign: "center",
   },
   hijriLabel: {
     color: Colors.light.grey,
-    fontSize: 11,
+    fontSize: ms(11),
     fontFamily: fonts.primary.regular,
     textAlign: "center",
-    marginTop: 2,
+    marginTop: ms(2),
   },
   navBtn: {
-    padding: 8,
+    padding: ms(8),
   },
   monthLabel: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: ms(16),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
   },
   cycleTopBar: {
     backgroundColor: Colors.light.calendarBg,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    borderTopLeftRadius: ms(12),
+    borderTopRightRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(16),
+    paddingBottom: ms(12),
   },
   cycleDescription: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   cycleFooter: {
     backgroundColor: Colors.light.calendarBg,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 20,
+    borderBottomLeftRadius: ms(12),
+    borderBottomRightRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(14),
+    paddingBottom: ms(20),
   },
   cycleInfoText: {
     color: Colors.light.dullWhite,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
-    lineHeight: 22,
+    lineHeight: ms(22),
     flex: 1,
   },
   cycleHighlight: {
@@ -5523,6 +5526,6 @@ const styles = StyleSheet.create({
   footerContainer: {
     width: "92%",
     alignSelf: "center",
-    paddingVertical: 20,
+    paddingVertical: ms(20),
   },
 });

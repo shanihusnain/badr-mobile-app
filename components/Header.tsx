@@ -27,9 +27,15 @@ interface HeaderProps {
   extraTopPadding?: number;
   /** Extra space under the title row before screen content (screen-specific). */
   extraBottomPadding?: number;
+  /** Row padding. Defaults stay fixed so other screens are unchanged. */
+  horizontalPadding?: number;
+  /** Space under the status-bar inset, before `extraTopPadding`. */
+  topPadding?: number;
+  /** Width reserved for the back button and the matching right slot. */
+  sideSlotWidth?: number;
+  /** Gap between the title and the side slots. */
+  titleHorizontalMargin?: number;
 }
-
-const SIDE_SLOT_WIDTH = 40;
 
 const Header: React.FC<HeaderProps> = ({
   title,
@@ -43,6 +49,10 @@ const Header: React.FC<HeaderProps> = ({
   forceSmallCaps = false,
   extraTopPadding = 0,
   extraBottomPadding = 0,
+  horizontalPadding = 16,
+  topPadding = 10,
+  sideSlotWidth = 40,
+  titleHorizontalMargin = 8,
 }) => {
   const insets = useSafeAreaInsets();
   const showSideSlots = showBackBtn;
@@ -59,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({
         flex: 1,
         // Don't compress the line — flex-shrink made glyphs feel stretched vs Figma.
         flexShrink: 0,
-        marginHorizontal: showSideSlots ? 8 : 0,
+        marginHorizontal: showSideSlots ? titleHorizontalMargin : 0,
         ...getFigmaForcedSmallCapsTextStyle({
           fontSize: resolvedFontSize,
           lineHeight: resolvedLineHeight,
@@ -70,7 +80,7 @@ const Header: React.FC<HeaderProps> = ({
     : {
         flex: 1,
         flexShrink: 1,
-        marginHorizontal: showSideSlots ? 8 : 0,
+        marginHorizontal: showSideSlots ? titleHorizontalMargin : 0,
         color: Colors.light.white,
         fontFamily: fonts.primary.semiBold,
         fontWeight: "600",
@@ -87,14 +97,14 @@ const Header: React.FC<HeaderProps> = ({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingTop: insets.top + 10 + extraTopPadding,
+        paddingHorizontal: horizontalPadding,
+        paddingTop: insets.top + topPadding + extraTopPadding,
         paddingBottom: extraBottomPadding,
         backgroundColor: backgroundColor ?? Colors.light.blackBackground,
       }}
     >
       {showSideSlots ? (
-        <View style={{ width: SIDE_SLOT_WIDTH, alignItems: "flex-start" }}>
+        <View style={{ width: sideSlotWidth, alignItems: "flex-start" }}>
           <BackButton
             onPress={onBackPress}
             bgcolor={arrowBg ? arrowBg : Colors.light.greybuttonBackground}
@@ -113,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({
       ) : (
         <View style={{ flex: 1 }} />
       )}
-      {showSideSlots ? <View style={{ width: SIDE_SLOT_WIDTH }} /> : null}
+      {showSideSlots ? <View style={{ width: sideSlotWidth }} /> : null}
     </View>
   );
 };

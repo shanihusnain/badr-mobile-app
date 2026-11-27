@@ -1,66 +1,66 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { ms, s } from "@/src/utils/responsive";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.blackBackground,
-    paddingTop: hp(-4),
+    paddingTop: ms(-4),
   },
   buttonContainer: {
-    paddingLeft: 25,
-    paddingTop: hp(2),
+    paddingLeft: ms(25),
+    paddingTop: ms(16),
   },
   content: {
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "flex-start",
-    paddingHorizontal: 25,
-    paddingBottom: 20,
-    paddingTop: hp(1),
+    paddingHorizontal: ms(25),
+    paddingBottom: ms(20),
+    paddingTop: ms(8),
   },
   text: {
     color: Colors.light.white,
-    fontSize: 18,
+    fontSize: ms(18),
     textAlign: "left",
     fontFamily: fonts.primary.bold,
     fontWeight: "600",
-    marginTop: hp(2),
+    marginTop: ms(16),
   },
   subtitletext: {
     color: Colors.light.subtext,
-    fontSize: 16,
+    fontSize: ms(16),
     textAlign: "left",
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    marginTop: hp(1),
+    marginTop: ms(8),
   },
 
   undertext: {
     color: Colors.light.grey,
-    fontSize: 12,
+    fontSize: ms(12),
     textAlign: "left",
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    marginTop: hp(1),
+    marginTop: ms(8),
   },
 
   buttonRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: hp(2),
+    marginTop: ms(16),
   },
 
   planButton: {
-    // width: 135,
-    height: 28,
-    borderRadius: 6,
+    // width: s(135),
+    height: ms(28),
+    borderRadius: ms(6),
 
-    paddingHorizontal: 10,
-    marginRight: 10,
-    maxWidth: 150,
+    paddingHorizontal: ms(10),
+    marginRight: ms(10),
+    maxWidth: s(150),
   },
 
   unselectedPlanButton: {
@@ -69,14 +69,14 @@ export const styles = StyleSheet.create({
   },
 
   greyButton: {
-    width: 135,
-    height: 24,
-    borderRadius: 6,
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingHorizontal: 10,
+    width: s(135),
+    height: ms(24),
+    borderRadius: ms(6),
+    paddingTop: ms(5),
+    paddingBottom: ms(5),
+    paddingHorizontal: ms(10),
     backgroundColor: Colors.light.greybuttonBackground,
-    marginTop: 2,
+    marginTop: ms(2),
     //borderColor: Colors.light.border,
     //borderWidth: 1,
   },
@@ -88,38 +88,38 @@ export const styles = StyleSheet.create({
 
   underbuttontext: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     textAlign: "left",
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    marginTop: hp(2),
+    marginTop: ms(16),
   },
 
   formWrapper: {
     alignItems: "flex-start",
     width: "100%",
-    marginTop: hp(2),
+    marginTop: ms(16),
   },
 
   cardContainer: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 15,
-    paddingTop: 19,
+    borderRadius: ms(8),
+    paddingHorizontal: ms(12),
+    paddingVertical: ms(15),
+    paddingTop: ms(19),
     width: "100%",
-    maxWidth: 343,
+    maxWidth: s(343),
     alignItems: "flex-start",
   },
 
   cardSpacing: {
-    marginTop: hp(2),
+    marginTop: ms(16),
   },
 
   cardText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 14,
+    fontSize: ms(14),
   },
 
   sliderWrapper: {
@@ -134,9 +134,9 @@ export const styles = StyleSheet.create({
 
   slideCard: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    borderRadius: ms(12),
+    paddingHorizontal: ms(20),
+    paddingVertical: ms(20),
     justifyContent: "flex-start",
     alignItems: "flex-start",
   },
@@ -144,77 +144,77 @@ export const styles = StyleSheet.create({
   slideTitle: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 20,
-    marginBottom: hp(2),
+    fontSize: ms(20),
+    marginBottom: ms(16),
   },
 
   slideSubtitle: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 14,
-    marginBottom: hp(2),
-    marginTop: hp(-1),
+    fontSize: ms(14),
+    marginBottom: ms(16),
+    marginTop: ms(-8),
   },
 
   slidePrice: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
-    marginBottom: hp(2),
-    marginTop: hp(-2),
+    fontSize: ms(12),
+    marginBottom: ms(16),
+    marginTop: ms(-16),
   },
 
   slideDescription: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    marginBottom: hp(3),
-    marginTop: hp(0),
+    fontSize: ms(14),
+    marginBottom: ms(24),
+    marginTop: ms(1),
   },
 
   slideDescription1: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    marginBottom: hp(2),
-    marginTop: hp(-2),
+    fontSize: ms(14),
+    marginBottom: ms(16),
+    marginTop: ms(-16),
   },
 
   slideFullDescription: {
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
-    marginTop: hp(2),
-    lineHeight: 18,
+    fontSize: ms(12),
+    marginTop: ms(16),
+    lineHeight: ms(18),
   },
 
   descriptionBullet: {
     color: Colors.light.green,
-    fontSize: 24,
-    lineHeight: 20,
+    fontSize: ms(24),
+    lineHeight: ms(20),
   },
 
   secondarySubtitle: {
     color: Colors.light.green,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 18,
+    fontSize: ms(18),
   },
 
   slideButton: {
     width: "80%",
-    minHeight: 30,
-    paddingTop: 6,
-    paddingBottom: 6,
-    marginTop: hp(1),
+    minHeight: ms(30),
+    paddingTop: ms(6),
+    paddingBottom: ms(6),
+    marginTop: ms(8),
     alignSelf: "center",
-    paddingHorizontal: 10,
+    paddingHorizontal: ms(10),
   },
 
   slideButtonText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: ms(18),
   },
 
   paginationContainer: {
@@ -222,21 +222,21 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: hp(2),
+    marginTop: ms(16),
     alignSelf: "center",
   },
 
   paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 5,
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(5),
     backgroundColor: Colors.light.white,
-    marginHorizontal: 4,
+    marginHorizontal: ms(4),
   },
 
   activeDot: {
     backgroundColor: Colors.light.green,
-    width: 8,
-    height: 8,
+    width: ms(8),
+    height: ms(8),
   },
 });

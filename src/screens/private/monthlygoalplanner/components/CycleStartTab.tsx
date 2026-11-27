@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { localizeNumber } from "@/src/utils/localizeNumbers";
 import { useStartEditCycleMutation } from "@/src/api/mutations/useStartEditCycle";
+import { ms } from "@/src/utils/responsive";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -104,10 +105,7 @@ export const CycleStartTab = ({
     (dateString: string) => {
       // Today and past days are not valid cycle starts — earliest is tomorrow.
       if (
-        moment(dateString, "YYYY-MM-DD").isBefore(
-          moment().add(1, "day"),
-          "day",
-        )
+        moment(dateString, "YYYY-MM-DD").isBefore(moment().add(1, "day"), "day")
       ) {
         return;
       }
@@ -276,7 +274,7 @@ export const CycleStartTab = ({
       >
         {t("monthlyGoalPlanner.cycleStartDescription")}
       </Text>
-      <TopSpace top={36} />
+      <TopSpace top={ms(36)} />
 
       {/* ── Month nav top bar ── */}
       <View style={styles.topBar}>
@@ -289,10 +287,8 @@ export const CycleStartTab = ({
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-forward" : "chevron-back"}
-              size={15}
-              color={
-                canGoPrevMonth ? Colors.light.white : Colors.light.grey
-              }
+              size={ms(15)}
+              color={canGoPrevMonth ? Colors.light.white : Colors.light.grey}
             />
           </TouchableOpacity>
 
@@ -307,7 +303,7 @@ export const CycleStartTab = ({
           >
             <Ionicons
               name={i18n.language === "ar" ? "chevron-back" : "chevron-forward"}
-              size={15}
+              size={ms(15)}
               color={Colors.light.white}
             />
           </TouchableOpacity>
@@ -320,8 +316,8 @@ export const CycleStartTab = ({
       {/* ── Calendar grid ── */}
       <CalendarGrid
         mode="cycle_start"
-        borderBottomLeftRadius={12}
-        borderBottomRightRadius={12}
+        borderBottomLeftRadius={ms(12)}
+        borderBottomRightRadius={ms(12)}
         currentDate={windowStartDate}
         windowStartDate={windowStartDate}
         windowEndDate={windowEndMoment.format("YYYY-MM-DD")}
@@ -346,7 +342,7 @@ export const CycleStartTab = ({
         }
       />
 
-      <TopSpace top={32} />
+      <TopSpace top={ms(32)} />
       <PrimaryButton
         size="compact"
         text={t("monthlyGoalPlanner.commit")}
@@ -354,7 +350,7 @@ export const CycleStartTab = ({
         disabled={isStartEditCyclePending || !cycleStartDate}
         style={[
           styles.commitButton,
-          { marginBottom: Math.max(insets.bottom, 16) },
+          { marginBottom: Math.max(insets.bottom, ms(16)) },
         ]}
         onPress={handleCommitPress}
       />
@@ -380,26 +376,26 @@ export const CycleStartTab = ({
 
 const styles = StyleSheet.create({
   description: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
     letterSpacing: 0,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   topBar: {
     backgroundColor: Colors.light.calendarBg,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 4,
+    borderTopLeftRadius: ms(12),
+    borderTopRightRadius: ms(12),
+    paddingHorizontal: ms(16),
+    paddingTop: ms(16),
+    paddingBottom: ms(4),
   },
   monthNav: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    gap: 12,
+    marginBottom: ms(8),
+    gap: ms(12),
     alignSelf: "center",
   },
   monthNavCenter: {
@@ -408,7 +404,7 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
     textAlign: "center",
@@ -416,20 +412,20 @@ const styles = StyleSheet.create({
   },
   hijriLabel: {
     color: Colors.light.grey,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.medium,
     textAlign: "center",
-    marginTop: 8,
+    marginTop: ms(8),
     fontWeight: "500",
   },
   navBtn: {
-    padding: 4,
+    padding: ms(4),
   },
   infoText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
+    lineHeight: ms(20),
     fontWeight: "400",
     letterSpacing: 0,
     textAlign: "center",
@@ -442,8 +438,8 @@ const styles = StyleSheet.create({
   commitButton: {
     width: "90%",
     alignSelf: "center",
-    minHeight: 40,
-    paddingVertical: 8,
+    minHeight: ms(40),
+    paddingVertical: ms(8),
   },
   modalPrimaryButton: {
     alignSelf: "center",

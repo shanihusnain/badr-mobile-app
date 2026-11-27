@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import PrimaryButton from "@/components/atoms/Primary-button";
 import { GreenTickWithCircleIcon } from "@/assets/icons";
 
@@ -204,21 +205,21 @@ export default function GoalSelectionSaveButton({
 const styles = StyleSheet.create({
   savedBar: {
     width: "100%",
-    minHeight: 35,
-    borderRadius: 6,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    minHeight: ms(35),
+    borderRadius: ms(6),
+    paddingVertical: ms(5),
+    paddingHorizontal: ms(8),
     backgroundColor: Colors.light.greybuttonBackground,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: ms(8),
   },
   savedText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 16,
+    fontSize: ms(16),
     letterSpacing: 0.1,
     textTransform: "uppercase",
   },

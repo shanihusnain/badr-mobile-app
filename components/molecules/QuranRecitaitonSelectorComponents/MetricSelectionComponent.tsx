@@ -29,13 +29,14 @@ import {
   TickIconWithGreenBg,
 } from "@/assets/icons";
 import WarningModal from "@/components/atoms/WarningModal";
+import { ms } from "@/src/utils/responsive";
 
 const EMPTY_SURAHS: QuranSurahOption[] = [];
 const EMPTY_HIZBS: QuranHizbOption[] = [];
 const EMPTY_JUZS: QuranJuzOption[] = [];
 /** Fixed height viewport so nested FlatList scrolls inside the bottom sheet. */
 const METRIC_LIST_HEIGHT = Math.min(
-  320,
+  ms(320),
   Math.round(Dimensions.get("window").height * 0.4),
 );
 
@@ -1142,13 +1143,13 @@ export const MetricSelectionComponent = ({
       >
         <Pressable
           onPress={handleMetricPress}
-          style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+          style={{ flexDirection: "row", alignItems: "center", gap: ms(8) }}
         >
           <Text style={styles.metrixName}>{item.title}</Text>
           {item.name === selectedMetric ? (
-            <ChevronUpIcon />
+            <ChevronUpIcon width={ms(10)} height={ms(6)} />
           ) : isSaved ? (
-            <ChevronDownIcon />
+            <ChevronDownIcon width={ms(10)} height={ms(6)} />
           ) : null}
         </Pressable>
 
@@ -1158,21 +1159,21 @@ export const MetricSelectionComponent = ({
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: Colors.light.green,
-              borderRadius: 30,
-              height: 24,
-              width: 24,
+              borderRadius: ms(30),
+              height: ms(24),
+              width: ms(24),
             }}
           >
-            <TickIconWithGreenBg />
+            <TickIconWithGreenBg width={ms(12)} height={ms(9)} />
           </View>
         ) : (
-          <AntDesign name="plus-circle" color={Colors.light.white} size={20} />
+          <AntDesign name="plus-circle" color={Colors.light.white} size={ms(20)} />
         )}
       </Pressable>
-      <TopSpace top={20} />
+      <TopSpace top={ms(20)} />
 
       {selectedMetric === item.name && isLoadingOptions && (
-        <View style={{ paddingVertical: 16, alignItems: "center" }}>
+        <View style={{ paddingVertical: ms(16), alignItems: "center" }}>
           <ActivityIndicator color={Colors.light.green} />
         </View>
       )}
@@ -1240,20 +1241,20 @@ export const MetricSelectionComponent = ({
                                 ? Colors.light.green
                                 : "transparent",
                               borderWidth: checked ? 0 : 1,
-                              marginTop: 2,
+                              marginTop: ms(2),
                             },
                           ]}
                         >
-                          {checked && <CheckBoxTickIcon />}
+                          {checked && <CheckBoxTickIcon width={ms(9)} height={ms(6)} />}
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
                               color: Colors.light.white,
-                              fontSize: 14,
+                              fontSize: ms(14),
                               fontFamily: fonts.primary.regular,
                               letterSpacing: 0.1,
-                              lineHeight: 20,
+                              lineHeight: ms(20),
                             }}
                           >
                             {s.surahTitle}
@@ -1267,7 +1268,7 @@ export const MetricSelectionComponent = ({
                       </View>
                       {checked && !isMemorizationSurah ? (
                         <View style={styles.surahTrailingIconSlot}>
-                          <ChevronUpIcon />
+                          <ChevronUpIcon width={ms(10)} height={ms(6)} />
                         </View>
                       ) : null}
                     </Pressable>
@@ -1318,7 +1319,7 @@ export const MetricSelectionComponent = ({
                           </View>
                         </View>
 
-                        <TopSpace top={12} />
+                        <TopSpace top={ms(12)} />
                         <View style={styles.surahEnterTimesRow}>
                           <View style={styles.surahTrailingIconSlot} />
                           <Text style={styles.surahEnterTimesLabel}>
@@ -1351,12 +1352,12 @@ export const MetricSelectionComponent = ({
                               }}
                               hitSlop={8}
                             >
-                              <BinIcon />
+                              <BinIcon width={ms(13)} height={ms(14)} />
                             </Pressable>
                           </View>
                         </View>
 
-                        <TopSpace top={8} />
+                        <TopSpace top={ms(8)} />
                         <View style={styles.surahTimesInputRow}>
                           <TextInput
                             ref={(r) => {
@@ -1446,7 +1447,7 @@ export const MetricSelectionComponent = ({
                           </Text>
                         </View>
 
-                        <TopSpace top={12} />
+                        <TopSpace top={ms(12)} />
                         <View style={styles.surahFormulaBlock}>
                           <Text style={[styles.surahFormulaPrimary]}>
                             ({" "}
@@ -1456,7 +1457,7 @@ export const MetricSelectionComponent = ({
                             )}
                             )*
                           </Text>
-                          <TopSpace top={4} />
+                          <TopSpace top={ms(4)} />
                           <Text style={styles.surahFormulaSecondary}>
                             *
                             {t(
@@ -1528,20 +1529,20 @@ export const MetricSelectionComponent = ({
                               ? Colors.light.green
                               : "transparent",
                             borderWidth: checked ? 0 : 1,
-                            marginTop: 2,
+                            marginTop: ms(2),
                           },
                         ]}
                       >
-                        {checked && <CheckBoxTickIcon />}
+                        {checked && <CheckBoxTickIcon width={ms(9)} height={ms(6)} />}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
                             color: Colors.light.white,
-                            fontSize: 14,
+                            fontSize: ms(14),
                             fontFamily: fonts.primary.regular,
                             letterSpacing: 0.1,
-                            lineHeight: 20,
+                            lineHeight: ms(20),
                           }}
                         >
                           {juz.juzName}
@@ -1569,8 +1570,8 @@ export const MetricSelectionComponent = ({
                 flexDirection: "row",
                 // alignItems: "center",
                 justifyContent: "space-between",
-                paddingRight: 4,
-                paddingTop: 10,
+                paddingRight: ms(4),
+                paddingTop: ms(10),
               }}
             >
               <Text
@@ -1579,9 +1580,9 @@ export const MetricSelectionComponent = ({
                   color: Colors.light.white,
                   fontFamily: fonts.primary.regular,
                   fontWeight: "400",
-                  fontSize: 12,
+                  fontSize: ms(12),
                   opacity: 0.7,
-                  lineHeight: 20,
+                  lineHeight: ms(20),
                   letterSpacing: 0.1,
                 }}
               >
@@ -1602,22 +1603,22 @@ export const MetricSelectionComponent = ({
                 style={{ opacity: isDeletingItem ? 0.5 : 1 }}
                 hitSlop={8}
               >
-                <BinIcon />
+                <BinIcon width={ms(13)} height={ms(14)} />
               </Pressable>
             </View>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 8,
-                marginTop: 12,
+                gap: ms(8),
+                marginTop: ms(12),
                 alignSelf: "center",
               }}
             >
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: 14,
+                  fontSize: ms(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                 }}
@@ -1676,7 +1677,7 @@ export const MetricSelectionComponent = ({
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: 14,
+                  fontSize: ms(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                 }}
@@ -1743,14 +1744,14 @@ export const MetricSelectionComponent = ({
                 ) : null}
               </View>
             </View>
-            <TopSpace top={14} />
+            <TopSpace top={ms(14)} />
             <Text
               style={{
                 color: Colors.light.white,
                 alignSelf: "center",
                 opacity: 0.8,
                 fontFamily: fonts.primary.regular,
-                fontSize: 12,
+                fontSize: ms(12),
               }}
             >
               {(() => {
@@ -1767,7 +1768,7 @@ export const MetricSelectionComponent = ({
                 });
               })()}
             </Text>
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
           </View>
         )}
 
@@ -1779,10 +1780,10 @@ export const MetricSelectionComponent = ({
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 12,
+                gap: ms(12),
                 justifyContent: "space-between",
-                marginTop: 10,
-                marginRight: 5,
+                marginTop: ms(10),
+                marginRight: ms(5),
               }}
             >
               <Text
@@ -1791,9 +1792,9 @@ export const MetricSelectionComponent = ({
                   color: Colors.light.white,
                   fontFamily: fonts.primary.regular,
                   fontWeight: "400",
-                  fontSize: 12,
+                  fontSize: ms(12),
                   opacity: 0.7,
-                  lineHeight: 20,
+                  lineHeight: ms(20),
                   letterSpacing: 0.1,
                 }}
               >
@@ -1811,15 +1812,15 @@ export const MetricSelectionComponent = ({
                 style={{ opacity: isDeletingItem ? 0.5 : 1 }}
                 hitSlop={8}
               >
-                <BinIcon />
+                <BinIcon width={ms(13)} height={ms(14)} />
               </Pressable>
             </View>
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 8,
+                gap: ms(8),
                 alignSelf: "center",
               }}
             >
@@ -1870,11 +1871,11 @@ export const MetricSelectionComponent = ({
               <Text
                 style={{
                   fontWeight: "400",
-                  fontSize: 14,
+                  fontSize: ms(14),
                   fontFamily: fonts.primary.regular,
                   color: Colors.light.white,
                   letterSpacing: 0.1,
-                  lineHeight: 20,
+                  lineHeight: ms(20),
                 }}
               >
                 {t("monthlyGoalPlanner.quranMetrics.fullCompletions", {
@@ -1882,7 +1883,7 @@ export const MetricSelectionComponent = ({
                 })}
               </Text>
             </View>
-            <TopSpace top={16} />
+            <TopSpace top={ms(16)} />
           </View>
         )}
       {item.name === "hizb" &&
@@ -1930,20 +1931,20 @@ export const MetricSelectionComponent = ({
                               ? Colors.light.green
                               : "transparent",
                             borderWidth: checked ? 0 : 1,
-                            marginTop: 2,
+                            marginTop: ms(2),
                           },
                         ]}
                       >
-                        {checked && <CheckBoxTickIcon />}
+                        {checked && <CheckBoxTickIcon width={ms(9)} height={ms(6)} />}
                       </View>
-                      <View style={{ flex: 1, gap: 4 }}>
+                      <View style={{ flex: 1, gap: ms(4) }}>
                         <Text
                           style={{
                             color: Colors.light.white,
-                            fontSize: 14,
+                            fontSize: ms(14),
                             fontFamily: fonts.primary.regular,
                             fontWeight: "400",
-                            lineHeight: 20,
+                            lineHeight: ms(20),
                             letterSpacing: 0.1,
                           }}
                         >
@@ -1987,11 +1988,11 @@ export const MetricSelectionComponent = ({
             <Text
               style={{
                 color: Colors.light.white,
-                fontSize: 14,
+                fontSize: ms(14),
                 fontWeight: "400",
                 fontFamily: fonts.primary.regular,
                 textAlign: "center",
-                lineHeight: 20,
+                lineHeight: ms(20),
               }}
             >
               {pendingDelete?.kind === "SURAH" && isMemorizationSurah
@@ -2064,9 +2065,9 @@ export const MetricSelectionComponent = ({
 };
 const styles = StyleSheet.create({
   checkbox: {
-    height: 16,
-    width: 16,
-    borderRadius: 3,
+    height: ms(16),
+    width: ms(16),
+    borderRadius: ms(3),
     borderWidth: 1,
     borderColor: Colors.light.white,
     alignItems: "center",
@@ -2076,9 +2077,9 @@ const styles = StyleSheet.create({
   metrixName: {
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
-    fontSize: 16,
+    fontSize: ms(16),
     color: Colors.light.white,
-    lineHeight: 22,
+    lineHeight: ms(22),
   },
   metrixWrapper: {
     flexDirection: "row",
@@ -2090,24 +2091,24 @@ const styles = StyleSheet.create({
   metricOptionsList: {
     height: METRIC_LIST_HEIGHT,
     width: "100%",
-    paddingBottom: 20,
+    paddingBottom: ms(20),
   },
   metricOptionsListInner: {
     height: METRIC_LIST_HEIGHT,
   },
   metricOptionsListContent: {
-    paddingBottom: 8,
+    paddingBottom: ms(8),
   },
   surahItemContainer: {
-    paddingVertical: 6,
+    paddingVertical: ms(6),
   },
   surahItemWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: ms(12),
   },
   surahExpandedContent: {
-    paddingTop: 20,
+    paddingTop: ms(20),
     alignItems: "center",
     width: "100%",
   },
@@ -2115,17 +2116,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 40,
+    gap: ms(40),
   },
   surahRadioOption: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: ms(8),
     flexShrink: 0,
   },
   /** Shared right gutter for chevron-up and bin so they share one vertical column */
   surahTrailingIconSlot: {
-    width: 24,
+    width: ms(24),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -2134,15 +2135,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     alignSelf: "stretch",
-    marginBottom: 6,
-    paddingLeft: 20,
+    marginBottom: ms(6),
+    paddingLeft: ms(20),
   },
   surahEnterTimesLabel: {
     flex: 1,
     color: Colors.light.white,
     opacity: 0.6,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -2150,11 +2151,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: ms(8),
   },
   surahTimesFrequencyLabel: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     opacity: 0.9,
@@ -2164,33 +2165,33 @@ const styles = StyleSheet.create({
   },
   surahFormulaPrimary: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     opacity: 0.6,
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: ms(16),
   },
   surahFormulaSecondary: {
     color: Colors.light.white,
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     opacity: 0.7,
     textAlign: "center",
-    lineHeight: 14,
+    lineHeight: ms(14),
   },
   surahVerseCount: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: "500",
-    marginTop: 2,
+    marginTop: ms(2),
   },
   radio: {
-    height: 14,
-    width: 14,
-    borderRadius: 7,
+    height: ms(14),
+    width: ms(14),
+    borderRadius: ms(7),
     borderWidth: 1,
     borderColor: Colors.light.grey,
     alignItems: "center",
@@ -2200,24 +2201,24 @@ const styles = StyleSheet.create({
     // borderColor: Colors.light.green,
   },
   radioInner: {
-    height: 8,
-    width: 8,
-    borderRadius: 4,
+    height: ms(8),
+    width: ms(8),
+    borderRadius: ms(4),
     backgroundColor: Colors.light.green,
   },
   radioLabel: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     opacity: 0.8,
     flexShrink: 0,
   },
   timesInput: {
     // Room for multi-digit values without clip when unfocused.
-    width: 48,
-    height: 36,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    width: ms(48),
+    height: ms(36),
+    paddingHorizontal: ms(0),
+    paddingVertical: ms(0),
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
@@ -2225,10 +2226,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.white,
     backgroundColor: "transparent",
-    borderRadius: 4,
+    borderRadius: ms(4),
     color: Colors.light.white,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
@@ -2236,16 +2237,16 @@ const styles = StyleSheet.create({
   },
   /** Wider box so 1–30 juz numbers are fully visible */
   juzRangeInputWrap: {
-    width: 44,
-    height: 36,
+    width: ms(44),
+    height: ms(36),
     justifyContent: "center",
     alignItems: "center",
   },
   juzRangeInput: {
     width: "100%",
     height: "100%",
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    paddingHorizontal: ms(0),
+    paddingVertical: ms(0),
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
@@ -2253,10 +2254,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.white,
     backgroundColor: "transparent",
-    borderRadius: 4,
+    borderRadius: ms(4),
     color: Colors.light.white,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
     fontWeight: "500",
     fontFamily: fonts.primary.medium,
     includeFontPadding: false,
@@ -2264,9 +2265,9 @@ const styles = StyleSheet.create({
   },
   juzCenteredCaret: {
     position: "absolute",
-    width: 1.5,
-    height: 18,
-    borderRadius: 1,
+    width: ms(1.5),
+    height: ms(18),
+    borderRadius: ms(1),
     backgroundColor: Colors.light.white,
   },
   timesInputFilled: {
@@ -2277,13 +2278,13 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     opacity: 0.7,
     fontFamily: fonts.primary.regular,
-    fontSize: 12,
+    fontSize: ms(12),
     textAlign: "center",
-    paddingVertical: 8,
+    paddingVertical: ms(8),
   },
   deleteButton: {
-    padding: 8,
-    borderRadius: 6,
+    padding: ms(8),
+    borderRadius: ms(6),
     backgroundColor: "transparent",
   },
 });

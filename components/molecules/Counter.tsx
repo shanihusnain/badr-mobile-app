@@ -9,6 +9,7 @@ import {
   type TextInput as TextInputType,
 } from "react-native";
 import { Pressable, View } from "react-native";
+import { ms } from "@/src/utils/responsive";
 import { TopSpace } from "../atoms/TopSpace";
 
 export const Counter = ({
@@ -240,7 +241,7 @@ export const Counter = ({
           <Text style={styles.btnText}>+</Text>
         </Pressable>
       </View>
-      <TopSpace top={8} />
+      <TopSpace top={ms(8)} />
       <Text style={styles.title}>{countTitle}</Text>
     </View>
   );
@@ -249,21 +250,21 @@ export const Counter = ({
 const styles = StyleSheet.create({
   title: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
   input: {
     // Wider so 3+ digit counts stay fully visible when unfocused.
-    width: 56,
+    width: ms(56),
     height: "100%",
     textAlign: "center",
     ...Platform.select({
       android: { textAlignVertical: "center" as const },
       default: {},
     }),
-    fontSize: 16,
-    lineHeight: 18,
+    fontSize: ms(16),
+    lineHeight: ms(18),
     fontWeight: "500",
     color: Colors.light.green,
     fontFamily: fonts.primary.medium,
@@ -278,14 +279,14 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 20,
+    minWidth: ms(20),
   },
   btnDisabled: {
     opacity: 0.4,
   },
   btnText: {
-    fontSize: 18,
-    lineHeight: 18,
+    fontSize: ms(18),
+    lineHeight: ms(18),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
@@ -299,10 +300,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
-    width: 120,
-    height: 32,
-    borderRadius: 4,
-    paddingHorizontal: 4,
+    width: ms(120),
+    height: ms(32),
+    borderRadius: ms(4),
+    paddingHorizontal: ms(4),
     paddingVertical: 0,
     overflow: "hidden",
   },

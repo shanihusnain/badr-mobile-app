@@ -29,6 +29,7 @@ import { BadrTreeImage } from "@/assets/images";
 import { LetterIcon, PasswordLockIcon } from "@/assets/icons";
 import { SocialAuthSection } from "./components/SocialAuthSection";
 import { resolvePostAuthHref } from "@/src/utils/resolvePostAuthHref";
+import { ms } from "@/src/utils/responsive";
 // Social login disabled (Expo Go / unmatched native routes).
 // import { SocialAuthSection } from "./components/SocialAuthSection";
 
@@ -143,7 +144,7 @@ export default function LoginScreen() {
                       {t("loginScreen.forgotPassword")}
                     </Text>
                   </TouchableOpacity>
-                  <TopSpace top={30} />
+                  <TopSpace top={ms(30)} />
                   <PrimaryButton
                     text={t("loginScreen.loginBtnText")}
                     onPress={handleSubmit(onSubmit)}
@@ -153,17 +154,17 @@ export default function LoginScreen() {
                   />
 
                   {/* Social login temporarily disabled */}
-                  <View style={styles.orloginContainer}>
+                  {/* <View style={styles.orloginContainer}>
                     <View style={styles.line} />
                     <Text style={styles.orloginText}>
                       {t("loginScreen.orLoginWith")}
                     </Text>
                     <View style={styles.line} />
-                  </View>
-                  <TopSpace top={30} />
-                  <SocialAuthSection disabled={loggingIn} />
+                  </View> */}
+                  <TopSpace top={ms(30)} />
+                  {/* <SocialAuthSection disabled={loggingIn} /> */}
 
-                  {Platform.OS === "ios" ? <TopSpace top={10} /> : null}
+                  {Platform.OS === "ios" ? <TopSpace top={ms(10)} /> : null}
                 </ScrollView>
               </View>
             </KeyboardAvoidingView>

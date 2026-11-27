@@ -2,6 +2,7 @@ import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import React from "react";
 import { Pressable, PressableProps, StyleSheet, Text } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 interface GreyButtonProps extends PressableProps {
   text: string;
@@ -31,16 +32,16 @@ export default function GreyButton({
 const styles = StyleSheet.create({
   button: {
     width: "90%",
-    minHeight: 40,
-    borderRadius: 6,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
+    minHeight: ms(40),
+    borderRadius: ms(6),
+    paddingTop: ms(10),
+    paddingBottom: ms(10),
+    paddingHorizontal: ms(8),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.light.buttonBackground,
     //borderColor: Colors.light.border,
-    marginBottom: 10,
+    marginBottom: ms(10),
     alignSelf: "center",
   },
   buttonPressed: {
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     color: Colors.light.inputBackground,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: ms(14),
+    lineHeight: ms(18),
   },
 });

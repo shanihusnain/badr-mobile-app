@@ -1,5 +1,6 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 import { StyleSheet, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -28,10 +29,10 @@ const styles = StyleSheet.create({
   container: {
     color: Colors.light.white,
     fontWeight: "400",
-    fontSize: 16,
+    fontSize: ms(16),
     fontFamily: fonts.primary.regular,
-    lineHeight: 20,
-    marginTop: 24,
+    lineHeight: ms(20),
+    marginTop: ms(24),
     width: "80%",
     textAlign: "center",
     alignSelf: "center",
@@ -39,6 +40,6 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
+    fontSize: ms(16),
   },
 });

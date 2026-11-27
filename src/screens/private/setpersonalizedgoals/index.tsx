@@ -103,11 +103,11 @@ export const SetPersonalizedGoalsScreen = () => {
               name: displayName,
             })}
             showBackBtn={false}
-            fontSize={18}
+            fontSize={ms(18)}
             textAlign="left"
-            lineHeight={22}
+            lineHeight={ms(22)}
             forceSmallCaps
-            extraTopPadding={Platform.OS === "ios" ? 10 : 0}
+            extraTopPadding={Platform.OS === "ios" ? ms(10) : 0}
           />
         ),
       });
@@ -138,14 +138,7 @@ export const SetPersonalizedGoalsScreen = () => {
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View
-              style={[
-                globalStyles.rowCenter,
-                {
-                  marginTop: ms(22),
-                },
-              ]}
-            >
+            <View style={[globalStyles.rowCenter, styles.howItWorksRow]}>
               <GreenDash />
               <Text style={styles.howItWorksText}>
                 {t("setpersonalizedgoals.howItWorks")}
@@ -168,17 +161,10 @@ export const SetPersonalizedGoalsScreen = () => {
             <Text style={styles.descriptionText}>
               {t("setpersonalizedgoals.setPersonalizedDescription")}
             </Text>
-            <View
-              style={{
-                alignSelf: "center",
-                marginTop: ms(36),
-              }}
-            >
+            <View style={styles.watchTutorialWrap}>
               <Pressable
                 onPress={onWatchTutorialPress}
-                style={{
-                  alignSelf: "center",
-                }}
+                style={{ alignSelf: "center" }}
               >
                 <Text style={globalStyles.greenCTA}>
                   {t("setpersonalizedgoals.watchTutorial")}

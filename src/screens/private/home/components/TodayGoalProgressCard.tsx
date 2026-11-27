@@ -7,15 +7,12 @@ import {
 } from "../todayGoalsProgress";
 import { styles } from "../styles";
 import i18next from "i18next";
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from "react-native-responsive-screen";
 import { Colors } from "@/constants/theme";
 import { resolveMyDayEntryIcon } from "../resolveMyDayEntryIcon";
 import { getDetailedIbadahIcon } from "./DetailedIbadahsProgressCards";
 import { goalTypeToGoalId } from "@/src/utils/goalCycleCategoryMap";
 import { prepareFigmaForcedSmallCapsText } from "@/src/utils/figmaTypography";
+import { ms, s } from "@/src/utils/responsive";
 
 type Props = {
   entry: TodayGoalProgressEntry;
@@ -58,7 +55,7 @@ export function TodayGoalProgressCard({ entry }: Props) {
   const translatedTitle = getTodayGoalTitle(entry.id, entry.goalTitle);
   const translatedDesc = getTodayGoalDesc(entry.id, entry.description);
   // Larger circle + ~72% glyph fill to match Figma weight (still clipped safely).
-  const iconCircleSize = Math.min(hp(3.2), wp(11.5));
+  const iconCircleSize = s(40);
   const iconSize = iconCircleSize * 0.7;
   const entryIcon = resolveMyDayEntryIcon(entry, Colors.light.white, iconSize);
 
@@ -72,7 +69,7 @@ export function TodayGoalProgressCard({ entry }: Props) {
       : null;
   const chipIbadahIcon =
     chipGoalId != null
-      ? getDetailedIbadahIcon(chipGoalId, Colors.light.white, 14)
+      ? getDetailedIbadahIcon(chipGoalId, Colors.light.white, ms(14))
       : null;
 
   return (

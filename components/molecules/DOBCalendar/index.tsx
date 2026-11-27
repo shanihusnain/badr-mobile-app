@@ -19,6 +19,7 @@ import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
 import { BackChevron, DownArrowIcon, Forwardchevron } from "@/assets/icons";
+import { ms, s } from "@/src/utils/responsive";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,7 @@ const MONTHS = [
 
 const MINIMUM_AGE_YEARS = 13;
 /** One row height × 12 months — year panel uses the same fixed height. */
-const DROPDOWN_ITEM_HEIGHT = 24;
+const DROPDOWN_ITEM_HEIGHT = ms(24);
 const DROPDOWN_PANEL_HEIGHT = DROPDOWN_ITEM_HEIGHT * MONTHS.length;
 
 type DropdownType = "month" | "year" | null;
@@ -496,17 +497,17 @@ export default DOBCalendar;
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 8,
+    marginBottom: ms(8),
     overflow: "visible",
     zIndex: 1,
   },
 
   topBar: {
     backgroundColor: Colors.light.calendarBg,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingHorizontal: 12,
-    paddingTop: 16,
+    borderTopLeftRadius: ms(12),
+    borderTopRightRadius: ms(12),
+    paddingHorizontal: ms(12),
+    paddingTop: ms(16),
     zIndex: 20,
     overflow: "visible",
   },
@@ -514,7 +515,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
+    gap: ms(8),
     zIndex: 20,
   },
   dropdownCol: {
@@ -522,21 +523,21 @@ const styles = StyleSheet.create({
     zIndex: 21,
   },
   monthDropdownCol: {
-    width: 96,
+    width: s(96),
   },
   yearDropdownCol: {
     // 4-digit year + caret; 64 was too tight and wrapped "2005" → "200"/"5".
-    width: 78,
+    width: s(78),
   },
   dropdownButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
     backgroundColor: Colors.light.greybuttonBackground,
-    height: 28,
-    paddingLeft: 10,
-    paddingRight: 22,
-    borderRadius: 6,
+    height: ms(28),
+    paddingLeft: ms(10),
+    paddingRight: ms(22),
+    borderRadius: ms(6),
     borderWidth: 1,
     borderColor: "transparent",
     position: "relative",
@@ -545,15 +546,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.green,
   },
   dropdownButtonText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    lineHeight: 16,
+    lineHeight: ms(16),
     textAlign: "left",
   },
   monthDropdownButtonText: {
-    marginLeft: 4,
+    marginLeft: ms(4),
   },
   yearDropdownButtonText: {
     flexShrink: 0,
@@ -563,8 +564,8 @@ const styles = StyleSheet.create({
   },
   dropdownCaret: {
     position: "absolute",
-    right: 6,
-    top: 2,
+    right: ms(6),
+    top: ms(2),
     bottom: 0,
     justifyContent: "center",
   },
@@ -573,18 +574,18 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    marginTop: 4,
+    marginTop: ms(4),
     borderWidth: 1,
     borderColor: Colors.light.calendarBg,
-    borderRadius: 8,
+    borderRadius: ms(8),
     overflow: "hidden",
     backgroundColor: Colors.light.greybuttonBackground,
     zIndex: 30,
     elevation: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: ms(4) },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowRadius: ms(8),
   },
   dropdownList: {
     flexGrow: 0,
@@ -592,7 +593,7 @@ const styles = StyleSheet.create({
   },
   yearListContent: {
     flexGrow: 0,
-    paddingBottom: 4,
+    paddingBottom: ms(4),
   },
   listItem: {
     justifyContent: "center",
@@ -600,19 +601,19 @@ const styles = StyleSheet.create({
   },
   /** Match button label inset: paddingLeft 10 + month nudge 4 */
   monthListItem: {
-    paddingLeft: 14,
-    paddingRight: 8,
+    paddingLeft: ms(14),
+    paddingRight: ms(8),
   },
   /** Match button label inset: paddingLeft 10 */
   yearListItem: {
-    paddingLeft: 10,
-    paddingRight: 8,
+    paddingLeft: ms(10),
+    paddingRight: ms(8),
   },
   listItemDisabled: {
     opacity: 0.35,
   },
   listItemText: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     textAlign: "left",
@@ -626,7 +627,7 @@ const styles = StyleSheet.create({
   navSection: {
     backgroundColor: Colors.light.calendarBg,
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: ms(10),
     zIndex: 1,
   },
   navRow: {
@@ -635,41 +636,41 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.light.calendarBg,
   },
-  navArrow: { paddingHorizontal: 12 },
+  navArrow: { paddingHorizontal: ms(12) },
   navLabelContainer: {
     alignItems: "center",
   },
   navLabel: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
   islamicDateText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginTop: 10,
+    marginTop: ms(10),
   },
 
   actionRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: ms(12),
     alignSelf: "center",
   },
   cancelBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 4,
+    paddingHorizontal: ms(20),
+    paddingVertical: ms(4),
   },
   cancelText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontFamily: fonts.primary.semiBold,
   },
   okBtn: {
-    paddingHorizontal: 20,
-    borderRadius: 6,
+    paddingHorizontal: ms(20),
+    borderRadius: ms(6),
     borderWidth: 1,
     borderColor: Colors.light.green,
     alignItems: "center",
@@ -679,7 +680,7 @@ const styles = StyleSheet.create({
   okBtnDisabled: { opacity: 0.7 },
   okText: {
     color: Colors.light.white,
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "500",
     fontFamily: fonts.primary.semiBold,
   },

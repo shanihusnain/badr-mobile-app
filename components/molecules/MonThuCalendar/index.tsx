@@ -6,6 +6,7 @@
 import { Colors } from "@/constants/theme";
 import { useState, useEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { ms } from "@/src/utils/responsive";
 import moment from "moment-hijri";
 import { fonts } from "@/assets/fonts";
 import { CalendarGrid } from "@/components/molecules/CalendarGrid";
@@ -112,8 +113,8 @@ export const MonThuCalendar = ({
           style={[
             styles.topBar,
             hideDateLabel && {
-              borderTopLeftRadius: 12,
-              borderTopRightRadius: 12,
+              borderTopLeftRadius: ms(12),
+              borderTopRightRadius: ms(12),
             },
           ]}
         >
@@ -139,7 +140,7 @@ export const MonThuCalendar = ({
         <View
           style={[
             styles.dateLabel,
-            hideLegend && { borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+            hideLegend && { borderTopLeftRadius: ms(12), borderTopRightRadius: ms(12) },
           ]}
         >
           <Text style={styles.dateLabelText}>{rangeLabel}</Text>
@@ -205,31 +206,31 @@ const styles = StyleSheet.create({
 
   topBar: {
     backgroundColor: Colors.light.calendarBg,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    borderTopLeftRadius: ms(12),
+    borderTopRightRadius: ms(12),
+    paddingHorizontal: ms(12),
+    paddingVertical: ms(12),
   },
 
   legendRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 10,
+    gap: ms(10),
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: ms(6),
   },
   legendRing: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: ms(10),
+    height: ms(10),
+    borderRadius: ms(5),
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 9,
+    fontSize: ms(9),
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
     letterSpacing: 0.1,
@@ -238,19 +239,19 @@ const styles = StyleSheet.create({
   dateLabel: {
     alignItems: "center",
     backgroundColor: Colors.light.calendarBg,
-    paddingVertical: 10,
+    paddingVertical: ms(10),
   },
   dateLabelText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "600",
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
   },
   islamicDateText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: "400",
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginTop: 4,
+    marginTop: ms(4),
   },
 });

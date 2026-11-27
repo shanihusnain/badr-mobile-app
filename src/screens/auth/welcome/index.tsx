@@ -12,6 +12,7 @@ import { TopSpace } from "@/components/atoms/TopSpace";
 import { BadarNameLogo } from "@/assets/icons";
 import { moonimage } from "@/assets/images";
 import { Colors } from "@/constants/theme";
+import { ms } from "@/src/utils/responsive";
 
 const backgroundImage = require("@/assets/images/welcomescreenimagebackground.png");
 export default function WelcomeScreen() {
@@ -43,12 +44,12 @@ export default function WelcomeScreen() {
           text={t("welcomeScreen.loginBtnText")}
           onPress={handleLogin}
         />
-        <TopSpace top={10} />
+        <TopSpace top={ms(10)} />
         <SecondaryButton
           text={t("welcomeScreen.createAccountBtnText")}
           onPress={handleCreateAccount}
         />
-        <TopSpace top={10} />
+        <TopSpace top={ms(10)} />
       </SafeAreaView>
     </ImageBackground>
   );

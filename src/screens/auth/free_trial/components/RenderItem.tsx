@@ -1,6 +1,7 @@
 import { fonts } from "@/assets/fonts";
 import { Colors } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
+import { ms, s } from "@/src/utils/responsive";
 
 export const RenderItem = ({
   item,
@@ -22,23 +23,23 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginTop: 18,
+    marginTop: ms(18),
   },
   iconWrapper: {
-    width: 24,
-    height: 20,
-    marginRight: 9,
+    width: ms(24),
+    height: ms(20),
+    marginRight: ms(9),
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 2,
+    marginTop: ms(2),
   },
   pointText: {
     flex: 1,
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14),
+    lineHeight: ms(20),
     letterSpacing: 0,
     textAlign: "left",
     opacity: 1,

@@ -10,6 +10,7 @@ import {
   TextStyle,
   ActivityIndicator,
 } from "react-native";
+import { ms } from "@/src/utils/responsive";
 
 interface PrimaryButtonProps extends PressableProps {
   text: string;
@@ -70,18 +71,18 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     width: "100%",
-    borderRadius: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    borderRadius: ms(4),
+    paddingVertical: ms(8),
+    paddingHorizontal: ms(8),
     // padding + label lineHeight — keeps loading/disabled the same height as enabled
-    minHeight: 41,
+    minHeight: ms(41),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.light.green,
   },
   buttonCompact: {
-    paddingVertical: 2,
-    minHeight: 32,
+    paddingVertical: ms(2),
+    minHeight: ms(32),
   },
   buttonLoading: {
     backgroundColor: Colors.light.green,
@@ -97,8 +98,8 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
     fontWeight: "500",
-    fontSize: 14,
-    lineHeight: 25,
+    fontSize: ms(14),
+    lineHeight: ms(25),
     letterSpacing: 0,
   },
   buttonTextDisabled: {

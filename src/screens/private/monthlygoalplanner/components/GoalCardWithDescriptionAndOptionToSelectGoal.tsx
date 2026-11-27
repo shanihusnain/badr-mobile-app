@@ -8,12 +8,13 @@ import { useState, useEffect, useMemo } from "react";
 import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
+import { ms } from "@/src/utils/responsive";
 
 /** Figma shows ~4 lines with "... read more" inline on the last line. */
 const DESCRIPTION_MAX_LINES = 4;
 const ELLIPSIS = "... ";
-/** Approx. average glyph width for 14px primary font. */
-const AVG_CHAR_WIDTH = 7.2;
+/** Approx. average glyph width for 14px primary font (tracks ms font scale). */
+const AVG_CHAR_WIDTH = 7.2 * (ms(14) / 14);
 
 export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
   initialValue = false,
@@ -128,11 +129,11 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
           />
         </ImageBackground>
       )}
-      <TopSpace top={16} />
+      <TopSpace top={ms(16)} />
       <Text style={[styles.title, isRtl && { textAlign: "right" }]}>
         {displayTitle}
       </Text>
-      <TopSpace top={8} />
+      <TopSpace top={ms(8)} />
 
       <View style={styles.descriptionWrap} onLayout={onBodyLayout}>
         <Text style={[styles.description, isRtl && { textAlign: "right" }]}>
@@ -152,13 +153,13 @@ export const GoalCardWithDescriptionAndOptionToSelectGoal = ({
 const styles = StyleSheet.create({
   seeMoreText: {
     color: Colors.light.green,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
   seeMoreEllipsis: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(14),
     fontFamily: fonts.primary.regular,
     fontWeight: "400",
   },
@@ -169,32 +170,32 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontWeight: "400",
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: ms(14),
+    lineHeight: ms(21),
     letterSpacing: 0.02,
   },
   title: {
     color: Colors.light.white,
     fontWeight: "600",
     fontFamily: fonts.primary.semiBold,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: ms(16),
+    lineHeight: ms(20),
   },
   backgroundImage: {
     width: "100%",
-    height: 120,
-    padding: 16,
-    borderRadius: 4,
+    height: ms(120),
+    padding: ms(16),
+    borderRadius: ms(4),
     overflow: "hidden",
   },
   loadingImage: {
     backgroundColor: Colors.light.blackBackground,
   },
   conatiner: {
-    borderRadius: 8,
+    borderRadius: ms(8),
     backgroundColor: Colors.light.greybuttonBackground,
     justifyContent: "center",
-    padding: 16,
+    padding: ms(16),
   },
   switch: {
     alignSelf: "flex-end",

@@ -40,6 +40,7 @@ import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
 } from "@/src/utils/figmaTypography";
+import { ms, s } from "@/src/utils/responsive";
 
 type Props = {
   title: string;
@@ -187,8 +188,8 @@ export const DetailedIbadahsProgressCard = ({
       // Prior style: base fontSize 15 + lineHeight 20; callers may override
       // fontSize via titleFontSize (14 / 14.5) while lineHeight stays 20.
       getFigmaForcedSmallCapsTextStyle({
-        fontSize: titleFontSize,
-        lineHeight: 20,
+        fontSize: ms(titleFontSize),
+        lineHeight: ms(20),
         letterSpacing: 0,
         color: Colors.light.white,
       }),
@@ -244,7 +245,7 @@ export const DetailedIbadahsProgressCard = ({
           <TaperedCircleBorder
             percentage={loading ? "0%" : percentage}
             borderColor={Colors.light.ringTrackEmpty}
-            size={64}
+            size={s(64)}
             variant="illuminated"
           >
             <View style={styles.percentTextContainer}>
@@ -271,11 +272,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.ibadahProgressCardBg,
-    borderRadius: 12,
+    borderRadius: ms(12),
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 16,
+    paddingHorizontal: ms(16),
+    paddingVertical: ms(16),
+    marginBottom: ms(16),
     overflow: "hidden",
   },
   leftSection: {
@@ -283,26 +284,26 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     flex: 1,
     minWidth: 0,
-    marginRight: 12,
+    marginRight: ms(12),
   },
   leftSectionCentered: {
     alignItems: "center",
     justifyContent: "center",
   },
   iconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: ms(32),
+    height: ms(32),
+    borderRadius: ms(16),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
-    marginTop: 2,
+    marginRight: ms(12),
+    marginTop: ms(2),
   },
   iconPlaceholder: {
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 11,
+    fontSize: ms(11),
   },
   textWrapper: {
     flex: 1,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    marginBottom: 2,
+    marginBottom: ms(2),
     flexShrink: 1,
   },
   subtitle: {
@@ -321,12 +322,12 @@ const styles = StyleSheet.create({
     color: Colors.light.white,
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: ms(14),
   },
   regularText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: "500",
   },
   rightSection: {
@@ -334,10 +335,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
-    marginRight: 10,
+    marginRight: ms(10),
     overflow: "visible",
-    width: 40,
-    height: 40,
+    width: ms(40),
+    height: ms(40),
   },
   percentTextContainer: {
     flexDirection: "row",
@@ -347,13 +348,13 @@ const styles = StyleSheet.create({
   percentText: {
     color: Colors.light.white,
     fontFamily: fonts.primary.medium,
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: "500",
   },
   percentSymbol: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 8,
+    fontSize: ms(8),
     marginLeft: 0.5,
   },
 });

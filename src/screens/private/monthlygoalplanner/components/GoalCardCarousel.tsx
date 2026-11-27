@@ -7,10 +7,10 @@ import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { GoalCard, type GoalCardData } from "./GoalCard";
 import { ms } from "@/src/utils/responsive";
 
-const SCREEN_H_PADDING = 16;
+const SCREEN_H_PADDING = ms(16);
 // Fallback height while we measure the actual `GoalCard` height for this screen width.
 const CARD_HEIGHT_FALLBACK = ms(180);
-const STACK_OFFSET_Y = 3;
+const STACK_OFFSET_Y = ms(3);
 const PEEK_VISIBLE = 1;
 
 // Defined outside component — stable reference, never triggers worklet warning
@@ -83,7 +83,7 @@ export const GoalCardCarousel = ({ data }: Props) => {
       <Pagination.Basic
         progress={progress}
         data={data}
-        size={6}
+        size={ms(6)}
         dotStyle={styles.dot}
         activeDotStyle={styles.dotActive}
         containerStyle={[
@@ -99,15 +99,15 @@ const styles = StyleSheet.create({
   dotsRow: {
     justifyContent: "center",
     alignItems: "center",
-    gap: 6,
+    gap: ms(6),
     marginTop: ms(16),
   },
   dot: {
     backgroundColor: Colors.light.paginationInactiveDot,
-    borderRadius: 12,
+    borderRadius: ms(12),
   },
   dotActive: {
     backgroundColor: Colors.light.green,
-    borderRadius: 12,
+    borderRadius: ms(12),
   },
 });

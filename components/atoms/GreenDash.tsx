@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/theme";
-import { StyleSheet } from "react-native";
-import { View } from "react-native";
+import { ms } from "@/src/utils/responsive";
+import { StyleSheet, View } from "react-native";
 
 export const GreenDash = () => {
   return <View style={styles.dashLine} />;
@@ -8,9 +8,9 @@ export const GreenDash = () => {
 
 const styles = StyleSheet.create({
   dashLine: {
-    height: 2,
-    width: 40,
+    height: ms(2),
+    width: ms(40),
     backgroundColor: Colors.light.green,
-    marginTop: 2,
+    marginTop: ms(2),
   },
 });

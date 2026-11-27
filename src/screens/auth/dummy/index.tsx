@@ -10,6 +10,7 @@ import MissedRamadanFastGoalSelection from "@/components/molecules/MissedRamadan
 import ProphetDawoodFastGoalSelection from "@/components/molecules/ProphetDawoodFastGoalSelection";
 import MondayThursdayFastGoalSelection from "@/components/molecules/MondayThursdayFastGoalSelection";
 import WhiteDaysFastGoalSelection from "@/components/molecules/WhiteDaysFastGoalSelection";
+import { ms, s } from "@/src/utils/responsive";
 
 export const DummyScreen = () => {
   return (
@@ -39,24 +40,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.blackBackground,
   },
   scroll: {
-    padding: 16,
-    paddingTop: 60,
-    paddingBottom: 40,
+    padding: ms(16),
+    paddingTop: ms(60),
+    paddingBottom: ms(40),
   },
   title: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: "700",
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    marginBottom: 8,
+    marginBottom: ms(8),
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: Colors.light.grey,
     fontFamily: fonts.primary.regular,
-    marginBottom: 24,
+    marginBottom: ms(24),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
 });

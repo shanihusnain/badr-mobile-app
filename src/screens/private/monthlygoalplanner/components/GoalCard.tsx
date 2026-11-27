@@ -33,7 +33,7 @@ export const GoalCard = ({ item, cardWidth }: Props) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.light.greybuttonBackground,
-    borderRadius: 8,
+    borderRadius: ms(8),
     height: ms(185),
     paddingVertical: ms(15),
     paddingHorizontal: ms(12),
@@ -52,16 +52,16 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.light.white,
-    fontSize: 18,
+    fontSize: ms(17),
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
-    lineHeight: 22,
+    lineHeight: ms(22),
   },
   description: {
     color: Colors.light.white,
-    fontSize: 14,
+    fontSize: ms(13.5),
     fontFamily: fonts.primary.regular,
-    lineHeight: 21,
+    lineHeight: ms(21),
     fontWeight: "400",
     letterSpacing: 0.1,
   },

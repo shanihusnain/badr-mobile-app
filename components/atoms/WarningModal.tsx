@@ -13,6 +13,7 @@ import {
 import { FullWindowOverlay } from "react-native-screens";
 import { Colors } from "@/constants/theme";
 import { fonts } from "@/assets/fonts";
+import { ms } from "@/src/utils/responsive";
 import SecondaryButton from "./Secondary-button";
 
 type WarningModalProps = {
@@ -145,52 +146,52 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.overlayBlackColor,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: ms(32),
   },
   modalContainer: {
     backgroundColor: Colors.light.darkgrey,
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 30,
+    borderRadius: ms(8),
+    paddingHorizontal: ms(24),
+    paddingVertical: ms(30),
     width: "100%",
   },
   title: {
     color: Colors.light.white,
     fontFamily: fonts.primary.bold,
-    fontSize: 16,
+    fontSize: ms(16),
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: ms(12),
     textTransform: "uppercase",
-    lineHeight: 22,
+    lineHeight: ms(22),
   },
   titleOnly: {
-    marginBottom: 24,
+    marginBottom: ms(24),
   },
   messageContainer: {
-    marginBottom: 24,
+    marginBottom: ms(24),
   },
   message: {
     color: Colors.light.white,
     fontFamily: fonts.primary.regular,
-    fontSize: 14,
+    fontSize: ms(14),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: ms(20),
     fontWeight: "400",
   },
   buttonContainer: {
-    gap: 12,
+    gap: ms(12),
     width: "50%",
     alignSelf: "center",
   },
   secondaryButton: {
-    paddingVertical: 4,
+    paddingVertical: ms(4),
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryButtonText: {
     color: Colors.light.subtext,
     fontFamily: fonts.primary.semiBold,
-    fontSize: 12,
+    fontSize: ms(12),
   },
   secondaryButtonTextDisabled: {
     opacity: 0.45,
