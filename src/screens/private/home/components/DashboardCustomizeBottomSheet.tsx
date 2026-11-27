@@ -46,6 +46,7 @@ import {
   getFigmaForcedSmallCapsTextStyle,
   prepareFigmaForcedSmallCapsText,
 } from "@/src/utils/figmaTypography";
+import { TimeSpentMoreTabDashboardIcon } from "@/assets/icons/TimeSpentMoreTabDashboardIcon";
 
 export type DashboardCategory =
   | "Prayer"
@@ -64,6 +65,7 @@ export type DashboardCustomizeSettings = {
 
 type Props = {
   onClose: () => void;
+  onTimeSpentPress: () => void;
   onSave?: (settings: DashboardCustomizeSettings) => void;
   onChange?: (index: number) => void;
 };
@@ -90,7 +92,7 @@ function normalizeApiTab(tab: string | null | undefined): DashboardApiTab {
   return DashboardCategoryType.ALL;
 }
 
-/** My Dashboard / Add filter tabs — exclude TIME_SPENT (not interactive customize). */
+/** My Dashboard / Add filter tabs supported by the customize endpoint. */
 function isCustomizeFilterTab(tab: DashboardApiTab | string): boolean {
   const key = normalizeApiTab(tab);
   return (
@@ -98,7 +100,8 @@ function isCustomizeFilterTab(tab: DashboardApiTab | string): boolean {
     key === DashboardCategoryType.PRAYER ||
     key === DashboardCategoryType.QURAN ||
     key === DashboardCategoryType.FASTING ||
-    key === DashboardCategoryType.SADAQAH
+    key === DashboardCategoryType.SADAQAH ||
+    key === DashboardCategoryType.TIME_SPENT
   );
 }
 
@@ -148,6 +151,7 @@ function getFilterTabTranslationKey(tabKey: string): string {
     QURAN: "homeScreen.filterQuran",
     FASTING: "homeScreen.filterFasting",
     SADAQAH: "homeScreen.filterSadaqah",
+    TIME_SPENT: "homeScreen.filterTimeSpent",
   };
   return keyMap[tabKey] || tabKey;
 }
@@ -196,6 +200,9 @@ function CategoryTabsScroll({
             label={label}
             onPress={() => onSelectTab(tabKey)}
             selectedTab={selectedLabel}
+            tabStyle={
+              keyPrefix === "dashboard" ? styles.dashboardCategoryTab : undefined
+            }
           />
         );
       })}
@@ -204,7 +211,10 @@ function CategoryTabsScroll({
 }
 
 export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
-  function DashboardCustomizeBottomSheet({ onClose, onSave, onChange }, ref) {
+  function DashboardCustomizeBottomSheet(
+    { onClose, onTimeSpentPress, onSave, onChange },
+    ref,
+  ) {
     const safeAreaInsets = useSafeAreaInsets();
     const { t } = useTypedTranslation();
     const [selectedDashboardTab, setSelectedDashboardTab] =
@@ -486,11 +496,15 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
         <>
           <View style={styles.header}>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={Colors.light.white} />
+              <Ionicons name="close" size={21} color={Colors.light.white} />
             </Pressable>
             <Text style={styles.headerTitle}>{sheetTitle}</Text>
             <View style={styles.headerSpacer} />
           </View>
+          <TopSpace top={42} />
+          <Text style={styles.dashboardSectionTitle}>
+            {t("homeScreen.myDashboard")}
+          </Text>
           <TopSpace top={16} />
           <CategoryTabsScroll
             keyPrefix="dashboard"
@@ -499,9 +513,32 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
             onSelectTab={setSelectedDashboardTab}
           />
           <TopSpace top={16} />
+          {selectedDashboardTab === DashboardCategoryType.TIME_SPENT ? (
+            <View style={styles.rowWrapper}>
+              <Pressable
+                style={[styles.listItem, styles.timeSpentDashboardRow]}
+                onPress={onTimeSpentPress}
+              >
+                <TimeSpentMoreTabDashboardIcon
+                  size={32}
+                  color={Colors.light.graylightshade}
+                />
+                <Text
+                  style={[styles.listItemTitle, styles.timeSpentDashboardTitle]}
+                >
+                  {prepareFigmaForcedSmallCapsText(t("homeScreen.timeSpent"))}
+                </Text>
+                <Ionicons
+                  name="bar-chart-outline"
+                  size={24}
+                  color={Colors.light.white}
+                />
+              </Pressable>
+            </View>
+          ) : null}
         </>
       ),
-      [onClose, selectedDashboardTab, sheetTitle, tabs],
+      [onClose, onTimeSpentPress, selectedDashboardTab, sheetTitle, t, tabs],
     );
 
     const ListFooterComponent = useCallback(
@@ -590,11 +627,19 @@ export const DashboardCustomizeBottomSheet = forwardRef<BottomSheet, Props>(
       >
         <BottomSheetFlatList
           ref={listRef}
-          data={activeItems}
+          data={
+            selectedDashboardTab === DashboardCategoryType.TIME_SPENT
+              ? []
+              : activeItems
+          }
           keyExtractor={(item) => item.key}
           renderItem={renderDashboardItem}
           ListHeaderComponent={ListHeaderComponent}
-          ListFooterComponent={ListFooterComponent}
+          ListFooterComponent={
+            selectedDashboardTab === DashboardCategoryType.TIME_SPENT
+              ? null
+              : ListFooterComponent
+          }
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           enableFooterMarginAdjustment
@@ -613,16 +658,26 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: 14,
+    fontFamily: fonts.primary.semiBold,
+    lineHeight: 18,
     fontWeight: "600",
   },
   headerSpacer: {},
+  dashboardSectionTitle: {
+    marginHorizontal: 20,
+    color: Colors.light.white,
+    fontFamily: fonts.primary.medium,
+    fontWeight: "500",
+    fontSize: 18,
+    lineHeight: 20,
+  },
   closeButton: {
     alignItems: "center",
     justifyContent: "center",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   categoryFilterScroll: {
@@ -639,7 +694,11 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     flexGrow: 0,
   },
+  dashboardCategoryTab: {
+    paddingHorizontal: 16,
+  },
   listContent: {
+    paddingTop: 26,
     paddingBottom: 40,
   },
   saveFooter: {
@@ -659,6 +718,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.greybuttonBackground,
     paddingHorizontal: 12,
     borderRadius: 8,
+  },
+  timeSpentDashboardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 72,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  timeSpentDashboardTitle: {
+    flex: 1,
   },
   equalSignWrap: {
     flexShrink: 0,

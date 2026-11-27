@@ -12,6 +12,7 @@ import { localizeNumber } from "@/src/utils/localizeNumbers";
 
 interface GoalDetailsCardProps {
   title: string;
+  icon?: React.ReactNode;
   percentage: string;
   /** Unused for illuminated glow — kept optional for callers that still pass a brand color. */
   progressColor?: string;
@@ -24,6 +25,7 @@ interface GoalDetailsCardProps {
 
 export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
   title,
+  icon,
   percentage,
   goalsCount,
   notStarted = "11",
@@ -58,8 +60,10 @@ export const GoalDetailsCard: React.FC<GoalDetailsCardProps> = ({
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      {/* Header Text */}
-      <Text style={styles.headerText}>{title}</Text>
+      <View style={styles.headerRow}>
+        {icon ? <View style={styles.headerIcon}>{icon}</View> : null}
+        <Text style={styles.headerText}>{title}</Text>
+      </View>
 
       {/* Center Visual: Scaled-up Tapered Progress Circle */}
       <View style={styles.circleContainer}>
@@ -120,6 +124,18 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 16,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: hp(2),
+  },
+  headerIcon: {
+    width: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerText: {
     fontFamily: fonts.primary.semiBold,
     fontWeight: "600",
@@ -129,7 +145,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: Colors.light.white,
     alignSelf: "flex-start",
-    marginBottom: hp(2),
   },
   circleContainer: {
     alignItems: "center",
@@ -167,7 +182,7 @@ const styles = StyleSheet.create({
   },
   column: {
     flex: 1,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   columnLabel: {
     fontFamily: fonts.primary.regular,
@@ -177,7 +192,7 @@ const styles = StyleSheet.create({
     color: Colors.light.grey,
     textTransform: "uppercase",
     marginBottom: 6,
-    textAlign: "center",
+    textAlign: "left",
   },
   columnValue: {
     fontFamily: fonts.primary.bold,
@@ -186,6 +201,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: Colors.light.white,
     textTransform: "uppercase",
-    textAlign: "center",
+    textAlign: "left",
   },
 });

@@ -14,6 +14,10 @@ import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { useGetHomeMoon } from "@/src/api/queries/useGetHomeMoon";
 import { LoadingComponent } from "@/components/atoms/LoadingComponent";
+import { TransparentPrayerMatIcon } from "@/assets/icons/TransparentPrayerMatIcon";
+import { TransparentQuranIcon } from "@/assets/icons/TransparentQuranIcon";
+import { TransparentFastingIcon } from "@/assets/icons/TransparentFastingIcon";
+import { TransparentHandHeartIcon } from "@/assets/icons/TransparentHandHeartIcon";
 
 const CATEGORY_SLUG: Record<string, string> = {
   PRAYER: "prayer",
@@ -21,6 +25,21 @@ const CATEGORY_SLUG: Record<string, string> = {
   FASTING: "fasting",
   SADAQAH: "sadaqah",
 };
+
+function getCategoryIcon(category: string): React.ReactNode {
+  switch (category.toUpperCase()) {
+    case "PRAYER":
+      return <TransparentPrayerMatIcon size={24} />;
+    case "QURAN":
+      return <TransparentQuranIcon size={24} />;
+    case "FASTING":
+      return <TransparentFastingIcon size={24} />;
+    case "SADAQAH":
+      return <TransparentHandHeartIcon size={24} />;
+    default:
+      return null;
+  }
+}
 
 type Props = {
   onClose: () => void;
@@ -141,6 +160,7 @@ export const NamazGoalBottomSheet = forwardRef<BottomSheet, Props>(
                   <GoalDetailsCard
                     key={category.category}
                     title={category.label?.trim() || category.category}
+                    icon={getCategoryIcon(String(category.category ?? ""))}
                     percentage={percentage}
                     goalsCount={category.goalsLabel?.trim() || undefined}
                     notStarted={String(category.notStarted?.value ?? 0)}

@@ -1533,6 +1533,11 @@ export default function HomeScreen() {
         onClose={() => {
           dashboardSheetRef.current?.close();
         }}
+        onTimeSpentPress={() => {
+          dashboardSheetRef.current?.close();
+          setIsTimeSpentOpen(true);
+          handleBottomSheetChange("timeSpent", 0);
+        }}
         onChange={(index) => handleBottomSheetChange("dashboard", index)}
       />
 
